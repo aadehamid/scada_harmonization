@@ -1,6 +1,7 @@
 # Warp/Claude files
 .claude
 .entire
+.specstory
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
