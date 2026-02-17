@@ -1,0 +1,31 @@
+list the files in this folder
+
+---
+
+I am working on a mini SCADA Harmonization project. I have added some details about the project to ./docs. Please can you reformat each of the docs to make them a proper markdown file. We will make some uodate s later once the clean up is done.
+
+---
+
+Okay. Do you haveaccess to my chat with you on Claude web?
+
+---
+
+Please can you help structure the markdown files  PROBLEM_STATEMEMENT.md and  OT_DATA_INTEGRATION_CHALLENGE.m
+
+Make sure they have clear heading and are proper markdown file
+
+---
+
+The purpose of the current project is to create a mini SCADA Harmonization project that I can implement in Python using Pydantic heavily beacuse I am also learning about Pydantic. Now based on what you know of the problem from PROBLEM_STATEMEMENT.md and  OT_DATA_INTEGRATION_CHALLENGE.md, can you review/critique the ARCHITECTURE.md,  IMPLEMENTATION_PLAN.md, and PRD.md to make sure they are well formulated. Make suggestions on areas where they can be improved given what you know of the problem
+
+---
+
+yes go ahead and apply all suggestions
+
+---
+
+Now do a quick reserach on Unified Namespace (UNS) for OT data and based on that research make sure that this mini project can demonstarte the concept.
+
+---
+
+Are everything in the project implementable in python?
