@@ -156,3 +156,7 @@ Temporary Items
 *.swp
 *.swo
 *~
+
+# Project documentation
+OT_DATA_INTEGRATION_CHALLENGE.md
+PROBLEM_STATEMEMENT.md
