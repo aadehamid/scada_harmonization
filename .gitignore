@@ -158,8 +158,7 @@ Temporary Items
 *~
 
 # Project documentation
+docs/
 BUSINESS_CASE.md
-docs/BUSINESS_CASE_v2.md
-docs/BUSINESS_CASE_v3.md
 OT_DATA_INTEGRATION_CHALLENGE.md
 PROBLEM_STATEMEMENT.md
