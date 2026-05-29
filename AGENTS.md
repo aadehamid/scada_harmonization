@@ -38,20 +38,27 @@ conflicts with the charter, the charter wins.
 
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
-3. **Contextualize (Knowledge)** — UNS + ERP + asset topology → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
+3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
+
+Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
 ## Architecture: data flow
 
 ```
-L0 synthetic (TEP process + IIoT machines)
+L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
   → L1/2 PLC-world disguise (cryptic tags: N7:20, FIC101_PV — divergent per site)
   → L3 MQTT broker + Sparkplug B  ............... the UNS / harmonization contract
   → L3 OT consumers: Ignition (SCADA), historian (InfluxDB/Timescale), Grafana
-  → L3/4 Kafka → Parquet/object store → DuckDB ... analytics path
-  → L4 floci ..................................... local AWS emulation
+  → L3 Postgres (OLTP): transactional source-of-record (role A) + derived ODS (role B)
+  → L3/4 Kafka → Parquet/object store → DuckDB ... analytics path (OLAP)
+       ↑ Postgres → CDC (Debezium) → Kafka → identity reconciliation → UNS/Neo4j
+  → L4 floci ..................................... local AWS emulation (incl. RDS)
   ── cross-cutting ──
-  → ERPNext (enterprise records) · Neo4j (knowledge graph) · GraphRAG (reasoning)
+  → ERPNext (enterprise records, on MariaDB) · Neo4j (knowledge graph) · GraphRAG (reasoning)
 ```
+
+**Storage by concern (no overlap):** time-series→historian; relational/transactional (OLTP)→Postgres;
+analytical (OLAP)→DuckDB; relationships→Neo4j; enterprise→ERPNext (its own MariaDB).
 
 All custom logic is **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver). Python is a
 first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, inference), not glue.
@@ -70,6 +77,11 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
   harmonized output. This is the proof of harmonization.
 - **Sparkplug B as the contract** — births, aliases, datatypes, lifecycle; not plain JSON-over-MQTT.
 - **Harmonize before contextualize** — Neo4j/ERPNext consume the *harmonized* side, not raw values.
+- **Reconcile identities; preserve system-of-record authority** — stitch IT/OT/ET keys into one
+  identity, but each source stays authoritative for its domain; the Postgres ODS (role B) is a
+  derived copy, not the source of truth.
+- **Right store for the shape** — time-series→historian, relational→Postgres (OLTP),
+  analytical→DuckDB (OLAP), relationships→Neo4j. No engine duplicates another's concern.
 - **Config over code** — site mappings, status maps, unit factors, ontology are data.
 - **Upgrade-friendly** — every OSS component has a credible enterprise replacement path.
 
