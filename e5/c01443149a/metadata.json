@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "e5c01443149a",
+  "strategy": "manual-commit",
+  "branch": "docs/add-postgres-oltp",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "AGENTS.md",
+    "README.md",
+    "design/PROJECT_CHARTER.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e5/c01443149a/0/metadata.json",
+      "transcript": "/e5/c01443149a/0/full.jsonl",
+      "content_hash": "/e5/c01443149a/0/content_hash.txt",
+      "prompt": "/e5/c01443149a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 699,
+    "cache_creation_tokens": 28203,
+    "cache_read_tokens": 5623094,
+    "output_tokens": 25444,
+    "api_call_count": 27
+  }
+}

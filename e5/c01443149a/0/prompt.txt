@@ -1,0 +1,13 @@
+i close the PR do we need to delete the branch that you created. Can you confirm?
+
+---
+
+If I want to add Postgres as an operational data store ? Where will this fit in and what do you think?
+
+---
+
+I do think it can alos represent what you typically see as on prem operational/transactional data
+
+---
+
+go for it. Duckdb still remain the OLAP Db . correct?
