@@ -23,11 +23,18 @@ can be conformed to one namespace and enriched into connected context.
 
 ## The three planes
 
+Sources span the classic **IT / OT / ET** divide: OT (SCADA/PLC tags), IT (on-prem
+business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (engineering topology).
+
 | Plane | What it does | Key tech |
 |-------|--------------|----------|
 | **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, MQTT (Mosquitto/EMQX), Sparkplug B, Ignition, historian, Grafana |
 | **2 — Record** (Enterprise) | curated operational events → SAP-like business records | ERPNext |
-| **3 — Contextualize** (Knowledge) | UNS + ERP + asset topology → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
+| **3 — Contextualize** (Knowledge) | UNS + IT transactional + ERP + asset topology → **identity reconciliation** → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
+
+**Storage by concern (no overlap):** time-series → historian (Influx/Timescale/Quest);
+relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS);
+analytical (OLAP) → **DuckDB** over Parquet; relationships → Neo4j; enterprise records → ERPNext.
 
 ## Guiding principle
 
@@ -45,6 +52,11 @@ The domain is **data-driven, not dictated**, so realistic data is always availab
 The same units/machines are cloned across ≥2 sites with deliberately divergent PLC naming. Physical
 meaning is *assigned* at the mapping stage, anchored by the **three-stage name mapping table** —
 `friendly variable → site-specific PLC tag → Sparkplug metric` — which is the spine of the lab.
+
+The generator also produces **synthetic relational tables** (MES/LIMS/CMMS/quality) seeded into
+Postgres, with their own business keys deliberately *not* aligned to OT identities — extending the
+"same reality, different representation" principle to transactional data and creating the
+identity-reconciliation problem at the heart of Plane 3.
 
 ## Implementation approach
 

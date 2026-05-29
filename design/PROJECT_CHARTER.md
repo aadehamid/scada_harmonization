@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-05-28
+**Last updated:** 2026-05-29
 
 ---
 
@@ -43,21 +43,33 @@ site-specific, cryptic, inconsistent signals.
 The lab deliberately manufactures this mess (same reality, different names per site), then proves
 it can be conformed to one namespace and enriched into connected context.
 
-The full problem has **two halves of contextualization**:
+The same fragmentation spans **three source domains** — the classic IT/OT/ET integration problem —
+and each contributes a distinct kind of mess:
 
-| Half | Problem | Lab plane |
-|------|---------|-----------|
-| **Operational data** | SCADA tags are cryptic, inconsistent, machine-unreadable | Harmonize (Plane 1) |
-| **Engineering context** | Asset topology and relationships are trapped in static documents/silos | Contextualize (Plane 3) |
+| Source domain | Where it lives in the lab | The mess it brings |
+|---------------|---------------------------|--------------------|
+| **OT** — operational telemetry | SCADA / PLC tags → UNS | cryptic, inconsistent, machine-unreadable tags |
+| **IT** — business-transactional | on-prem relational systems (Postgres: MES/LIMS/CMMS/quality) | own business keys (batch/material/work-order/asset IDs) that don't align to OT identities |
+| **ET** — engineering context | asset topology / drawings | relationships trapped in static documents/silos |
 
-Clean operational data **plus** accurate engineering/relationship context = a complete foundation
-for industrial AI. Neither is useful at full scale without the other.
+The two recurring challenges across these domains:
+
+- **Harmonization** — cryptic OT tag → semantic metric (Plane 1).
+- **Identity reconciliation** — stitching IT business keys, OT asset identities, and ET topology
+  references together so they describe one asset/batch/event (the heart of Plane 3).
+
+Clean operational data **plus** reconciled transactional records **plus** accurate engineering
+context = a complete foundation for industrial AI. None is useful at full scale without the others.
 
 ---
 
 ## 3. The three planes
 
 ```
+  SOURCES        OT: SCADA/PLC tags   IT: Postgres OLTP   ET: asset topology
+                        │                    │                   │
+                        └────────────────────┼───────────────────┘
+                                             ↓
 ┌────────────────────────────────────────────────────────────────────────┐
 │ PLANE 1 — HARMONIZE (OT)                                                 │
 │   synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS             │
@@ -69,11 +81,15 @@ for industrial AI. Neither is useful at full scale without the other.
 │   work orders · production confirmations · maintenance · inventory       │
 ├────────────────────────────────────────────────────────────────────────┤
 │ PLANE 3 — CONTEXTUALIZE (Knowledge)                                      │
-│   UNS + ERP + asset topology → Neo4j knowledge graph → GraphRAG          │
+│   UNS + IT transactional + ERP + asset topology                         │
+│     → identity reconciliation → Neo4j knowledge graph → GraphRAG         │
 │   ISO 15926 / DEXPI-aligned ontology · traversal & reasoning queries     │
 │   reference design: reference/engineering_drawing_business_case/         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+IT business-transactional data (Postgres) is both a **source** to reconcile (left) and, optionally,
+a **derived operational data store** populated *by* the pipeline (see §4).
 
 ---
 
@@ -85,11 +101,37 @@ for industrial AI. Neither is useful at full scale without the other.
 | **L1/2** | PLC-world representation (brownfield realism) | OpenPLC and/or PLC-style tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`) |
 | **L3 — transport/UNS** | Harmonization backbone | MQTT broker (Mosquitto / EMQX OSS) + **Sparkplug B** |
 | **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, InfluxDB / TimescaleDB / QuestDB, Grafana |
-| **L3/4 — analytics** | Streaming & analytical path | Kafka → Parquet/object store → DuckDB |
-| **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, …) |
-| **Cross-cutting — enterprise** | SAP-like business records | ERPNext |
+| **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — MES/LIMS/CMMS/quality source schemas; current-state, master data, curated events, lineage |
+| **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → Parquet/object store → **DuckDB** (analytical/OLAP engine — distinct from Postgres OLTP) |
+| **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
+| **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
 | **Cross-cutting — glue** | All custom logic | **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
+
+### Storage concern separation (no overlap)
+
+Each engine owns one concern; nothing duplicates another:
+
+| Engine | Concern | Shape |
+|--------|---------|-------|
+| Historian (Influx/Timescale/Quest) | high-frequency **time-series** telemetry | append-only, time-indexed |
+| **PostgreSQL** | **relational/transactional** (OLTP) — source-of-record + ODS | concurrent writes, current-state, business keys |
+| **DuckDB** + Parquet/floci-S3 | **analytical** (OLAP) — batch, ML features | columnar, read-heavy |
+| Neo4j | **relationships / connected context** | graph |
+| ERPNext (on MariaDB) | **enterprise business records** | relational, owned by ERPNext |
+
+**Postgres wears two hats:**
+- **Role A — source-of-record OLTP:** stands in for on-prem plant transactional systems
+  (MES, LIMS, CMMS, quality, batch records, downtime/shift logs). A *source* to reconcile — it has
+  its own business keys that don't align to OT/ISA-95 identities. This is the IT leg of IT/OT/ET.
+- **Role B — derived ODS:** the pipeline's relational integration/staging store — current harmonized
+  state (a SQL-queryable mirror of UNS retained state), the asset/equipment master, the semantic
+  mapping registry (the grown-up home of the three-stage mapping table once it outgrows YAML),
+  curated events, and per-field lineage / dead-letter log.
+
+Run the two roles as **separate databases/schemas** so the "system of record vs. integration copy"
+boundary stays explicit. Postgres also appears as floci's **RDS** target for cloud-pattern emulation
+— keep that as a separate "what it'd look like in AWS" demo, not the lab's primary ODS.
 
 ---
 
@@ -161,6 +203,29 @@ well and the rest is plumbing.**
 **Six implementation layers** (from `synthetic_data_generation_notes.md`):
 1. Ingestion · 2. Augmentation · 3. PLC mapping · 4. Sparkplug · 5. Context export · 6. Replay/orchestration
 
+### Synthetic transactional data (the IT leg)
+
+Beyond OT telemetry, the data-generation layer also produces **synthetic relational tables** seeded
+into PostgreSQL (role A) to represent plant business-transactional systems:
+
+- **MES** — production/work orders, batch genealogy
+- **LIMS / quality** — sample results, dispositions
+- **CMMS** — maintenance work orders, asset condition
+- **Operational logs** — downtime tickets, shift logs
+
+Critically, these tables carry their **own business keys** (e.g. batch `B-2207`, asset `EQ-4471`)
+that are **deliberately not aligned** to the OT asset identities (`site-a/line-2/reactor-1`) or the
+ET topology references. This extends the lab's "same reality, different representation" principle
+from *tags* to *transactional records*, and creates the **identity-reconciliation** problem that is
+the core of Plane 3: stitching IT keys ↔ OT identities ↔ ET topology so they describe one
+asset/batch/event. Reconciled records are what give the Neo4j graph its cross-domain value
+(genealogy, root-cause: *which batch ran on which reactor during which fault, against which work
+order, with which lab result*).
+
+**Integration pattern:** Postgres OLTP → **CDC** (change-data-capture, e.g. Debezium) → Kafka →
+canonical-identity mapping → UNS events and/or Neo4j. This reuses the existing Kafka layer rather
+than adding a new path.
+
 ---
 
 ## 7. Design assets extracted from the archived docs
@@ -218,14 +283,16 @@ around them is **discarded**.
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
 | **2** | PLC disguise + Sparkplug | Mapping + Sparkplug publisher → Mosquitto/EMQX; verify NBIRTH/DBIRTH/NDATA |
-| **3** | OT consume | InfluxDB historian + Grafana; optionally Ignition Maker as SCADA consumer |
+| **3** | OT consume | InfluxDB historian + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up Postgres ODS (role B) for current-state mirror |
 | **4** | Multi-site | Clone asset template with *different* site tags → prove harmonization |
-| **5** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order) |
+| **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
+| **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
-| **7** | Reasoning | GraphRAG over Neo4j for troubleshooting / lineage / impact queries |
+| **7** | Reasoning | GraphRAG over Neo4j for troubleshooting / lineage / impact / genealogy queries |
 | **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
 
-Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story.
+Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
+spanning OT + IT + ET).
 
 ---
 
@@ -240,6 +307,10 @@ Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualiz
   produce identical harmonized output. This is the proof of harmonization.
 - **Sparkplug B as the contract** — not plain JSON-over-MQTT; births, aliases, datatypes, lifecycle.
 - **Harmonize before contextualize** — Neo4j/ERP consume the *harmonized* side, not raw values.
+- **Reconcile identities; preserve system-of-record authority** — IT/OT/ET keys are stitched into one
+  identity, but each source system stays authoritative for its own domain; the ODS is a derived copy.
+- **Right store for the shape** — time-series→historian, relational/transactional→Postgres (OLTP),
+  analytical→DuckDB (OLAP), relationships→Neo4j. No engine duplicates another's concern.
 - **Config over code** — site mappings, status maps, unit factors, ontology are data.
 - **Upgrade-friendly** — every OSS component has a credible paid/enterprise replacement path.
 - **Python as a first-class participant** — not just glue; a native UNS node.
@@ -248,9 +319,10 @@ Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualiz
 
 ## 10. Scope
 
-**In scope:** synthetic multi-site data; PLC-world disguise; Sparkplug B/MQTT UNS; historian +
-dashboards; ERPNext enterprise integration; Neo4j knowledge graph + GraphRAG; floci cloud
-emulation; Python ML/inference round-trip.
+**In scope:** synthetic multi-site data (OT telemetry + IT transactional tables); PLC-world disguise;
+Sparkplug B/MQTT UNS; historian + dashboards; PostgreSQL relational store (transactional source-of-record
++ derived ODS); CDC → Kafka; identity reconciliation across IT/OT/ET; ERPNext enterprise integration;
+Neo4j knowledge graph + GraphRAG; floci cloud emulation; Python ML/inference round-trip.
 
 **Out of scope (for now):** real PLC/field hardware; live SCADA connections; document/P&ID
 CV-VLM extraction; production security hardening; real cloud accounts; real ERP deployments
@@ -284,5 +356,10 @@ beyond ERPNext community.
 4. **How literal the PLC layer is** — full OpenPLC runtime vs. Python-modeled controller tags.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
 6. **Number & identity of sites** — exact site names and how many (≥2) for the first build.
+7. **Postgres deployment** — standalone PostgreSQL vs. reuse a TimescaleDB instance (Timescale *is*
+   Postgres, so the historian could host the relational schemas too) vs. floci-RDS. And whether to
+   use only role A (source OLTP), or also role B (derived ODS), in the first build.
+8. **CDC mechanism** — Debezium/Kafka-Connect vs. a simpler Python poll-based extract for the
+   Postgres → Kafka path.
 </content>
 </invoke>
