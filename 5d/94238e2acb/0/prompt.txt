@@ -1,0 +1,45 @@
+ls
+
+---
+
+can you read the project folder and summarize what we are trying to achieve here?
+
+---
+
+There is currently a mix of goals here. And it is not your fault. The documents makes it confusing. We may need to rewrite AGENTS.md and README from scratch after we have reviewed sime documents. Here is the high level notes before we get into detials the folders engineering_drawing_business_case and docs should be ignored for now we will get to them later. Our focus with be on the folder "design". Understood?
+
+---
+
+I want you to read uns_home_lab_notes.md first because it gives you a high level view of what I am planning to achieve.
+
+---
+
+Let us at the three architecture options. I wanted those options so that I can trully understand what is going on before I eventually get to using enterpise grade software that will abstract things away. Hence the three implementation approach
+
+---
+
+go ahead
+
+---
+
+The contents in the folder "engineering_drawing_business_case" and "docs" are a slice of the problem as you called out. I want the focus hear to be the broader scope higlighted in the folder you just read. Eventually there is going to a knowledge graph to truly contextualize everything when all of the harmonization is done. So there will be contents in the first two folder I mentioed above that may be relevant for the contens in the "design" folder I do wants to bring those in. So share what you think we can extract from those two folders
+
+---
+
+Draft the PROJECT Charter. Once we finish the update I do want to ARCHIVE the other docs so that they do not polute the context once we finish making all the update
+
+---
+
+On the synthetic dataset. We are going to get it from those sources cited in the synthetic data generation file. I am not sure what domain they represents. We will have to look. I thought if i dictate the domain we may not have a readily available data for it. Correct?
+
+---
+
+Brilliant . I agree
+
+---
+
+is "Archive" the right folder name to give to such documents? What do you think?
+
+---
+
+go with refrence at the root of the project
