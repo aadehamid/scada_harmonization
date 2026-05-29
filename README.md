@@ -1,42 +1,80 @@
-# SCADA Harmonization & Contextualization Service
+# Industrial Data Harmonization & Contextualization Home Lab
 
-A data harmonization pipeline that transforms heterogeneous industrial SCADA telemetry into standardized, ISA-95-aligned canonical messages for enterprise analytics and Unified Namespace (UNS) streaming architectures.
+A home lab that **simulates a multi-site process / specialty-chemicals manufacturer** in which
+similar operational realities are represented differently across sites — then **harmonizes** those
+disparate OT representations into a common enterprise language through a Sparkplug B / MQTT
+**Unified Namespace (UNS)**, and **contextualizes** the result into a knowledge graph meaningful to
+OT, IT, analytics, ML, ERP, and graph-based reasoning systems.
 
-## Problem
+This is a **learning environment and architecture prototype** — built to understand every layer of
+a modern industrial data stack at the bare-metal level *before* adopting enterprise software that
+abstracts those layers away.
 
-Industrial telemetry systems suffer from:
+> **Authoritative project definition:** [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md).
+> This README is a summary; the charter governs.
 
-- **Inconsistent naming** — camelCase, snake_case, hyphenated keys across sources
-- **Varied JSON structures** — flat vs nested vs topic-based identity
-- **Disparate units** — bpd vs m³/day, psi vs kPa, °F vs °C
-- **Inconsistent status codes** — "P", "RUN", "Producing" mean the same thing
-- **Unreliable timestamps** — ISO strings, epoch seconds, milliseconds, or missing
-- **No contextual hierarchy** — lack of ISA-95 alignment
+## The problem being simulated
 
-This fragmentation blocks cross-site KPI standardization, enterprise analytics, reliable streaming, M&A integration, and trustworthy AI applications.
+Different sites, lines, and machines represent the *same underlying reality* differently — local
+PLC naming, controller memory structures, brownfield integrations, divergent tag taxonomies. What
+should be enterprise-comparable data arrives as site-specific, cryptic, inconsistent signals. The
+lab deliberately manufactures this mess (same reality, different names per site), then proves it
+can be conformed to one namespace and enriched into connected context.
 
-## Solution
+## The three planes
 
-This service provides a centralized harmonization layer that:
+| Plane | What it does | Key tech |
+|-------|--------------|----------|
+| **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, MQTT (Mosquitto/EMQX), Sparkplug B, Ignition, historian, Grafana |
+| **2 — Record** (Enterprise) | curated operational events → SAP-like business records | ERPNext |
+| **3 — Contextualize** (Knowledge) | UNS + ERP + asset topology → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
 
-1. Ingests events from multiple heterogeneous SCADA sources
-2. Extracts ISA-95 contextual hierarchy (Enterprise → Site → Area → Cell → Equipment)
-3. Normalizes units (m³/day → bpd, kPa → psi, °C → °F)
-4. Standardizes status codes to a canonical enum
-5. Validates telemetry constraints with strict Pydantic models
-6. Emits canonical, enterprise-aligned events
-7. Generates UNS-compatible topic structures
-8. Provides full mapping lineage and explainability
-9. Routes invalid events to dead-letter with structured errors
+## Guiding principle
 
-## Architecture
+> Only **Level 0 (the physical world)** is synthetic. Everything above — PLC-facing structures,
+> messaging, historian, analytics, ERP, knowledge graph, cloud — behaves like a real OT/IT stack
+> assembled from open-source or free/community software.
 
-```
-Input JSON → Source Adapter → Raw Extracted → Transform Layer → Canonical Model → UNS Envelope
-```
+## Data strategy
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed design and [docs/PRD.md](docs/PRD.md) for full requirements.
+The domain is **data-driven, not dictated**, so realistic data is always available:
+
+- **Tennessee Eastman Process** — continuous chemical-process units (reactors, columns, loops)
+- **Industrial IoT Dataset (Synthetic)** — rotating machines (pumps, compressors, motors)
+
+The same units/machines are cloned across ≥2 sites with deliberately divergent PLC naming. Physical
+meaning is *assigned* at the mapping stage, anchored by the **three-stage name mapping table** —
+`friendly variable → site-specific PLC tag → Sparkplug metric` — which is the spine of the lab.
+
+## Implementation approach
+
+The three architecture notes are **phases of one architecture**, not competing projects:
+
+- **Build & learn → hand-built + Python-centric.** Wire every component explicitly so each boundary
+  is visible; Python is a first-class UNS participant, not just glue.
+- **Abstraction (later) → UMH-anchored.** Replace the hand-wired backbone with United Manufacturing
+  Hub Community once the internals are understood.
+
+Every component is upgrade-friendly (OSS broker → enterprise; Ignition Maker → licensed; floci →
+real AWS) without invalidating the design.
+
+## Documentation
+
+| Document | Role |
+|----------|------|
+| [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
+| [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope |
+| [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built |
+| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) |
+| [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric |
+| [`design/synthetic_data_generation_notes.md`](design/synthetic_data_generation_notes.md) | Data strategy & the 6-layer pipeline |
+
+## Status
+
+Pre-implementation — design and charter complete; build not yet started. See the charter's build
+sequence (Phases 0–7) and open decisions.
 
 ## License
 
 MIT
+</content>

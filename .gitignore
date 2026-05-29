@@ -157,9 +157,9 @@ Temporary Items
 *.swo
 *~
 
-# Project documentation
-docs/
-engineering_drawing_business_case/
+# Reference material (local-only, superseded source docs — see reference/README.md)
+reference/docs/
+reference/engineering_drawing_business_case/
 BUSINESS_CASE.md
 OT_DATA_INTEGRATION_CHALLENGE.md
 PROBLEM_STATEMEMENT.md
