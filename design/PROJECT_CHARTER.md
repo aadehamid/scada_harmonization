@@ -106,7 +106,7 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
-| **Cross-cutting — glue** | All custom logic | **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
+| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
 
 ### Storage concern separation (no overlap)
 
@@ -489,6 +489,12 @@ beyond ERPNext community.
    cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
    once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
+9. **API / backend framework** — **FastAPI** is the *intended* choice for the Plane 3 query / GraphRAG /
+   copilot API (and any HTTP service interface). Not needed until that layer (~Phase 5b/7); intent
+   recorded, decide concretely then. The core pipeline needs no HTTP backend.
+
+**Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
+`uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
 6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
    (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
    (Ignition-style), Corpus Christi (CygNet). See §6.

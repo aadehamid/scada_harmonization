@@ -58,9 +58,15 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ## 3. What's next — Phase 0 (turn design into code)
 
-Once PR #3 is merged:
+**In progress on branch `feat/phase-0-foundation`** (doc/decision commits so far; no code yet — Phase 0
+was paused mid-discussion for an owner break). The explain-first plan was presented and the owner was
+mid-alignment on: Phase 0 scope, **YAML** for the mapping config, and where to start.
 
-1. `pyproject.toml` + `src/` package layout (Python project; Pydantic v2, pandas, paho-mqtt, PySparkplug).
+**Tooling decided this session:** **`uv`** for all package/project management (`uv add`/`sync`/`run`,
+`uv.lock` committed). **FastAPI** = intended-but-deferred backend for the Plane 3 query/copilot API
+(decide ~Phase 5b/7); core pipeline needs no HTTP backend. Both recorded in charter §4/§12 + AGENTS.
+
+1. `pyproject.toml` (managed by **uv**) + `src/scada_harmonizer/` + `notebooks/` + `tests/`.
 2. **The three-stage name mapping table as config** — seeded with the 4 sites' divergent naming
    conventions (`friendly variable → site-specific PLC tag → Sparkplug metric` + unit/range/cadence/
    asset-class/site/IDs). **This is the spine of the lab — build it well and the rest is plumbing.**

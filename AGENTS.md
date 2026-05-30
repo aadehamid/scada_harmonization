@@ -169,7 +169,13 @@ Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosqu
 
 ## Build and development commands
 
-No build tooling exists yet (pre-implementation). When implementation begins it will be a Python
-project (Pydantic v2, pandas, paho-mqtt, PySparkplug). Update this section once `pyproject.toml`
-lands.
+**Package/project manager: `uv` (decided) — used for everything; no pip/poetry.** `uv add <pkg>` to
+add deps, `uv sync` to install, `uv run <cmd>` to run, `uv.lock` committed, Python version uv-pinned.
+Add each dependency *when needed*, with a one-line justification (raw-mechanism-before-wrapper).
+
+**API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
+adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
+
+Stack so far: Python + Pydantic v2, pandas, paho-mqtt, PySparkplug, Neo4j driver. No build tooling
+exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.
 </content>
