@@ -46,18 +46,20 @@ Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: 
 
 ```
 L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
-  → L1/2 PLC-world disguise (cryptic tags: N7:20, FIC101_PV — divergent per site)
-  → L3 MQTT broker + Sparkplug B  ............... the UNS / harmonization contract
-  → L3 OT consumers: Ignition (SCADA), historian (InfluxDB/Timescale), Grafana
-  → L3 Postgres (OLTP): transactional source-of-record (role A) + derived ODS (role B)
+  → L1/2 PLC-world disguise — hybrid: Python-modeled cryptic tags (N7:20, FIC101_PV)
+         per site; ONE site (Beaumont) real OpenPLC over Modbus TCP
+  → L3 edge broker: Mosquitto per-site (local Sparkplug, divergent namespace)
+  → L3 Python site-forwarder → central EMQX (cross-site conforming = harmonization)
+  → L3 OT consumers: Ignition (SCADA), TimescaleDB historian (hypertables), Grafana
+  → L3 Postgres (OLTP): role A = separate source systems; role B = ODS in Timescale instance
   → L3/4 Kafka → Parquet/object store → DuckDB ... analytics path (OLAP)
-       ↑ Postgres → CDC (Debezium) → Kafka → identity reconciliation → UNS/Neo4j
+       ↑ Postgres role A → CDC (Python poll → Debezium) → Kafka → identity reconciliation → UNS/Neo4j
   → L4 floci ..................................... local AWS emulation (incl. RDS)
   ── cross-cutting ──
   → ERPNext (enterprise records, on MariaDB) · Neo4j (knowledge graph) · GraphRAG (reasoning)
 ```
 
-**Storage by concern (no overlap):** time-series→historian; relational/transactional (OLTP)→Postgres;
+**Storage by concern (no overlap):** time-series→**TimescaleDB**; relational/transactional (OLTP)→Postgres;
 analytical (OLAP)→DuckDB; relationships→Neo4j; enterprise→ERPNext (its own MariaDB).
 
 All custom logic is **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver). Python is a
@@ -87,18 +89,22 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
 
 ## Domain & data
 
-Multi-site process/specialty-chemicals plant. Anchor datasets (see charter §6):
+Enterprise: **Lagos Specialty Chemicals** (UNS root `lagos-chem`), a multi-site process/specialty-chemicals
+manufacturer. Anchor datasets (see charter §6):
 - **Tennessee Eastman Process** — continuous process units (reactors, columns, loops).
 - **Industrial IoT Dataset (Synthetic)** — rotating machines (pumps, compressors, motors).
 
-Same units/machines cloned across ≥2 sites with divergent PLC naming. Physical meaning is *assigned*
-at the mapping stage — the data's statistical shape, not its labels, is the constraint.
+**4 sites**, each the same units/machines on a different SCADA lineage with divergent naming:
+Beaumont (Allen-Bradley, real OpenPLC), Geismar (Siemens), Rotterdam (Ignition-style), Corpus Christi
+(CygNet compound tags). Physical meaning is *assigned* at the mapping stage — the data's statistical
+shape, not its labels, is the constraint.
 
 ## Build sequence (see charter §8)
 
-Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug → 3 OT consume (historian/Grafana)
-→ 4 multi-site (harmonization proof) → 5 context (ERPNext + Neo4j) → 6 loop closure (ML/inference +
-floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
+Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) → 3 OT consume
+(TimescaleDB historian/Grafana) → 4 multi-site + central EMQX + OpenPLC site (harmonization proof) →
+5a IT source + CDC (Python→Debezium milestone) → 5b context (ERPNext + Neo4j) → 6 loop closure
+(ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
 
 ## Build and development commands
 
