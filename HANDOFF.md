@@ -90,6 +90,12 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
   EngiGraph → Plane 3 ISO 15926 ontology/graph), not business framing.
 - **Charter governs.** Keep `PROJECT_CHARTER.md` authoritative; mirror changes into README/AGENTS so
   they don't drift.
+- **Learning-first, no black boxes.** The owner is learning the stack bare-metal. Per component:
+  **explain → align → build piece by piece → run & observe → prune** (keep docstrings + a short note;
+  durable concepts go to `design/LEARNING_LOG.md`). Use **Marimo** (`marimo-pair`) for interactive
+  learning/prototyping; migrate finalized code into the `src/` package (the source of truth).
+  See AGENTS.md → "How we work" for the full cadence.
+- **Update `HANDOFF.md` at the end of EVERY session** (status, git/PR state, next steps). Mandatory.
 
 ---
 

@@ -25,6 +25,40 @@ charter below.
 **`design/PROJECT_CHARTER.md` governs.** Read it first (after `HANDOFF.md`). If anything in this file
 or elsewhere conflicts with the charter, the charter wins.
 
+## How we work — learning-first collaboration (IMPORTANT)
+
+The owner is building this lab **to learn the stack at the bare-metal level**. Nothing should be a
+black box: the goal is for the owner to understand *every block of code* and *why* it exists. Optimize
+for understanding, not speed.
+
+**Session discipline**
+- **Update `HANDOFF.md` at the end of EVERY session** — refresh "Current status," git/PR state, and
+  "What's next" so the next agent (or the owner) is never confused. This is mandatory, not optional.
+
+**Build cadence (per component) — explain → align → build → observe → prune**
+1. **Explain first.** Before writing non-trivial code, describe *what* we're about to build, *why*, a
+   short **concept primer** for any new tech (Sparkplug B, hypertables, CDC/Debezium, Cypher, ISO
+   15926, …), and the **alternatives + trade-offs**. Situate it in its charter plane.
+2. **Align.** Discuss at a high level and confirm the owner understands the concept before coding.
+3. **Build piece by piece.** Small, reviewable increments. Narrate each block (what it does + why).
+   Favor explicit, readable code over clever code — this is a teaching codebase.
+4. **Run & observe.** Actually run it and look at the output together (e.g. `mosquitto_sub` to see
+   Sparkplug messages, SQL against TimescaleDB, Cypher against Neo4j). Seeing it work cements the why.
+5. **Prune.** Once aligned and the component is done, remove the teaching scaffolding, keeping only
+   useful **code documentation** (docstrings + a short component note). Durable concepts/gotchas go to
+   a **learning log** (`design/LEARNING_LOG.md`) so pruning code never loses the learning.
+
+**Medium**
+- **Marimo notebooks** (via the `marimo-pair` skill) are the interactive surface for learning and
+  prototyping Python logic — explain/experiment cell by cell.
+- Infrastructure (brokers, TimescaleDB, OpenPLC, Neo4j, ERPNext) runs as **services** (Docker); the
+  notebook/package code talks to them as clients.
+- **Notebook → package:** prototype and learn in Marimo, then migrate the finalized, documented code
+  into the `src/` package (the durable artifact). The package — not the notebook — is the source of
+  truth. *(Confirm this notebook→package convention with the owner before Phase 0.)*
+
+**Pace is owner-set.** Pause at natural boundaries; ask "go deeper or move on?" Don't race ahead.
+
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
