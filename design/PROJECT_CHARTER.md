@@ -85,11 +85,24 @@ context = a complete foundation for industrial AI. None is useful at full scale 
 │     → identity reconciliation → Neo4j knowledge graph → GraphRAG         │
 │   ISO 15926 / DEXPI-aligned ontology · traversal & reasoning queries     │
 │   reference design: reference/engineering_drawing_business_case/         │
+├────────────────────────────────────────────────────────────────────────┤
+│ PLANE 4 — APPLY (Intelligence)  — consumes Planes 1–3; the payoff         │
+│   Track A · Traditional ML   → predictive maintenance, anomaly detection, │
+│     time-series forecasting, soft sensors; predictions published back to  │
+│     the UNS (closes the OT→IT→OT loop). [build Phase 6]                    │
+│   Track B · LLM / GenAI      → information retrieval, NL query, summaries, │
+│     operator/engineer copilot, grounded by GraphRAG over Neo4j. [Phase 7] │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 IT business-transactional data (Postgres) is both a **source** to reconcile (left) and, optionally,
 a **derived operational data store** populated *by* the pipeline (see §4).
+
+**Plane 4 (Apply)** is the intelligence layer the foundation exists for — two tracks that *consume* the
+harmonized + contextualized data: **traditional ML** on the time-series/operational side (predictive
+maintenance, anomaly detection, forecasting, soft sensors — scoring back into the UNS) and **LLM/GenAI**
+on the knowledge side (retrieval, understanding, copilots via GraphRAG). Tooling and specifics are
+**deferred** — captured here so the foundation is built to feed both; details when we reach Phases 6–7.
 
 ---
 
@@ -106,7 +119,7 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
-| **Cross-cutting — glue** | All custom logic | **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
+| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
 
 ### Storage concern separation (no overlap)
 
@@ -400,8 +413,8 @@ around them is **discarded**.
 | **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
-| **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
-| **7** | Reasoning | GraphRAG over Neo4j for troubleshooting / lineage / impact / genealogy queries |
+| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting) over historian features; publishes predictions back into Sparkplug; floci cloud landing; **Redis online feature-store learning milestone** |
+| **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
 
 Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
@@ -449,7 +462,9 @@ spanning OT + IT + ET).
 **In scope:** synthetic multi-site data (OT telemetry + IT transactional tables); PLC-world disguise;
 Sparkplug B/MQTT UNS; historian + dashboards; PostgreSQL relational store (transactional source-of-record
 + derived ODS); CDC → Kafka; identity reconciliation across IT/OT/ET; ERPNext enterprise integration;
-Neo4j knowledge graph + GraphRAG; floci cloud emulation; Python ML/inference round-trip.
+Neo4j knowledge graph + GraphRAG; floci cloud emulation; **Plane 4 intelligence — traditional ML
+(predictive maintenance, anomaly, forecasting) with predictions scored back to the UNS, and LLM/GenAI
+(retrieval, copilot) grounded by GraphRAG**.
 
 **Out of scope (for now):** real PLC/field hardware; live SCADA connections; document/P&ID
 CV-VLM extraction; production security hardening; real cloud accounts; real ERP deployments
@@ -489,6 +504,25 @@ beyond ERPNext community.
    cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
    once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
+9. **API / backend framework** — **FastAPI** is the *intended* choice for the Plane 3 query / GraphRAG /
+   copilot API (and any HTTP service interface). Not needed until that layer (~Phase 5b/7); intent
+   recorded, decide concretely then. The core pipeline needs no HTTP backend.
+
+10. **Plane 4 ML tooling** *(deferred to ~Phase 6)* — traditional ML stack (e.g. scikit-learn /
+    statsmodels / streaming libs), feature sourcing from TimescaleDB + DuckDB, model packaging, and how
+    predictions are published back to the UNS as Sparkplug metrics.
+11. **Plane 4 LLM/GenAI tooling** *(deferred to ~Phase 7)* — GraphRAG framework (e.g. neo4j-graphrag),
+    embedding/vector store, and LLM provider (Claude per house default). Both tracks captured now so the
+    foundation feeds them; specifics decided when we get there.
+12. **Redis (open source)** *(deferred, optional Plane 4)* — **NOT in the foundation** (Planes 1–3); must
+    not duplicate MQTT-retained / Timescale `current_state` (current state), Kafka (streaming), or Neo4j
+    native vector index (GraphRAG). **Learning Redis IS a goal** → scheduled as a deliberate hands-on
+    milestone (same pattern as Debezium), most naturally the **online feature store in Phase 6** (teaches
+    the online/offline feature-store split). Candidate secondary roles: LLM semantic/response cache +
+    copilot session memory (Phase 7), API cache/rate-limit (if FastAPI). Evaluate at Phases 6–7.
+
+**Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
+`uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
 6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
    (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
    (Ignition-style), Corpus Christi (CygNet). See §6.

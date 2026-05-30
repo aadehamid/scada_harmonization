@@ -17,9 +17,11 @@ reality differently, then **harmonizes** that into one Sparkplug B / MQTT Unifie
 prototype** — the explicit goal is to understand each layer at the bare-metal level *before* adopting
 enterprise software that abstracts it away.
 
-**Three planes:** Plane 1 **Harmonize** (OT → Sparkplug B UNS) · Plane 2 **Record** (curated events →
+**Four planes:** Plane 1 **Harmonize** (OT → Sparkplug B UNS) · Plane 2 **Record** (curated events →
 ERPNext) · Plane 3 **Contextualize** (UNS + IT transactional + ET topology → identity reconciliation →
-Neo4j + GraphRAG). Sources span the **IT / OT / ET** divide.
+Neo4j + GraphRAG) · Plane 4 **Apply** (intelligence: Track A traditional ML — predictive maintenance/
+anomaly/forecasting, scored back to UNS; Track B LLM/GenAI — retrieval/copilot via GraphRAG; tooling
+deferred to Phases 6–7). Sources span the **IT / OT / ET** divide.
 
 The authoritative, always-current definition is **`design/PROJECT_CHARTER.md`**. If anything here
 conflicts with the charter, the charter wins.
@@ -32,12 +34,11 @@ conflicts with the charter, the charter wins.
 **no source code yet.**
 
 ### Git / PR state
-- **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED** to `main`.
-- **PR #2** — PostgreSQL OLTP tier + IT/OT/ET source model → **MERGED** to `main`.
-- **PR #3** — resolve infra decisions (#2,3,4,6,7,8) + schema layout + README/AGENTS sync →
-  **OPEN, awaiting user merge** on branch `docs/resolve-infra-decisions`.
-  - ⚠️ **First action for the next agent:** confirm PR #3 is merged, then delete its branch
-    (local + remote). If not yet merged, do not start Phase 0 on top of it without the user's nod.
+- **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED**.
+- **PR #2** — PostgreSQL OLTP tier + IT/OT/ET source model → **MERGED**.
+- **PR #3** — infra decisions (#2,3,4,6,7,8) + schema layout + handoff doc + learning-first model +
+  domain narrative → **MERGED** (`31ffcfb`); branch deleted. `main` is current.
+- **All design work is on `main`.** No open PRs. ⚠️ **First action for the next agent: start Phase 0.**
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -59,13 +60,45 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ## 3. What's next — Phase 0 (turn design into code)
 
-Once PR #3 is merged:
+**State:** branch `feat/phase-0-foundation` exists (doc/decision commits only; **no code yet**). Phase 0
+was paused mid-discussion for an owner break.
 
-1. `pyproject.toml` + `src/` package layout (Python project; Pydantic v2, pandas, paho-mqtt, PySparkplug).
-2. **The three-stage name mapping table as config** — seeded with the 4 sites' divergent naming
-   conventions (`friendly variable → site-specific PLC tag → Sparkplug metric` + unit/range/cadence/
-   asset-class/site/IDs). **This is the spine of the lab — build it well and the rest is plumbing.**
-3. One asset modeled **end-to-end** as the seed the rest of the pipeline grows from.
+### ⭐ IMMEDIATE NEXT ACTION (do this first, before any code)
+
+**Re-explain Phase 0 to the owner (learning-first), then align, then build.** The owner is learning the
+stack bare-metal and may resume with a *different agent*, so do NOT assume the prior explanation is
+fresh — **walk through the Phase 0 concept again from scratch**, conversationally, and get explicit
+alignment before writing files. The owner specifically wants this re-explanation to happen.
+
+Re-explanation must cover (this is the script to reproduce):
+
+- **What Phase 0 is:** foundation/scaffolding — *not* Marimo notebook work (Marimo starts Phase 1 with
+  real runtime logic). Three pieces:
+  1. **Python project skeleton** — `pyproject.toml` **managed by `uv`** + `src/scada_harmonizer/` +
+     `notebooks/` + `tests/`. Concepts to teach: `src/` layout, package-vs-scripts, `uv` workflow
+     (`uv add`/`sync`/`run`, `uv.lock`), minimal deps (add each when needed, justify it).
+  2. **The three-stage name mapping table as config (THE SPINE 🫀)** — `friendly variable →
+     site-specific PLC tag → Sparkplug metric` + metadata (unit, range, cadence, asset class, ISA-95
+     path, downstream IDs). Format leaning **YAML**, validated on load by a **Pydantic** model (the
+     owner's first hands-on Pydantic concept + ISA-95 made concrete). Model ONE measurement (e.g. a
+     reactor feed-flow) across ALL 4 sites' divergent naming — seeing one physical truth expressed 4
+     ways, validated into one canonical identity, is the harmonization thesis in miniature.
+  3. **Seed `design/LEARNING_LOG.md`** — learning log + glossary, from day one.
+- **Open alignment questions to ask the owner:** (a) Phase 0 scope OK? (b) **YAML** for the mapping
+  config (vs TOML/JSON/CSV)? (c) start with a deep concept walk-through of the three-stage table (fully
+  worked 4-site example) or go straight to drafting skeleton + first mapping?
+- **Then build** per the cadence: explain → align → build piece by piece → run & observe → prune.
+
+### Tooling decided this session
+- **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
+- **FastAPI** = intended-but-deferred backend for the Plane 3 query/copilot API (~Phase 5b/7); core
+  pipeline needs no HTTP backend.
+- **Plane 4 (Apply / Intelligence)** captured: Track A traditional ML (Phase 6), Track B LLM/GenAI (Phase 7).
+- **Redis** = deferred/optional Plane 4 (online feature store etc.); **learning Redis is a goal**.
+
+### Explicit hands-on learning goals (deliberate milestones, like real engagements)
+- **Debezium** — log-based CDC (Phase 5a milestone 5a.2/5a.3).
+- **Redis** — online feature store (Phase 6 milestone). Both are *learn-by-building*, not shortcuts.
 
 Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) →
 3 OT consume (TimescaleDB + Grafana) → 4 multi-site + central EMQX + OpenPLC site (harmonization proof)
@@ -118,7 +151,7 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 
 ## 6. No open blocking questions
 
-The session ended with all infra decisions resolved and PR #3 opened. There is **no unanswered
-question blocking progress** — the next concrete action is: **merge PR #3 → delete its branch → start
-Phase 0.**
+All design work is merged to `main`; no open PRs. There is **no unanswered question blocking
+progress** — the next concrete action is to **start Phase 0** in learning-first mode (concept primer
+for the repo skeleton + three-stage mapping table → align → build → seed `design/LEARNING_LOG.md`).
 </content>

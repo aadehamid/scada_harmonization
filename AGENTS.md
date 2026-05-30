@@ -80,6 +80,10 @@ for understanding, not speed.
 8. **Commit history as a learning trail.** Small commits + explanatory messages + the learning log let
    the owner later ask "why is this here?" (the `explain` / `what-happened` skills read provenance).
 
+**Explicit learn-by-building milestones (do NOT shortcut):** **Debezium** (log-based CDC, Phase 5a) and
+**Redis** (online feature store, Phase 6) are deliberate hands-on goals — build them the real way and
+explain, even where a simpler stand-in would suffice. The owner wants the genuine experience.
+
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
@@ -100,6 +104,7 @@ for understanding, not speed.
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
 3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
+4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors; predictions scored back into the UNS) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
@@ -169,7 +174,13 @@ Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosqu
 
 ## Build and development commands
 
-No build tooling exists yet (pre-implementation). When implementation begins it will be a Python
-project (Pydantic v2, pandas, paho-mqtt, PySparkplug). Update this section once `pyproject.toml`
-lands.
+**Package/project manager: `uv` (decided) — used for everything; no pip/poetry.** `uv add <pkg>` to
+add deps, `uv sync` to install, `uv run <cmd>` to run, `uv.lock` committed, Python version uv-pinned.
+Add each dependency *when needed*, with a one-line justification (raw-mechanism-before-wrapper).
+
+**API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
+adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
+
+Stack so far: Python + Pydantic v2, pandas, paho-mqtt, PySparkplug, Neo4j driver. No build tooling
+exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.
 </content>
