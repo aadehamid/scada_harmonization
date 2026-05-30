@@ -98,10 +98,10 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 | Level | Role | Implementation |
 |-------|------|----------------|
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
-| **L1/2** | PLC-world representation (brownfield realism) | OpenPLC and/or PLC-style tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`) |
-| **L3 — transport/UNS** | Harmonization backbone | MQTT broker (Mosquitto / EMQX OSS) + **Sparkplug B** |
-| **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, InfluxDB / TimescaleDB / QuestDB, Grafana |
-| **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — MES/LIMS/CMMS/quality source schemas; current-state, master data, curated events, lineage |
+| **L1/2** | PLC-world representation (brownfield realism) — **hybrid** | Most sites: Python-modeled cryptic tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`). **One** site: real **OpenPLC** runtime exposed over **Modbus TCP**, polled into Sparkplug |
+| **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
+| **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, **TimescaleDB** historian (hypertables), Grafana |
+| **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — role A: independent MES/LIMS/CMMS/quality source systems (CDC-captured); role B: ODS co-located in the TimescaleDB instance |
 | **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → Parquet/object store → **DuckDB** (analytical/OLAP engine — distinct from Postgres OLTP) |
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
@@ -114,11 +114,14 @@ Each engine owns one concern; nothing duplicates another:
 
 | Engine | Concern | Shape |
 |--------|---------|-------|
-| Historian (Influx/Timescale/Quest) | high-frequency **time-series** telemetry | append-only, time-indexed |
+| **TimescaleDB** (historian) | high-frequency **time-series** telemetry | hypertables, append-only, time-indexed |
 | **PostgreSQL** | **relational/transactional** (OLTP) — source-of-record + ODS | concurrent writes, current-state, business keys |
 | **DuckDB** + Parquet/floci-S3 | **analytical** (OLAP) — batch, ML features | columnar, read-heavy |
 | Neo4j | **relationships / connected context** | graph |
 | ERPNext (on MariaDB) | **enterprise business records** | relational, owned by ERPNext |
+
+> TimescaleDB *is* Postgres, so historian and the role-B ODS share one instance (separate schemas);
+> the role-A source systems stay in a **separate** Postgres home (see database topology below).
 
 **Postgres wears two hats:**
 - **Role A — source-of-record OLTP:** stands in for on-prem plant transactional systems
@@ -132,6 +135,92 @@ Each engine owns one concern; nothing duplicates another:
 Run the two roles as **separate databases/schemas** so the "system of record vs. integration copy"
 boundary stays explicit. Postgres also appears as floci's **RDS** target for cloud-pattern emulation
 — keep that as a separate "what it'd look like in AWS" demo, not the lab's primary ODS.
+
+### Broker topology & the two-step harmonization model (DECIDED)
+
+The UNS uses a **two-tier broker topology** mirroring real edge/hub plant patterns (local autonomy +
+enterprise harmonization):
+
+```
+  SITE A                         SITE B
+  edge: Mosquitto                edge: Mosquitto
+   ↑ local Sparkplug              ↑ local Sparkplug
+   │ (site A's own namespace)     │ (site B's own namespace)
+   └─── Python site-forwarder ────┴─── Python site-forwarder ───┐
+        (cross-site conforming)                                 ↓
+                                            CENTRAL: EMQX OSS  — enterprise UNS
+                                            (one harmonized namespace; rule engine,
+                                             Kafka/Postgres bridges, fan-out to IT)
+```
+
+- **Mosquitto (per-site edge):** lightweight local broker; the site keeps exchanging OT data even if
+  the WAN/central system is down. Holds the site's *own* (still-divergent) Sparkplug namespace.
+- **EMQX OSS (central):** the enterprise UNS broker — cross-site harmonization target, IT
+  integrations, fan-out. Justified centrally by its rule engine, native data bridges, and clustering.
+- **Connection = a Python site-forwarder, NOT a raw broker bridge.** Sparkplug B is stateful (death
+  certificates via LWT, primary-host `STATE`); a naive `spBv1.0/#` broker bridge breaks that coherence
+  across tiers and gives no control over what forwards. A site-forwarder subscribes locally and
+  re-publishes a curated stream upward — preserving per-tier Sparkplug state and controlling exactly
+  which topics leave the site.
+
+This makes harmonization a **two-step** process, each with a physical home:
+
+1. **Local mapping (edge):** PLC tag → Sparkplug metric, in each site's own namespace → site Mosquitto.
+2. **Cross-site conforming (forwarder → EMQX):** each site's divergent representation is reconciled to
+   the **one enterprise UNS namespace**. This is where "same reality, different names" becomes "one
+   namespace" — the proof of harmonization.
+
+### Database topology (DECIDED)
+
+**Historian = TimescaleDB.** Chosen over InfluxDB/QuestDB so the whole stack speaks one query
+language (SQL) — InfluxDB's Flux/InfluxQL would add cognitive surface that teaches nothing the lab
+doesn't already get from SQL, and the lab's bottleneck is modeling/integration, not raw ingest rate
+(QuestDB's edge). Timescale also integrates cleanly with Python (psycopg/SQLAlchemy), Grafana, and BI.
+
+Three relational domains across **two Postgres homes** (both Postgres — same tooling):
+
+| Home | Schemas | Owner | Role |
+|------|---------|-------|------|
+| **TimescaleDB instance** | `ts_historian.*` (hypertables) + `ods_core.*`, `erp_shadow.*` | pipeline | historian + derived ODS (role B) |
+| **Separate Postgres** (own instance, or own DB in the cluster) | `mes.*`, `lims.*`, `cmms.*`, `quality.*` | the "plant" | source-of-record OLTP (role A) — what CDC reads |
+
+Rationale: historian and ODS are both **pipeline-owned sinks** → co-locate (consolidation win). The
+role-A systems are **independent foreign sources to reconcile** → keep separate, so CDC genuinely
+captures from another system and the IT/OT/ET source boundary stays physical, not just logical.
+ERPNext keeps its own MariaDB; `erp_shadow` is only an ODS convenience copy for SQL joins.
+
+> In production you'd physically split historian from OLTP for workload isolation (heavy ingest vs.
+> transactions). One Timescale instance for historian+ODS is fine for the lab — splitting later is
+> part of the upgrade-friendly story.
+
+### Relational schema layout (DECIDED)
+
+**Home 1 — TimescaleDB instance (pipeline-owned):**
+
+| Schema | Purpose | Sample tables |
+|--------|---------|---------------|
+| `ts_historian` | Time-series telemetry (hypertables) | `telemetry` (ts, metric_id, value, quality), `events` (alarms/faults/downtime) |
+| `ods_core` | Derived ODS: current state + master data + registry + reconciliation | `asset_master` (ISA-95 hierarchy), `metric_registry` (the 3-stage mapping table), `current_state` (last value per metric), `identity_map`, `lineage`, `dead_letter` |
+| `erp_shadow` | Read-only convenience copy of ERP rows for SQL joins | `work_order_shadow`, `material_shadow` |
+
+**Home 2 — separate Postgres (the "plant" source-of-record, CDC-captured):**
+
+| Schema | Stands in for | Sample tables |
+|--------|---------------|---------------|
+| `mes` | Manufacturing execution | `production_order`, `batch`, `batch_step` |
+| `lims` | Lab / quality | `sample`, `lab_result`, `disposition` |
+| `cmms` | Maintenance | `work_order`, `asset_condition` |
+| `quality` | Quality events | `nonconformance`, `inspection` |
+
+**Boundary rules — what makes the separation *mean* something:**
+
+1. **No cross-home foreign keys.** Source systems (`mes`/`lims`/…) never FK into `ods_core`; they carry
+   their *own* business keys (`batch_id='B-2207'`, `asset_id='EQ-4471'`).
+2. **Reconciliation lives in `ods_core.identity_map`** — `(source_system, source_key) → canonical_identity`,
+   the explicit stitch between IT keys, OT/ISA-95 identities, and (later) ET topology. This *is* the
+   artifact Plane 3 produces.
+3. **Lane discipline:** the historian never holds business keys; the source systems never hold telemetry.
+4. **Neo4j reads from the harmonized/reconciled side** (`ods_core` + UNS), not from the raw source schemas.
 
 ---
 
@@ -177,6 +266,30 @@ deliberately divergent PLC naming and conventions** — which *is* the harmoniza
 exists to prove. Physical meaning is **assigned** at the mapping stage (a TEP variable becomes a
 reactor inlet temperature; an IIoT signal becomes a compressor motor current), so the data's
 statistical shape — not its original labels — is the only real constraint.
+
+### Sites & ISA-95 identity (DECIDED)
+
+**Enterprise:** Lagos Specialty Chemicals · **UNS/topic root:** `lagos-chem` (the ISA-95 `enterprise`
+level and the root of every UNS topic, e.g. `lagos-chem/beaumont/...`).
+
+> **Backstory:** see [`DOMAIN.md`](DOMAIN.md) — a Lagos-HQ specialty-chemicals firm that grew by
+> acquisition, which is *why* each site runs a different SCADA lineage. The narrative makes every
+> technical quirk below trace to a business event.
+
+**4 sites**, each running the *same* TEP process unit + IIoT machines but representing them
+differently — so the lab exercises every harmonization dimension at once:
+
+| Site (`site`) | Heritage / SCADA | Divergence flavor | PLC realism |
+|---|---|---|---|
+| **Beaumont** (TX) | Legacy brownfield, **Allen-Bradley** | Cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; short status codes | **Real OpenPLC** (Modbus TCP) |
+| **Geismar** (LA) | Acquired, **Siemens** | Siemens addresses (`DB10.DBD4`, `MW100`); metric units | Python-modeled |
+| **Rotterdam** (NL) | Newer European, **Ignition/MQTT-style** | Verbose semi-semantic nested names; metric units; different status vocabulary | Python-modeled |
+| **Corpus Christi** (TX) | Acquired O&G/midstream, **CygNet** | Compound flat tags that *encode* hierarchy (`CC_NORTH_U12_FIC101`); mixed units | Python-modeled |
+
+Spans register-address vs. compound-name vs. verbose-semantic naming · imperial vs. metric · 4 SCADA
+lineages · real vs. modeled PLC. Maps onto the three ISHE source archetypes (CygNet compound /
+discrete-field / nested-topic), so those extracted patterns transfer directly. Full ISA-95 path:
+`enterprise (lagos-chem) → site → area → line/cell → equipment-class → equipment-id`.
 
 ### Synthetic data is layered, not random
 
@@ -282,10 +395,10 @@ around them is **discarded**.
 |-------|------|-------------|
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
-| **2** | PLC disguise + Sparkplug | Mapping + Sparkplug publisher → Mosquitto/EMQX; verify NBIRTH/DBIRTH/NDATA |
-| **3** | OT consume | InfluxDB historian + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up Postgres ODS (role B) for current-state mirror |
-| **4** | Multi-site | Clone asset template with *different* site tags → prove harmonization |
-| **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
+| **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
+| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror |
+| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
+| **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
 | **7** | Reasoning | GraphRAG over Neo4j for troubleshooting / lineage / impact / genealogy queries |
@@ -293,6 +406,20 @@ around them is **discarded**.
 
 Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
 spanning OT + IT + ET).
+
+**CDC learning milestone (within Phase 5a):**
+
+- **5a.1 — Python poll:** watermark-based polling of the role-A schemas, publishing **Debezium-shaped**
+  change events to Kafka — envelope `{before, after, op (c/u/d/r), ts_ms, source}`, topic
+  `{server}.{schema}.{table}` (e.g. `lagoschem.mes.work_order`).
+- **5a.2 — Debezium sandbox (one table):** stand up **Kafka Connect + Debezium Postgres connector**
+  (`wal_level=logical`) on a single table (e.g. `mes.work_order`); compare topic naming + payload vs.
+  the Python events. Both producers normalize into one canonical **`ChangeEvent`** Pydantic model via
+  a small adapter (the swap seam). Learn the **replication-slot / WAL-retention** behavior.
+- **5a.3 — Swap one full source:** replace Python CDC with Debezium for one source (MES); others stay
+  on Python; migrate the rest later. The payoff: see firsthand why log-based CDC (catches deletes +
+  ordered changes + initial snapshot `op:r`) beats poll-based (misses hard deletes and intra-interval
+  changes).
 
 ---
 
@@ -335,6 +462,7 @@ beyond ERPNext community.
 | Document | Role |
 |----------|------|
 | `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
+| `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope |
 | `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built |
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) |
@@ -351,15 +479,25 @@ beyond ERPNext community.
 1. ~~Manufacturing domain & asset roster~~ — **DECIDED (2026-05-29):** multi-site process /
    specialty-chemicals plant; TEP process units + Industrial-IoT rotating machines, cloned across
    ≥2 sites with divergent naming. See §6.
-2. **Broker choice** — Mosquitto (minimal) vs. EMQX OSS (richer, clearer enterprise path).
-3. **Historian choice** — InfluxDB vs. TimescaleDB vs. QuestDB.
-4. **How literal the PLC layer is** — full OpenPLC runtime vs. Python-modeled controller tags.
+2. ~~Broker choice~~ — **DECIDED (2026-05-30):** two-tier — **Mosquitto** per-site edge (local
+   autonomy) + **EMQX OSS** central UNS, connected by a **Python site-forwarder** (not a raw broker
+   bridge, to preserve Sparkplug state). Harmonization becomes two-step (local mapping → cross-site
+   conforming). See §4.
+3. ~~Historian choice~~ — **DECIDED (2026-05-30):** **TimescaleDB** (SQL everywhere; modeling, not
+   ingest rate, is the bottleneck). See §4 database topology.
+4. ~~How literal the PLC layer is~~ — **DECIDED (2026-05-30):** **hybrid** — most sites Python-modeled
+   cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
+   once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
-6. **Number & identity of sites** — exact site names and how many (≥2) for the first build.
-7. **Postgres deployment** — standalone PostgreSQL vs. reuse a TimescaleDB instance (Timescale *is*
-   Postgres, so the historian could host the relational schemas too) vs. floci-RDS. And whether to
-   use only role A (source OLTP), or also role B (derived ODS), in the first build.
-8. **CDC mechanism** — Debezium/Kafka-Connect vs. a simpler Python poll-based extract for the
-   Postgres → Kafka path.
+6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
+   (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
+   (Ignition-style), Corpus Christi (CygNet). See §6.
+7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
+   TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
+   **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
+   captures from a foreign system. floci-RDS remains a separate cloud-pattern demo. See §4.
+8. ~~CDC mechanism~~ — **DECIDED (2026-05-30):** **start Python poll, design for Debezium** — with an
+   explicit hands-on Debezium learning milestone (goal is to *learn* Debezium, not avoid it). Three
+   steps inside build Phase 5a — see §8.
 </content>
 </invoke>

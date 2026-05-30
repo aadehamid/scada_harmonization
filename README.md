@@ -12,6 +12,7 @@ abstracts those layers away.
 
 > **Authoritative project definition:** [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md).
 > This README is a summary; the charter governs.
+> **Continuing the work / new agent?** Start with [`HANDOFF.md`](HANDOFF.md) for current status and next steps.
 
 ## The problem being simulated
 
@@ -28,13 +29,14 @@ business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (en
 
 | Plane | What it does | Key tech |
 |-------|--------------|----------|
-| **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, MQTT (Mosquitto/EMQX), Sparkplug B, Ignition, historian, Grafana |
+| **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, two-tier MQTT (**Mosquitto** edge + **EMQX** central, Python forwarder), Sparkplug B, Ignition, **TimescaleDB**, Grafana |
 | **2 — Record** (Enterprise) | curated operational events → SAP-like business records | ERPNext |
 | **3 — Contextualize** (Knowledge) | UNS + IT transactional + ERP + asset topology → **identity reconciliation** → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
 
-**Storage by concern (no overlap):** time-series → historian (Influx/Timescale/Quest);
-relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS);
-analytical (OLAP) → **DuckDB** over Parquet; relationships → Neo4j; enterprise records → ERPNext.
+**Storage by concern (no overlap):** time-series → **TimescaleDB** historian;
+relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS, the
+ODS co-located in the Timescale instance); analytical (OLAP) → **DuckDB** over Parquet;
+relationships → Neo4j; enterprise records → ERPNext.
 
 ## Guiding principle
 
@@ -49,9 +51,12 @@ The domain is **data-driven, not dictated**, so realistic data is always availab
 - **Tennessee Eastman Process** — continuous chemical-process units (reactors, columns, loops)
 - **Industrial IoT Dataset (Synthetic)** — rotating machines (pumps, compressors, motors)
 
-The same units/machines are cloned across ≥2 sites with deliberately divergent PLC naming. Physical
-meaning is *assigned* at the mapping stage, anchored by the **three-stage name mapping table** —
-`friendly variable → site-specific PLC tag → Sparkplug metric` — which is the spine of the lab.
+The enterprise is **Lagos Specialty Chemicals** (UNS root `lagos-chem`), operating **4 sites** —
+**Beaumont** (Allen-Bradley, real OpenPLC), **Geismar** (Siemens), **Rotterdam** (Ignition-style),
+**Corpus Christi** (CygNet) — each running the same units/machines but on a different SCADA lineage
+with deliberately divergent naming. Physical meaning is *assigned* at the mapping stage, anchored by
+the **three-stage name mapping table** — `friendly variable → site-specific PLC tag → Sparkplug
+metric` — which is the spine of the lab.
 
 The generator also produces **synthetic relational tables** (MES/LIMS/CMMS/quality) seeded into
 Postgres, with their own business keys deliberately *not* aligned to OT identities — extending the
@@ -75,6 +80,7 @@ real AWS) without invalidating the design.
 | Document | Role |
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
+| [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built |
 | [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) |
@@ -83,8 +89,9 @@ real AWS) without invalidating the design.
 
 ## Status
 
-Pre-implementation — design and charter complete; build not yet started. See the charter's build
-sequence (Phases 0–7) and open decisions.
+Pre-implementation — design and charter complete, all infrastructure decisions resolved (broker,
+historian, PLC realism, sites/enterprise, Postgres deployment, CDC). Build not yet started; next is
+Phase 0 (repo skeleton + the three-stage mapping table). See the charter's build sequence (Phases 0–7).
 
 ## License
 
