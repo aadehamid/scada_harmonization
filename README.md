@@ -12,6 +12,7 @@ abstracts those layers away.
 
 > **Authoritative project definition:** [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md).
 > This README is a summary; the charter governs.
+> **Continuing the work / new agent?** Start with [`HANDOFF.md`](HANDOFF.md) for current status and next steps.
 
 ## The problem being simulated
 

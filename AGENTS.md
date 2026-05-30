@@ -14,10 +14,16 @@ before adopting enterprise software that abstracts it away.
 The project is currently in a **pre-implementation state** (design/charter complete, no source code
 yet).
 
+## Picking up the work
+
+**New here? Read [`HANDOFF.md`](HANDOFF.md) first** — it captures current status (decisions resolved,
+open PRs, what's done vs. next), the working conventions, and the immediate next action. Then read the
+charter below.
+
 ## Authoritative source of truth
 
-**`design/PROJECT_CHARTER.md` governs.** Read it first. If anything in this file or elsewhere
-conflicts with the charter, the charter wins.
+**`design/PROJECT_CHARTER.md` governs.** Read it first (after `HANDOFF.md`). If anything in this file
+or elsewhere conflicts with the charter, the charter wins.
 
 ## Key documentation (all in `design/`)
 
