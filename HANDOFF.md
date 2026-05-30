@@ -17,9 +17,11 @@ reality differently, then **harmonizes** that into one Sparkplug B / MQTT Unifie
 prototype** — the explicit goal is to understand each layer at the bare-metal level *before* adopting
 enterprise software that abstracts it away.
 
-**Three planes:** Plane 1 **Harmonize** (OT → Sparkplug B UNS) · Plane 2 **Record** (curated events →
+**Four planes:** Plane 1 **Harmonize** (OT → Sparkplug B UNS) · Plane 2 **Record** (curated events →
 ERPNext) · Plane 3 **Contextualize** (UNS + IT transactional + ET topology → identity reconciliation →
-Neo4j + GraphRAG). Sources span the **IT / OT / ET** divide.
+Neo4j + GraphRAG) · Plane 4 **Apply** (intelligence: Track A traditional ML — predictive maintenance/
+anomaly/forecasting, scored back to UNS; Track B LLM/GenAI — retrieval/copilot via GraphRAG; tooling
+deferred to Phases 6–7). Sources span the **IT / OT / ET** divide.
 
 The authoritative, always-current definition is **`design/PROJECT_CHARTER.md`**. If anything here
 conflicts with the charter, the charter wins.

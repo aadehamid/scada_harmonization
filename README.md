@@ -32,6 +32,7 @@ business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (en
 | **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, two-tier MQTT (**Mosquitto** edge + **EMQX** central, Python forwarder), Sparkplug B, Ignition, **TimescaleDB**, Grafana |
 | **2 — Record** (Enterprise) | curated operational events → SAP-like business records | ERPNext |
 | **3 — Contextualize** (Knowledge) | UNS + IT transactional + ERP + asset topology → **identity reconciliation** → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
+| **4 — Apply** (Intelligence) | consumes Planes 1–3 — **Track A** traditional ML (predictive maintenance, anomaly, forecasting; scored back to UNS) · **Track B** LLM/GenAI (retrieval, copilot via GraphRAG) | ML stack + LLM/GraphRAG *(tooling deferred to Phases 6–7)* |
 
 **Storage by concern (no overlap):** time-series → **TimescaleDB** historian;
 relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS, the

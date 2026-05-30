@@ -100,6 +100,7 @@ for understanding, not speed.
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
 3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
+4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors; predictions scored back into the UNS) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
