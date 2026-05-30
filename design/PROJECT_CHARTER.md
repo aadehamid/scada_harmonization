@@ -99,7 +99,7 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 |-------|------|----------------|
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
 | **L1/2** | PLC-world representation (brownfield realism) | OpenPLC and/or PLC-style tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`) |
-| **L3 — transport/UNS** | Harmonization backbone | MQTT broker (Mosquitto / EMQX OSS) + **Sparkplug B** |
+| **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
 | **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, InfluxDB / TimescaleDB / QuestDB, Grafana |
 | **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — MES/LIMS/CMMS/quality source schemas; current-state, master data, curated events, lineage |
 | **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → Parquet/object store → **DuckDB** (analytical/OLAP engine — distinct from Postgres OLTP) |
@@ -132,6 +132,40 @@ Each engine owns one concern; nothing duplicates another:
 Run the two roles as **separate databases/schemas** so the "system of record vs. integration copy"
 boundary stays explicit. Postgres also appears as floci's **RDS** target for cloud-pattern emulation
 — keep that as a separate "what it'd look like in AWS" demo, not the lab's primary ODS.
+
+### Broker topology & the two-step harmonization model (DECIDED)
+
+The UNS uses a **two-tier broker topology** mirroring real edge/hub plant patterns (local autonomy +
+enterprise harmonization):
+
+```
+  SITE A                         SITE B
+  edge: Mosquitto                edge: Mosquitto
+   ↑ local Sparkplug              ↑ local Sparkplug
+   │ (site A's own namespace)     │ (site B's own namespace)
+   └─── Python site-forwarder ────┴─── Python site-forwarder ───┐
+        (cross-site conforming)                                 ↓
+                                            CENTRAL: EMQX OSS  — enterprise UNS
+                                            (one harmonized namespace; rule engine,
+                                             Kafka/Postgres bridges, fan-out to IT)
+```
+
+- **Mosquitto (per-site edge):** lightweight local broker; the site keeps exchanging OT data even if
+  the WAN/central system is down. Holds the site's *own* (still-divergent) Sparkplug namespace.
+- **EMQX OSS (central):** the enterprise UNS broker — cross-site harmonization target, IT
+  integrations, fan-out. Justified centrally by its rule engine, native data bridges, and clustering.
+- **Connection = a Python site-forwarder, NOT a raw broker bridge.** Sparkplug B is stateful (death
+  certificates via LWT, primary-host `STATE`); a naive `spBv1.0/#` broker bridge breaks that coherence
+  across tiers and gives no control over what forwards. A site-forwarder subscribes locally and
+  re-publishes a curated stream upward — preserving per-tier Sparkplug state and controlling exactly
+  which topics leave the site.
+
+This makes harmonization a **two-step** process, each with a physical home:
+
+1. **Local mapping (edge):** PLC tag → Sparkplug metric, in each site's own namespace → site Mosquitto.
+2. **Cross-site conforming (forwarder → EMQX):** each site's divergent representation is reconciled to
+   the **one enterprise UNS namespace**. This is where "same reality, different names" becomes "one
+   namespace" — the proof of harmonization.
 
 ---
 
@@ -282,9 +316,9 @@ around them is **discarded**.
 |-------|------|-------------|
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
-| **2** | PLC disguise + Sparkplug | Mapping + Sparkplug publisher → Mosquitto/EMQX; verify NBIRTH/DBIRTH/NDATA |
+| **2** | PLC disguise + Sparkplug (edge) | Mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
 | **3** | OT consume | InfluxDB historian + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up Postgres ODS (role B) for current-state mirror |
-| **4** | Multi-site | Clone asset template with *different* site tags → prove harmonization |
+| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
@@ -351,7 +385,10 @@ beyond ERPNext community.
 1. ~~Manufacturing domain & asset roster~~ — **DECIDED (2026-05-29):** multi-site process /
    specialty-chemicals plant; TEP process units + Industrial-IoT rotating machines, cloned across
    ≥2 sites with divergent naming. See §6.
-2. **Broker choice** — Mosquitto (minimal) vs. EMQX OSS (richer, clearer enterprise path).
+2. ~~Broker choice~~ — **DECIDED (2026-05-30):** two-tier — **Mosquitto** per-site edge (local
+   autonomy) + **EMQX OSS** central UNS, connected by a **Python site-forwarder** (not a raw broker
+   bridge, to preserve Sparkplug state). Harmonization becomes two-step (local mapping → cross-site
+   conforming). See §4.
 3. **Historian choice** — InfluxDB vs. TimescaleDB vs. QuestDB.
 4. **How literal the PLC layer is** — full OpenPLC runtime vs. Python-modeled controller tags.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
