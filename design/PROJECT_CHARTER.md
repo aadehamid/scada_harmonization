@@ -394,7 +394,7 @@ around them is **discarded**.
 | **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
 | **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror |
 | **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
-| **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
+| **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
 | **7** | Reasoning | GraphRAG over Neo4j for troubleshooting / lineage / impact / genealogy queries |
@@ -402,6 +402,20 @@ around them is **discarded**.
 
 Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
 spanning OT + IT + ET).
+
+**CDC learning milestone (within Phase 5a):**
+
+- **5a.1 — Python poll:** watermark-based polling of the role-A schemas, publishing **Debezium-shaped**
+  change events to Kafka — envelope `{before, after, op (c/u/d/r), ts_ms, source}`, topic
+  `{server}.{schema}.{table}` (e.g. `lagoschem.mes.work_order`).
+- **5a.2 — Debezium sandbox (one table):** stand up **Kafka Connect + Debezium Postgres connector**
+  (`wal_level=logical`) on a single table (e.g. `mes.work_order`); compare topic naming + payload vs.
+  the Python events. Both producers normalize into one canonical **`ChangeEvent`** Pydantic model via
+  a small adapter (the swap seam). Learn the **replication-slot / WAL-retention** behavior.
+- **5a.3 — Swap one full source:** replace Python CDC with Debezium for one source (MES); others stay
+  on Python; migrate the rest later. The payoff: see firsthand why log-based CDC (catches deletes +
+  ordered changes + initial snapshot `op:r`) beats poll-based (misses hard deletes and intra-interval
+  changes).
 
 ---
 
@@ -477,7 +491,8 @@ beyond ERPNext community.
    TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
    **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
    captures from a foreign system. floci-RDS remains a separate cloud-pattern demo. See §4.
-8. **CDC mechanism** — Debezium/Kafka-Connect vs. a simpler Python poll-based extract for the
-   Postgres → Kafka path.
+8. ~~CDC mechanism~~ — **DECIDED (2026-05-30):** **start Python poll, design for Debezium** — with an
+   explicit hands-on Debezium learning milestone (goal is to *learn* Debezium, not avoid it). Three
+   steps inside build Phase 5a — see §8.
 </content>
 </invoke>
