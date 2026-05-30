@@ -100,8 +100,8 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
 | **L1/2** | PLC-world representation (brownfield realism) | OpenPLC and/or PLC-style tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`) |
 | **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
-| **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, InfluxDB / TimescaleDB / QuestDB, Grafana |
-| **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — MES/LIMS/CMMS/quality source schemas; current-state, master data, curated events, lineage |
+| **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, **TimescaleDB** historian (hypertables), Grafana |
+| **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — role A: independent MES/LIMS/CMMS/quality source systems (CDC-captured); role B: ODS co-located in the TimescaleDB instance |
 | **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → Parquet/object store → **DuckDB** (analytical/OLAP engine — distinct from Postgres OLTP) |
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
@@ -114,11 +114,14 @@ Each engine owns one concern; nothing duplicates another:
 
 | Engine | Concern | Shape |
 |--------|---------|-------|
-| Historian (Influx/Timescale/Quest) | high-frequency **time-series** telemetry | append-only, time-indexed |
+| **TimescaleDB** (historian) | high-frequency **time-series** telemetry | hypertables, append-only, time-indexed |
 | **PostgreSQL** | **relational/transactional** (OLTP) — source-of-record + ODS | concurrent writes, current-state, business keys |
 | **DuckDB** + Parquet/floci-S3 | **analytical** (OLAP) — batch, ML features | columnar, read-heavy |
 | Neo4j | **relationships / connected context** | graph |
 | ERPNext (on MariaDB) | **enterprise business records** | relational, owned by ERPNext |
+
+> TimescaleDB *is* Postgres, so historian and the role-B ODS share one instance (separate schemas);
+> the role-A source systems stay in a **separate** Postgres home (see database topology below).
 
 **Postgres wears two hats:**
 - **Role A — source-of-record OLTP:** stands in for on-prem plant transactional systems
@@ -166,6 +169,29 @@ This makes harmonization a **two-step** process, each with a physical home:
 2. **Cross-site conforming (forwarder → EMQX):** each site's divergent representation is reconciled to
    the **one enterprise UNS namespace**. This is where "same reality, different names" becomes "one
    namespace" — the proof of harmonization.
+
+### Database topology (DECIDED)
+
+**Historian = TimescaleDB.** Chosen over InfluxDB/QuestDB so the whole stack speaks one query
+language (SQL) — InfluxDB's Flux/InfluxQL would add cognitive surface that teaches nothing the lab
+doesn't already get from SQL, and the lab's bottleneck is modeling/integration, not raw ingest rate
+(QuestDB's edge). Timescale also integrates cleanly with Python (psycopg/SQLAlchemy), Grafana, and BI.
+
+Three relational domains across **two Postgres homes** (both Postgres — same tooling):
+
+| Home | Schemas | Owner | Role |
+|------|---------|-------|------|
+| **TimescaleDB instance** | `ts_historian.*` (hypertables) + `ods_core.*`, `erp_shadow.*` | pipeline | historian + derived ODS (role B) |
+| **Separate Postgres** (own instance, or own DB in the cluster) | `mes.*`, `lims.*`, `cmms.*`, `quality.*` | the "plant" | source-of-record OLTP (role A) — what CDC reads |
+
+Rationale: historian and ODS are both **pipeline-owned sinks** → co-locate (consolidation win). The
+role-A systems are **independent foreign sources to reconcile** → keep separate, so CDC genuinely
+captures from another system and the IT/OT/ET source boundary stays physical, not just logical.
+ERPNext keeps its own MariaDB; `erp_shadow` is only an ODS convenience copy for SQL joins.
+
+> In production you'd physically split historian from OLTP for workload isolation (heavy ingest vs.
+> transactions). One Timescale instance for historian+ODS is fine for the lab — splitting later is
+> part of the upgrade-friendly story.
 
 ---
 
@@ -317,7 +343,7 @@ around them is **discarded**.
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
 | **2** | PLC disguise + Sparkplug (edge) | Mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
-| **3** | OT consume | InfluxDB historian + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up Postgres ODS (role B) for current-state mirror |
+| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror |
 | **4** | Multi-site + central UNS | Clone asset template with *different* site tags; **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
@@ -389,13 +415,15 @@ beyond ERPNext community.
    autonomy) + **EMQX OSS** central UNS, connected by a **Python site-forwarder** (not a raw broker
    bridge, to preserve Sparkplug state). Harmonization becomes two-step (local mapping → cross-site
    conforming). See §4.
-3. **Historian choice** — InfluxDB vs. TimescaleDB vs. QuestDB.
+3. ~~Historian choice~~ — **DECIDED (2026-05-30):** **TimescaleDB** (SQL everywhere; modeling, not
+   ingest rate, is the bottleneck). See §4 database topology.
 4. **How literal the PLC layer is** — full OpenPLC runtime vs. Python-modeled controller tags.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
 6. **Number & identity of sites** — exact site names and how many (≥2) for the first build.
-7. **Postgres deployment** — standalone PostgreSQL vs. reuse a TimescaleDB instance (Timescale *is*
-   Postgres, so the historian could host the relational schemas too) vs. floci-RDS. And whether to
-   use only role A (source OLTP), or also role B (derived ODS), in the first build.
+7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
+   TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
+   **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
+   captures from a foreign system. floci-RDS remains a separate cloud-pattern demo. See §4.
 8. **CDC mechanism** — Debezium/Kafka-Connect vs. a simpler Python poll-based extract for the
    Postgres → Kafka path.
 </content>
