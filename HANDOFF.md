@@ -32,12 +32,11 @@ conflicts with the charter, the charter wins.
 **no source code yet.**
 
 ### Git / PR state
-- **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED** to `main`.
-- **PR #2** — PostgreSQL OLTP tier + IT/OT/ET source model → **MERGED** to `main`.
-- **PR #3** — resolve infra decisions (#2,3,4,6,7,8) + schema layout + README/AGENTS sync →
-  **OPEN, awaiting user merge** on branch `docs/resolve-infra-decisions`.
-  - ⚠️ **First action for the next agent:** confirm PR #3 is merged, then delete its branch
-    (local + remote). If not yet merged, do not start Phase 0 on top of it without the user's nod.
+- **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED**.
+- **PR #2** — PostgreSQL OLTP tier + IT/OT/ET source model → **MERGED**.
+- **PR #3** — infra decisions (#2,3,4,6,7,8) + schema layout + handoff doc + learning-first model +
+  domain narrative → **MERGED** (`31ffcfb`); branch deleted. `main` is current.
+- **All design work is on `main`.** No open PRs. ⚠️ **First action for the next agent: start Phase 0.**
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -118,7 +117,7 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 
 ## 6. No open blocking questions
 
-The session ended with all infra decisions resolved and PR #3 opened. There is **no unanswered
-question blocking progress** — the next concrete action is: **merge PR #3 → delete its branch → start
-Phase 0.**
+All design work is merged to `main`; no open PRs. There is **no unanswered question blocking
+progress** — the next concrete action is to **start Phase 0** in learning-first mode (concept primer
+for the repo skeleton + three-stage mapping table → align → build → seed `design/LEARNING_LOG.md`).
 </content>
