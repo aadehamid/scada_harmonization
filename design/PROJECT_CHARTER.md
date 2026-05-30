@@ -193,6 +193,35 @@ ERPNext keeps its own MariaDB; `erp_shadow` is only an ODS convenience copy for 
 > transactions). One Timescale instance for historian+ODS is fine for the lab — splitting later is
 > part of the upgrade-friendly story.
 
+### Relational schema layout (DECIDED)
+
+**Home 1 — TimescaleDB instance (pipeline-owned):**
+
+| Schema | Purpose | Sample tables |
+|--------|---------|---------------|
+| `ts_historian` | Time-series telemetry (hypertables) | `telemetry` (ts, metric_id, value, quality), `events` (alarms/faults/downtime) |
+| `ods_core` | Derived ODS: current state + master data + registry + reconciliation | `asset_master` (ISA-95 hierarchy), `metric_registry` (the 3-stage mapping table), `current_state` (last value per metric), `identity_map`, `lineage`, `dead_letter` |
+| `erp_shadow` | Read-only convenience copy of ERP rows for SQL joins | `work_order_shadow`, `material_shadow` |
+
+**Home 2 — separate Postgres (the "plant" source-of-record, CDC-captured):**
+
+| Schema | Stands in for | Sample tables |
+|--------|---------------|---------------|
+| `mes` | Manufacturing execution | `production_order`, `batch`, `batch_step` |
+| `lims` | Lab / quality | `sample`, `lab_result`, `disposition` |
+| `cmms` | Maintenance | `work_order`, `asset_condition` |
+| `quality` | Quality events | `nonconformance`, `inspection` |
+
+**Boundary rules — what makes the separation *mean* something:**
+
+1. **No cross-home foreign keys.** Source systems (`mes`/`lims`/…) never FK into `ods_core`; they carry
+   their *own* business keys (`batch_id='B-2207'`, `asset_id='EQ-4471'`).
+2. **Reconciliation lives in `ods_core.identity_map`** — `(source_system, source_key) → canonical_identity`,
+   the explicit stitch between IT keys, OT/ISA-95 identities, and (later) ET topology. This *is* the
+   artifact Plane 3 produces.
+3. **Lane discipline:** the historian never holds business keys; the source systems never hold telemetry.
+4. **Neo4j reads from the harmonized/reconciled side** (`ods_core` + UNS), not from the raw source schemas.
+
 ---
 
 ## 5. Implementation approach
