@@ -2,6 +2,7 @@
 .claude
 .entire
 .specstory
+.codex
 .agents
 skills-lock.json
 
