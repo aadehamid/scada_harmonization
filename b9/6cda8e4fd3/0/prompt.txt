@@ -1,0 +1,136 @@
+I merged the PR. Should we delete the branch?
+
+---
+
+can we rename this session to "Scada Harmonization"
+
+---
+
+can we continue ... where are we?
+
+---
+
+let us tackle them one at a time. 
+
+MQTT nroker Decsiison
+a combination of Mosquitto at the site edge + EMQX as the central UNS is more realistic and closer to how real plants preserve local autonomy and control.
+
+Why combining both is realistic
+Local autonomy and resilience. In real IIoT/industrial edge patterns, plants often run an on‑premise broker or gateway so they can keep exchanging OT data even if the WAN / central system is down. A lightweight broker like Mosquitto on a gateway or small server is exactly that.
+
+Separation of concerns. The site broker focuses on local OT traffic, while the central broker (EMQX) focuses on enterprise‑wide UNS, cross‑site harmonization, and IT integrations.
+
+Network and security boundaries. Often, sites expose only specific topics upstream, keeping a lot of detailed traffic inside the site network. A local broker plus a bridge lets you control what gets forwarded.
+
+So your pattern:
+
+Mosquitto = per‑site edge broker (local plant autonomy).
+
+EMQX = central UNS broker (enterprise harmonization and fan‑out).
+
+---
+
+I will go with your recommendation
+
+---
+
+what do you think?
+
+For your historian, TimescaleDB is the best fit for this lab, and it makes sense to treat it together with the Postgres decision (#7) rather than as a totally separate choice.
+
+Below is why, relative to what you’re trying to learn and show.
+
+How the three options stack up for your use case
+InfluxDB OSS
+Strengths: Purpose‑built time‑series DB, good integration with Grafana, and a familiar choice in IIoT circles.
+
+Watch‑outs for you:
+
+OSS lacks clustering and has a more complex product split (OSS vs cloud vs enterprise).
+
+Flux / InfluxQL means you have a second query language to reason about, on top of SQL in the rest of the stack.
+
+For a lab that already has Postgres, Neo4j, ERPNext, and Python in the mix, that extra cognitive surface might not actually teach you anything you can’t get from SQL.
+
+QuestDB
+Strengths: Very high ingest rates and SQL‑native querying, optimized for dense telemetry.
+
+Watch‑outs:
+
+Smaller ecosystem and fewer “industrial‑ready” examples and integrations compared with Influx/Timescale.
+
+For your lab, the bottleneck will be modeling and integration, not pushing hundreds of thousands of rows per second, so its main advantage is less critical.
+
+TimescaleDB (Postgres‑based)
+Strengths:
+
+It’s Postgres with time‑series extensions, so you get standard SQL plus hypertables, compression, retention, and time‑bucket tooling.
+
+Ecosystem is huge (Grafana, BI tools, Python libraries) and looks just like Postgres from the outside.
+
+Because it is Postgres, it can also act as the relational store for ODS/OLTP data if you decide to consolidate.
+
+Watch‑outs:
+
+Using one engine for both time‑series and relational does slightly blur the conceptual “boundary” between historian vs relational store, at least physically.
+
+For your goals (education + realism + integration with ERPNext, Neo4j, floci, Python):
+
+You get more integrative learning from one strong SQL‑based TSDB than from juggling a separate query language.
+
+TimescaleDB lines up nicely with:
+
+Python (psycopg, SQLAlchemy).
+
+Grafana and other dashboards.
+
+Potentially storing some ERP‑adjacent or ODS tables alongside telemetry.
+
+Philosophical question: consolidate vs separate
+You summarized it well:
+
+Consolidate: Timescale for both historian and relational (Decision #3 + #7 in one engine).
+
+Separate: Dedicated TSDB (Influx/QuestDB) + separate Postgres for relational.
+
+Given the rest of your architecture:
+
+You already have clear separations at OTHER layers:
+
+Mosquitto vs EMQX vs Python forwarder.
+
+ERPNext vs Neo4j vs UNS.
+
+OT vs DMZ vs IT/cloud.
+
+You also have to manage multiple engines anyway (Postgres for ERPNext, Neo4j for graph, etc.).
+
+In that context, using TimescaleDB as “Postgres with time‑series” actually simplifies the infra without reducing the conceptual clarity:
+
+You can still treat “historian schema” and “relational schema” as separate logical domains, even if they live in the same Postgres instance:
+
+e.g., ts_historian.* schema for hypertables.
+
+ods_core.* / erp_shadow.* for relational/ODS.
+
+The educational boundary (time‑series vs relational modeling) is expressed at the schema and usage level, not only at the “different product” level.
+
+So, for this lab, I’d recommend:
+
+Decision #3: Historian → TimescaleDB.
+
+Decision #7: Postgres deployment → Use TimescaleDB’s Postgres instance as both the historian (hypertables) and ODS/relational store, but keep schemas clearly separated in the design.
+
+This gives you:
+
+Realistic historian behavior (large time‑series tables, retention, downsampling).
+
+Simple integration with Python and Grafana.
+
+A clean story when you show how ERPNext/Neo4j/ML consume historian data via SQL.
+
+If you’re good with this, the next step is to define how we want to logically separate
+
+---
+
+this is good

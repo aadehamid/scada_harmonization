@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "b96cda8e4fd3",
+  "strategy": "manual-commit",
+  "branch": "docs/resolve-infra-decisions",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/b9/6cda8e4fd3/0/metadata.json",
+      "transcript": "/b9/6cda8e4fd3/0/full.jsonl",
+      "content_hash": "/b9/6cda8e4fd3/0/content_hash.txt",
+      "prompt": "/b9/6cda8e4fd3/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7914,
+    "cache_creation_tokens": 567513,
+    "cache_read_tokens": 18341399,
+    "output_tokens": 101531,
+    "api_call_count": 105
+  }
+}
