@@ -1,0 +1,33 @@
+I merged the PR. Should we delete the branch?
+
+---
+
+can we rename this session to "Scada Harmonization"
+
+---
+
+can we continue ... where are we?
+
+---
+
+let us tackle them one at a time. 
+
+MQTT nroker Decsiison
+a combination of Mosquitto at the site edge + EMQX as the central UNS is more realistic and closer to how real plants preserve local autonomy and control.
+
+Why combining both is realistic
+Local autonomy and resilience. In real IIoT/industrial edge patterns, plants often run an on‑premise broker or gateway so they can keep exchanging OT data even if the WAN / central system is down. A lightweight broker like Mosquitto on a gateway or small server is exactly that.
+
+Separation of concerns. The site broker focuses on local OT traffic, while the central broker (EMQX) focuses on enterprise‑wide UNS, cross‑site harmonization, and IT integrations.
+
+Network and security boundaries. Often, sites expose only specific topics upstream, keeping a lot of detailed traffic inside the site network. A local broker plus a bridge lets you control what gets forwarded.
+
+So your pattern:
+
+Mosquitto = per‑site edge broker (local plant autonomy).
+
+EMQX = central UNS broker (enterprise harmonization and fan‑out).
+
+---
+
+I will go with your recommendation
