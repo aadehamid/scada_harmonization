@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "65ab7b5007ca",
+  "session_id": "860fabeb-4c0c-42a9-b409-11fa1e61dd69",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-30T19:40:22.559012Z",
+  "branch": "docs/resolve-infra-decisions",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "AGENTS.md"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "da95dfb0497c",
+  "token_usage": {
+    "input_tokens": 8353,
+    "cache_creation_tokens": 589010,
+    "cache_read_tokens": 25462379,
+    "output_tokens": 124494,
+    "api_call_count": 131
+  },
+  "session_metrics": {
+    "turn_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-30T19:40:22.528826Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 11,
+    "human_modified": 21,
+    "human_removed": 0,
+    "total_committed": 11,
+    "total_lines_changed": 32,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 966,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".agents/skills/explain/SKILL.md": 34,
+        ".agents/skills/search/SKILL.md": 70,
+        ".agents/skills/session-crosslink/SKILL.md": 141,
+        ".agents/skills/session-handoff/SKILL.md": 137,
+        ".agents/skills/session-to-skill/SKILL.md": 210,
+        ".agents/skills/what-happened/SKILL.md": 333,
+        "skills-lock.json": 41
+      }
+    }
+  ]
+}
