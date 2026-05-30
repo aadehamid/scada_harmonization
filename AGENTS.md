@@ -53,11 +53,32 @@ for understanding, not speed.
   prototyping Python logic — explain/experiment cell by cell.
 - Infrastructure (brokers, TimescaleDB, OpenPLC, Neo4j, ERPNext) runs as **services** (Docker); the
   notebook/package code talks to them as clients.
-- **Notebook → package:** prototype and learn in Marimo, then migrate the finalized, documented code
-  into the `src/` package (the durable artifact). The package — not the notebook — is the source of
-  truth. *(Confirm this notebook→package convention with the owner before Phase 0.)*
+- **Notebook → package (DECIDED):** `notebooks/` holds one Marimo notebook **per component** (rich
+  explanations, committed, clearly the "learning surface"); `src/scada_harmonizer/` is the **package =
+  source of truth** where finalized, documented code graduates. When a component is done: prune the
+  notebook's teaching scaffolding (keep a slim demo or retire it), migrate clean code to `src/`,
+  durable concepts to `design/LEARNING_LOG.md`.
 
 **Pace is owner-set.** Pause at natural boundaries; ask "go deeper or move on?" Don't race ahead.
+
+**Learning practices**
+1. **Raw mechanism before convenience wrapper.** Show the actual thing first — a raw `paho-mqtt`
+   publish + real Sparkplug payload bytes before a helper; raw SQL/Cypher before an ORM. Justify every
+   dependency ("why this library, what it hides"). Biggest guard against black boxes.
+2. **Docker Compose is a learning artifact.** Add services one at a time, each explained; the owner
+   brings them up/down (`! docker compose up …`). The wiring is half the lesson.
+3. **Running glossary.** Maintain a GLOSSARY in `design/LEARNING_LOG.md`; add plain-language defs as
+   each term appears (ISA-95, UNS, NBIRTH/DBIRTH, RBE, OLTP/OLAP, WAL, CDC, FLOC, DEXPI, hypertable, …).
+4. **Tests as executable understanding.** Small targeted tests (e.g. cross-source equivalence) encode
+   what was learned and can't go stale; borrow the ISHE test strategy.
+5. **YAGNI / one slice at a time.** Build only what the current phase needs, fully understood. Don't
+   scaffold later planes early. Depth over breadth.
+6. **Determinism for re-runs.** Seed randomness; make replays deterministic so re-running a block
+   while studying it gives the same result.
+7. **Owner runs things, not just watches.** Where practical the owner executes commands/queries
+   (`! …`), predicts outputs, and compares. Active recall beats passive narration.
+8. **Commit history as a learning trail.** Small commits + explanatory messages + the learning log let
+   the owner later ask "why is this here?" (the `explain` / `what-happened` skills read provenance).
 
 ## Key documentation (all in `design/`)
 

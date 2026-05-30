@@ -93,8 +93,10 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 - **Learning-first, no black boxes.** The owner is learning the stack bare-metal. Per component:
   **explain → align → build piece by piece → run & observe → prune** (keep docstrings + a short note;
   durable concepts go to `design/LEARNING_LOG.md`). Use **Marimo** (`marimo-pair`) for interactive
-  learning/prototyping; migrate finalized code into the `src/` package (the source of truth).
-  See AGENTS.md → "How we work" for the full cadence.
+  learning in `notebooks/` (one per component); migrate finalized code into the `src/scada_harmonizer/`
+  package (the source of truth). Prefer raw mechanism before convenience wrappers; Docker Compose is a
+  learning artifact; keep a glossary; tests encode understanding; YAGNI; deterministic re-runs; owner
+  runs commands themselves. See AGENTS.md → "How we work" for the full cadence + practices.
 - **Update `HANDOFF.md` at the end of EVERY session** (status, git/PR state, next steps). Mandatory.
 
 ---
