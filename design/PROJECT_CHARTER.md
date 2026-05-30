@@ -413,7 +413,7 @@ around them is **discarded**.
 | **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
-| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting) over historian features; publishes predictions back into Sparkplug; floci cloud landing |
+| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting) over historian features; publishes predictions back into Sparkplug; floci cloud landing; **Redis online feature-store learning milestone** |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
 
@@ -514,6 +514,12 @@ beyond ERPNext community.
 11. **Plane 4 LLM/GenAI tooling** *(deferred to ~Phase 7)* — GraphRAG framework (e.g. neo4j-graphrag),
     embedding/vector store, and LLM provider (Claude per house default). Both tracks captured now so the
     foundation feeds them; specifics decided when we get there.
+12. **Redis (open source)** *(deferred, optional Plane 4)* — **NOT in the foundation** (Planes 1–3); must
+    not duplicate MQTT-retained / Timescale `current_state` (current state), Kafka (streaming), or Neo4j
+    native vector index (GraphRAG). **Learning Redis IS a goal** → scheduled as a deliberate hands-on
+    milestone (same pattern as Debezium), most naturally the **online feature store in Phase 6** (teaches
+    the online/offline feature-store split). Candidate secondary roles: LLM semantic/response cache +
+    copilot session memory (Phase 7), API cache/rate-limit (if FastAPI). Evaluate at Phases 6–7.
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.

@@ -60,19 +60,45 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ## 3. What's next — Phase 0 (turn design into code)
 
-**In progress on branch `feat/phase-0-foundation`** (doc/decision commits so far; no code yet — Phase 0
-was paused mid-discussion for an owner break). The explain-first plan was presented and the owner was
-mid-alignment on: Phase 0 scope, **YAML** for the mapping config, and where to start.
+**State:** branch `feat/phase-0-foundation` exists (doc/decision commits only; **no code yet**). Phase 0
+was paused mid-discussion for an owner break.
 
-**Tooling decided this session:** **`uv`** for all package/project management (`uv add`/`sync`/`run`,
-`uv.lock` committed). **FastAPI** = intended-but-deferred backend for the Plane 3 query/copilot API
-(decide ~Phase 5b/7); core pipeline needs no HTTP backend. Both recorded in charter §4/§12 + AGENTS.
+### ⭐ IMMEDIATE NEXT ACTION (do this first, before any code)
 
-1. `pyproject.toml` (managed by **uv**) + `src/scada_harmonizer/` + `notebooks/` + `tests/`.
-2. **The three-stage name mapping table as config** — seeded with the 4 sites' divergent naming
-   conventions (`friendly variable → site-specific PLC tag → Sparkplug metric` + unit/range/cadence/
-   asset-class/site/IDs). **This is the spine of the lab — build it well and the rest is plumbing.**
-3. One asset modeled **end-to-end** as the seed the rest of the pipeline grows from.
+**Re-explain Phase 0 to the owner (learning-first), then align, then build.** The owner is learning the
+stack bare-metal and may resume with a *different agent*, so do NOT assume the prior explanation is
+fresh — **walk through the Phase 0 concept again from scratch**, conversationally, and get explicit
+alignment before writing files. The owner specifically wants this re-explanation to happen.
+
+Re-explanation must cover (this is the script to reproduce):
+
+- **What Phase 0 is:** foundation/scaffolding — *not* Marimo notebook work (Marimo starts Phase 1 with
+  real runtime logic). Three pieces:
+  1. **Python project skeleton** — `pyproject.toml` **managed by `uv`** + `src/scada_harmonizer/` +
+     `notebooks/` + `tests/`. Concepts to teach: `src/` layout, package-vs-scripts, `uv` workflow
+     (`uv add`/`sync`/`run`, `uv.lock`), minimal deps (add each when needed, justify it).
+  2. **The three-stage name mapping table as config (THE SPINE 🫀)** — `friendly variable →
+     site-specific PLC tag → Sparkplug metric` + metadata (unit, range, cadence, asset class, ISA-95
+     path, downstream IDs). Format leaning **YAML**, validated on load by a **Pydantic** model (the
+     owner's first hands-on Pydantic concept + ISA-95 made concrete). Model ONE measurement (e.g. a
+     reactor feed-flow) across ALL 4 sites' divergent naming — seeing one physical truth expressed 4
+     ways, validated into one canonical identity, is the harmonization thesis in miniature.
+  3. **Seed `design/LEARNING_LOG.md`** — learning log + glossary, from day one.
+- **Open alignment questions to ask the owner:** (a) Phase 0 scope OK? (b) **YAML** for the mapping
+  config (vs TOML/JSON/CSV)? (c) start with a deep concept walk-through of the three-stage table (fully
+  worked 4-site example) or go straight to drafting skeleton + first mapping?
+- **Then build** per the cadence: explain → align → build piece by piece → run & observe → prune.
+
+### Tooling decided this session
+- **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
+- **FastAPI** = intended-but-deferred backend for the Plane 3 query/copilot API (~Phase 5b/7); core
+  pipeline needs no HTTP backend.
+- **Plane 4 (Apply / Intelligence)** captured: Track A traditional ML (Phase 6), Track B LLM/GenAI (Phase 7).
+- **Redis** = deferred/optional Plane 4 (online feature store etc.); **learning Redis is a goal**.
+
+### Explicit hands-on learning goals (deliberate milestones, like real engagements)
+- **Debezium** — log-based CDC (Phase 5a milestone 5a.2/5a.3).
+- **Redis** — online feature store (Phase 6 milestone). Both are *learn-by-building*, not shortcuts.
 
 Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) →
 3 OT consume (TimescaleDB + Grafana) → 4 multi-site + central EMQX + OpenPLC site (harmonization proof)

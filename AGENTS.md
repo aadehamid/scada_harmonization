@@ -80,6 +80,10 @@ for understanding, not speed.
 8. **Commit history as a learning trail.** Small commits + explanatory messages + the learning log let
    the owner later ask "why is this here?" (the `explain` / `what-happened` skills read provenance).
 
+**Explicit learn-by-building milestones (do NOT shortcut):** **Debezium** (log-based CDC, Phase 5a) and
+**Redis** (online feature store, Phase 6) are deliberate hands-on goals — build them the real way and
+explain, even where a simpler stand-in would suffice. The owner wants the genuine experience.
+
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
