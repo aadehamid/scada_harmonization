@@ -267,6 +267,26 @@ exists to prove. Physical meaning is **assigned** at the mapping stage (a TEP va
 reactor inlet temperature; an IIoT signal becomes a compressor motor current), so the data's
 statistical shape — not its original labels — is the only real constraint.
 
+### Sites & ISA-95 identity (DECIDED)
+
+**Enterprise:** Lagos Specialty Chemicals · **UNS/topic root:** `lagos-chem` (the ISA-95 `enterprise`
+level and the root of every UNS topic, e.g. `lagos-chem/beaumont/...`).
+
+**4 sites**, each running the *same* TEP process unit + IIoT machines but representing them
+differently — so the lab exercises every harmonization dimension at once:
+
+| Site (`site`) | Heritage / SCADA | Divergence flavor | PLC realism |
+|---|---|---|---|
+| **Beaumont** (TX) | Legacy brownfield, **Allen-Bradley** | Cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; short status codes | **Real OpenPLC** (Modbus TCP) |
+| **Geismar** (LA) | Acquired, **Siemens** | Siemens addresses (`DB10.DBD4`, `MW100`); metric units | Python-modeled |
+| **Rotterdam** (NL) | Newer European, **Ignition/MQTT-style** | Verbose semi-semantic nested names; metric units; different status vocabulary | Python-modeled |
+| **Corpus Christi** (TX) | Acquired O&G/midstream, **CygNet** | Compound flat tags that *encode* hierarchy (`CC_NORTH_U12_FIC101`); mixed units | Python-modeled |
+
+Spans register-address vs. compound-name vs. verbose-semantic naming · imperial vs. metric · 4 SCADA
+lineages · real vs. modeled PLC. Maps onto the three ISHE source archetypes (CygNet compound /
+discrete-field / nested-topic), so those extracted patterns transfer directly. Full ISA-95 path:
+`enterprise (lagos-chem) → site → area → line/cell → equipment-class → equipment-id`.
+
 ### Synthetic data is layered, not random
 
 Benchmark datasets supply realistic multivariate dynamics; Python fills operational/enterprise
@@ -450,7 +470,9 @@ beyond ERPNext community.
    cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
    once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
-6. **Number & identity of sites** — exact site names and how many (≥2) for the first build.
+6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
+   (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
+   (Ignition-style), Corpus Christi (CygNet). See §6.
 7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
    TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
    **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
