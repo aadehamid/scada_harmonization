@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "1ae159a1ecdc",
+  "session_id": "860fabeb-4c0c-42a9-b409-11fa1e61dd69",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-30T20:21:04.264741Z",
+  "branch": "feat/phase-0-foundation",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "fa3fa0b649f4",
+  "token_usage": {
+    "input_tokens": 9366,
+    "cache_creation_tokens": 652562,
+    "cache_read_tokens": 43529357,
+    "output_tokens": 187891,
+    "api_call_count": 186
+  },
+  "session_metrics": {
+    "turn_count": 19
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 966,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".agents/skills/explain/SKILL.md": 34,
+        ".agents/skills/search/SKILL.md": 70,
+        ".agents/skills/session-crosslink/SKILL.md": 141,
+        ".agents/skills/session-handoff/SKILL.md": 137,
+        ".agents/skills/session-to-skill/SKILL.md": 210,
+        ".agents/skills/what-happened/SKILL.md": 333,
+        "skills-lock.json": 41
+      }
+    }
+  ]
+}
