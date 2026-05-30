@@ -98,7 +98,7 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 | Level | Role | Implementation |
 |-------|------|----------------|
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
-| **L1/2** | PLC-world representation (brownfield realism) | OpenPLC and/or PLC-style tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`) |
+| **L1/2** | PLC-world representation (brownfield realism) — **hybrid** | Most sites: Python-modeled cryptic tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`). **One** site: real **OpenPLC** runtime exposed over **Modbus TCP**, polled into Sparkplug |
 | **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
 | **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, **TimescaleDB** historian (hypertables), Grafana |
 | **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — role A: independent MES/LIMS/CMMS/quality source systems (CDC-captured); role B: ODS co-located in the TimescaleDB instance |
@@ -371,9 +371,9 @@ around them is **discarded**.
 |-------|------|-------------|
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
-| **2** | PLC disguise + Sparkplug (edge) | Mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
+| **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
 | **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror |
-| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
+| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure | Python ML/inference publishes scores back into Sparkplug; floci cloud landing |
@@ -446,7 +446,9 @@ beyond ERPNext community.
    conforming). See §4.
 3. ~~Historian choice~~ — **DECIDED (2026-05-30):** **TimescaleDB** (SQL everywhere; modeling, not
    ingest rate, is the bottleneck). See §4 database topology.
-4. **How literal the PLC layer is** — full OpenPLC runtime vs. Python-modeled controller tags.
+4. ~~How literal the PLC layer is~~ — **DECIDED (2026-05-30):** **hybrid** — most sites Python-modeled
+   cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
+   once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
 6. **Number & identity of sites** — exact site names and how many (≥2) for the first build.
 7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
