@@ -1,7 +1,9 @@
-# Warp/Claude files
+# Agent / editor tooling files (local-only)
 .claude
 .entire
 .specstory
+.agents
+skills-lock.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
