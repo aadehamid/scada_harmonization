@@ -272,6 +272,10 @@ statistical shape — not its original labels — is the only real constraint.
 **Enterprise:** Lagos Specialty Chemicals · **UNS/topic root:** `lagos-chem` (the ISA-95 `enterprise`
 level and the root of every UNS topic, e.g. `lagos-chem/beaumont/...`).
 
+> **Backstory:** see [`DOMAIN.md`](DOMAIN.md) — a Lagos-HQ specialty-chemicals firm that grew by
+> acquisition, which is *why* each site runs a different SCADA lineage. The narrative makes every
+> technical quirk below trace to a business event.
+
 **4 sites**, each running the *same* TEP process unit + IIoT machines but representing them
 differently — so the lab exercises every harmonization dimension at once:
 
@@ -458,6 +462,7 @@ beyond ERPNext community.
 | Document | Role |
 |----------|------|
 | `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
+| `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope |
 | `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built |
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) |

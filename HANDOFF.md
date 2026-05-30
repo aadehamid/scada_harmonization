@@ -106,6 +106,7 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 | Path | What it is |
 |------|-----------|
 | `design/PROJECT_CHARTER.md` | **Authoritative project definition** (read this first after this file) |
+| `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the 4 sites diverge) |
 | `AGENTS.md` | Agent working guide — constraints, data flow, domain, build sequence |
 | `README.md` | Human-facing summary |
 | `design/uns_home_lab_notes.md` | Vision & scope |

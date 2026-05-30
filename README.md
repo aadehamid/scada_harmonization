@@ -80,6 +80,7 @@ real AWS) without invalidating the design.
 | Document | Role |
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
+| [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built |
 | [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) |
