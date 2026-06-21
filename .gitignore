@@ -4,6 +4,10 @@
 .specstory
 .codex
 .agents
+.cursor
+.gemini
+.marimo
+.opencode
 skills-lock.json
 
 # Byte-compiled / optimized / DLL files
