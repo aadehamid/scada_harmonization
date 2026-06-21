@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "58c912b39bb6",
+  "strategy": "manual-commit",
+  "branch": "docs/incorporate-industry-discovery",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "AGENTS.md",
+    "HANDOFF.md",
+    "README.md",
+    "design/PROJECT_CHARTER.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/58/c912b39bb6/0/metadata.json",
+      "transcript": "/58/c912b39bb6/0/full.jsonl",
+      "content_hash": "/58/c912b39bb6/0/content_hash.txt",
+      "prompt": "/58/c912b39bb6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 278,
+    "cache_creation_tokens": 5051,
+    "cache_read_tokens": 1007908,
+    "output_tokens": 3738,
+    "api_call_count": 10
+  }
+}

@@ -1,0 +1,1 @@
+can you make sure Arkema or Conagra is not mentioned in any of the documents. You can replace their name with something like "global chemical compnay" for Arkema. You can do similar one for Conagra. Do I need to merge the PR first before you check or should I wait?
