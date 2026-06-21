@@ -1,0 +1,5 @@
+dont start to draw the diagrams yet though.
+
+---
+
+let us go ahead ans update all relevant documents and commit to git. Update handoff as well based on what we have done so far.
