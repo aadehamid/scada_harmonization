@@ -1,0 +1,29 @@
+merged. can you confirm?
+
+Once you do that, Please, can you describe the three implementation types for this lab?
+
+---
+
+first lets us delete the merged branch. Then we can come back to discussing the implementation types
+
+---
+
+actually let us come back to the implementation types in a bit. let us discuss the architecture in general. Can you take a look at the [Image #3] image, review the arctitecture. Do we have also have components in these labs taht satisfy each of the components in the attached. What are we missing? What do we need to consider? Any other ideas. Ideally each implementation types should have a full architectture design for it. Let us discuss this first.
+
+---
+
+There is a lot to cover here. I want us to take it piece by piece from top to bottom until we resolve everything. But before we go ahead. We will draw all diagram with eraser. So let us first install and authenticate eraser mcp uning below. When you install it make sure all agents like codex, pi , hermes, kimi can also use it. Once you are done let us start with the piece by piece review of the archi to decide what we should add or not
+
+claude mcp add --transport http eraser https://app.eraser.io/api/mcp
+
+---
+
+do we have a ~/.agents folder that we can use for this?
+
+---
+
+I think it may be unnecessarily complicated to do it this way. let us just install the mcp for all of those agents. We can always update individual when using those agents
+
+---
+
+Please go ahead. Also note that for this project all diagrams goes to the eraser folder "scada_harmonization". Add this plus all diagram is to be created by eraser to relevant documents so that any agents working in this foler knows exactly what to do when creating diagram
