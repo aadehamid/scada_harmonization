@@ -44,6 +44,15 @@ names, in two unit systems, with four status vocabularies, across four SCADA lin
 engineer can squint and reconcile them; a machine cannot. Harmonization is the act of making the
 machine able to.
 
+The mess runs deeper than the four lineages. Within a single site, **tag modeling also varies by the
+system integrator** LSC contracted for each project — so even one plant is internally inconsistent.
+Today, getting analytics-ready data means engineers **pulling historian extracts by hand — sometimes
+days of work** — and each site quietly treats its real-time data as **its own**, not an enterprise
+asset. Meanwhile corporate IT is mid-flight on an **SAP ECC → S/4 migration**, so the business-record
+layer is itself a moving target. HQ's response is not just "one namespace" but **one namespace that is
+governed and reusable**: every harmonized metric gets an owner, a definition, and lineage — a data
+product the whole enterprise can trust — while sites keep local autonomy (the *global-and-local* ask).
+
 ---
 
 ## The cast of divergence (what the lab must reconcile)
@@ -62,16 +71,18 @@ hard cases, not the easy one.
 
 ---
 
-## The mission (what LSC is trying to achieve = the lab's three planes)
+## The mission (what LSC is trying to achieve = the lab's four planes)
 
 1. **Harmonize** the four dialects into **one Unified Namespace** (Sparkplug B / MQTT) — "same reality,
-   one name."
+   one name" — and **govern** it as a reusable data product (owners, definitions, lineage).
 2. **Record** curated operational events into enterprise systems (ERPNext) and reconcile them with the
    plant's transactional systems (MES/LIMS/CMMS/quality).
 3. **Contextualize** everything into a **knowledge graph** (Neo4j) — assets, tags, events, batches,
    work orders, lab results, engineering topology — enabling cross-domain reasoning and a GraphRAG
    copilot.
+4. **Apply** the foundation — traditional ML (flagship: **yield improvement / production-leakage**,
+   delivered as human-in-the-loop, edge-executed recommendations) and a GenAI copilot.
 
-Get there and LSC unlocks enterprise analytics, predictive maintenance, and trustworthy AI. That's the
-payoff the lab is built to demonstrate end to end.
+Get there and LSC unlocks enterprise analytics, predictive maintenance, yield gains, and trustworthy
+AI. That's the payoff the lab is built to demonstrate end to end.
 </content>
