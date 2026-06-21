@@ -96,9 +96,11 @@ for understanding, not speed.
 8. **Commit history as a learning trail.** Small commits + explanatory messages + the learning log let
    the owner later ask "why is this here?" (the `explain` / `what-happened` skills read provenance).
 
-**Explicit learn-by-building milestones (do NOT shortcut):** **Debezium** (log-based CDC, Phase 5a) and
-**Redis** (online feature store, Phase 6) are deliberate hands-on goals — build them the real way and
-explain, even where a simpler stand-in would suffice. The owner wants the genuine experience.
+**Explicit learn-by-building milestones (do NOT shortcut):** **Debezium** (log-based CDC, Phase 5a),
+**Redis** (online feature store, Phase 6), **OPC-UA** (real protocol at Geismar, Phase 4), **Spark**
+(medallion ETL, Phase 6), **Prometheus** (observability, Phase 3), and **MLflow** (model registry,
+Phase 6) are deliberate hands-on goals — build them the real way and explain, even where a simpler
+stand-in would suffice. The owner wants the genuine experience. (Full list & rationale: charter §13.)
 
 ## Key documentation (all in `design/`)
 
@@ -187,9 +189,16 @@ shape, not its labels, is the constraint.
 ## Build sequence (see charter §8)
 
 Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) → 3 OT consume
-(TimescaleDB historian/Grafana) → 4 multi-site + central EMQX + OpenPLC site (harmonization proof) →
-5a IT source + CDC (Python→Debezium milestone) → 5b context (ERPNext + Neo4j) → 6 loop closure
-(ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
+(TimescaleDB historian/Grafana + real-time alerting + Prometheus observability) → 4 multi-site +
+central EMQX + **OpenPLC (Beaumont) & OPC-UA (Geismar)** sites + store-and-forward + Docker IT/OT
+segmentation (harmonization proof) → 5a IT source + CDC (Python→Debezium milestone) → 5b context
+(ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
+ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
+
+**Reference-architecture review (2026-06-21):** the design was benchmarked layer-by-layer against a
+real industrial-products target architecture; all add/keep-out decisions and the **three
+implementation-variant diagrams** (hand-built/Python-centric · UMH-anchored · cloud-native→floci) are
+in **charter §13**. Diagrams live in the Eraser `scada_harmonization` workspace (see "Diagrams" above).
 
 ## Build and development commands
 
