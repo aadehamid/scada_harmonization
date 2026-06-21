@@ -669,5 +669,3 @@ the **Eraser workspace `scada_harmonization`**, each delivering the *same* capab
 > Where the lab **exceeds** the reference: Sparkplug-B contract · two-tier broker + Python
 > site-forwarder (the harmonization point) · Neo4j + ISO 15926/DEXPI ontology · GraphRAG/GenAI ·
 > first-class identity reconciliation · the governed data-product catalog.
-</content>
-</invoke>
