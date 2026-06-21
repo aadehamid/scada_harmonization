@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "71a6f45eec09",
+  "strategy": "manual-commit",
+  "branch": "docs/diagram-convention-eraser",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "design/PROJECT_CHARTER.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/71/a6f45eec09/0/metadata.json",
+      "transcript": "/71/a6f45eec09/0/full.jsonl",
+      "content_hash": "/71/a6f45eec09/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 137,
+    "cache_creation_tokens": 3389,
+    "cache_read_tokens": 1155152,
+    "output_tokens": 2531,
+    "api_call_count": 4
+  }
+}
