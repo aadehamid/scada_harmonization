@@ -156,15 +156,16 @@ foundation is built to feed both; details when we reach Phases 6–7.
 | Level | Role | Implementation |
 |-------|------|----------------|
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
-| **L1/2** | PLC-world representation (brownfield realism) — **hybrid** | Most sites: Python-modeled cryptic tags (`N7:20`, `MW100`, `DB10.DBD4`, `FIC101_PV`). **One** site: real **OpenPLC** runtime exposed over **Modbus TCP**, polled into Sparkplug |
+| **L1/2** | PLC-world representation (brownfield realism) — **hybrid** | Python-modeled cryptic tags (`N7:20`, `MW100`, `FIC101_PV`) at Rotterdam + Corpus Christi. **Two** real protocol sites: **OpenPLC** over **Modbus TCP** (Beaumont) + an **OPC-UA** server (`asyncua`, Geismar) — both polled into Sparkplug (§13 L1.1) |
 | **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
 | **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, **TimescaleDB** historian (hypertables), Grafana |
 | **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — role A: independent MES/LIMS/CMMS/quality source systems (CDC-captured); role B: ODS co-located in the TimescaleDB instance |
-| **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → Parquet/object store → **DuckDB** (analytical/OLAP engine — distinct from Postgres OLTP) |
+| **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → **medallion lakehouse** (Bronze/Silver/Gold, Parquet/object store) via **Spark ETL** → **DuckDB** (interactive OLAP query — distinct from Postgres OLTP); plus a **batch/file-drop** ingestion path (§13 L4) |
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
 | **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
+| **Cross-cutting — observability** | Pipeline/infra monitoring | **Prometheus + Grafana** — container health, message rates, CDC lag, dead-letter counts, broker state (§13 L7.1) |
 
 ### Storage concern separation (no overlap)
 
@@ -458,11 +459,11 @@ around them is **discarded**.
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
 | **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
-| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror |
-| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
+| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror; **real-time alerting node** (UNS → rules → alerts, §13 L2.1); introduce **Prometheus + Grafana** observability (§13 L7.1) |
+| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug) **and one real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1); **Python site-forwarders** (with **store-and-forward** buffer, §13 L1.2) conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization; **Docker-network IT/OT segmentation** (§13 L1.3); one **historian-less site** (§13 L1.4) |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
-| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian features; **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing; **Redis online feature-store learning milestone** |
+| **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
 
@@ -599,5 +600,74 @@ to the Eraser workspace/folder **`scada_harmonization`**; each architecture view
     is the named flagship Track-A use case (generic ML methods retained), delivered as human-in-the-loop,
     edge-executed recommendations. **No** lab→pilot→plant tier added — LIMS covers the lab leg. Folds the
     CPG discovery yield / edge-feedback / HITL pattern. See §3, §6, §8.
+15. ~~Reference-architecture review~~ — **DECIDED (2026-06-21):** benchmarked the design layer-by-layer
+    against a real industrial-products target architecture; resolved all adds/keeps-out. See **§13**.
+
+---
+
+## 13. Reference-architecture review & implementation variants (DECIDED 2026-06-21)
+
+The design was benchmarked, **layer by layer**, against a **real industrial-products company's target
+architecture** (an AWS-native OT/IT/lab data platform). The review **validated the thesis** and
+resolved, per layer, what the lab adds vs. keeps out. The reference is essentially our **cloud-native
+variant** (what `floci` emulates); the hand-built design realizes the same capabilities with
+self-hosted OSS.
+
+### 13.1 Decision ledger
+
+| # | Layer | Decision |
+|---|-------|----------|
+| L1.1 | OT edge | **Add OPC-UA** — Python `asyncua` server at **Geismar (Siemens)** → polled into Sparkplug. Two *real* protocols: Modbus/OpenPLC (Beaumont) + OPC-UA (Geismar); Rotterdam + Corpus Christi stay Python-modeled |
+| L1.2 | OT edge | **Edge store-and-forward** — site-forwarder buffers + replays on reconnect (local autonomy when WAN/central down) |
+| L1.3 | OT edge | **IT/OT boundary = logical** via separate Docker networks (edge-per-site vs central/cloud); only the forwarder bridges. No real firewall/SD-WAN |
+| L1.4 | OT edge | One **historian-less site** (history only via central TimescaleDB); skip "4G sensors" |
+| L2.1 | UNS/stream | **Add real-time alerting node** (UNS → rule thresholds → alert events back to UNS/Kafka), Phase 3–4 |
+| L2.2 | UNS/stream | **No separate hot store** — TimescaleDB + MQTT-retained covers near-real-time |
+| L3.1 | IT/ET sources | **No CRM, no separate MDM** — `ods_core` (asset_master + identity_map + governed `metric_registry`) is the lab's MDM analog |
+| L3.2 | IT/ET sources | **LIMS only** lab system; skip ELN / instrument / chem-inventory / Protec |
+| L4.1 | Storage/lake | **Medallion lakehouse** (Bronze/Silver/Gold, Parquet/object store) via **real Spark ETL**; DuckDB stays the interactive OLAP query engine |
+| L4.2 | Storage/lake | **Add batch/file-drop ingestion** → bronze (historian/instrument extracts) alongside CDC/streaming |
+| L5.1 | Context | Neo4j ontology **starts minimal, extends** (ISO 15926/DEXPI-aligned core vocab) |
+| L5.2 | Context | GraphRAG embeddings in **Neo4j native vector index** (no separate vector DB) |
+| L6.1 | ML | **MLflow** (tracking + registry + publish→score) in hand-built design; SageMaker + dataiku in cloud-native; algorithms still deferred to Phase 6 |
+| L6.2 | ML | Feature store = **offline gold medallion + online Redis** (online/offline split) |
+| L7.1 | Cross-cutting | **Prometheus + Grafana** pipeline/infra observability |
+| L7.2 | Cross-cutting | **Lightweight secrets/access** — `.env` + Docker secrets, per-service auth, catalog gatekeepers; Vault + IAM/RBAC = enterprise upgrade path |
+| L8.1 | Delivery | **Three architecture diagrams** (§13.4) |
+| L8.2 | Delivery | Cloud-native variant targets **floci-emulated AWS** (real AWS = production upgrade) |
+
+### 13.2 New components & learning milestones
+
+**Net-new components** (beyond pre-review charter): OPC-UA server (Geismar) · edge store-and-forward ·
+Docker-network segmentation · historian-less site · real-time alerting node · medallion lakehouse +
+Spark ETL · batch/file-drop ingestion · MLflow · online/offline feature store · Prometheus+Grafana
+observability · `ods_core` named the MDM analog.
+
+**New hands-on learning milestones** (join Debezium + Redis): **OPC-UA · Spark · observability
+(Prometheus) · MLflow.**
+
+### 13.3 Deliberately out of scope
+
+CRM/Salesforce · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
+plants · EDMS (ET topology is synthesized) · separate real-time "hot" store · Power BI (Grafana +
+DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now.
+
+### 13.4 The three implementation variants (architecture diagrams)
+
+The three architecture notes (§5) are realized as **three full architecture diagrams**, all saved to
+the **Eraser workspace `scada_harmonization`**, each delivering the *same* capability set:
+
+1. **Hand-built / Python-centric** — self-hosted OSS, every boundary explicit; the learning
+   architecture built across Phases 0–7 (EMQX, Kafka, TimescaleDB, Spark, DuckDB, Neo4j, MLflow,
+   Prometheus, Python forwarder/enrichment/alerting).
+2. **UMH-anchored** — United Manufacturing Hub Community collapses the L3 ingestion/streaming/
+   historian/modeling backbone into one platform; the abstraction phase (§5).
+3. **Cloud-native (floci → AWS)** — the same design mapped onto floci-emulated AWS (IoT Core,
+   Kinesis, Glue/Spark, Athena, S3 medallion, RDS, SageMaker, KMS/IAM/CloudWatch) ≈ the reference
+   target architecture; real AWS is the production upgrade.
+
+> Where the lab **exceeds** the reference: Sparkplug-B contract · two-tier broker + Python
+> site-forwarder (the harmonization point) · Neo4j + ISO 15926/DEXPI ontology · GraphRAG/GenAI ·
+> first-class identity reconciliation · the governed data-product catalog.
 </content>
 </invoke>

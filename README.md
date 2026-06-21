@@ -33,15 +33,16 @@ business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (en
 
 | Plane | What it does | Key tech |
 |-------|--------------|----------|
-| **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC, two-tier MQTT (**Mosquitto** edge + **EMQX** central, Python forwarder), Sparkplug B, Ignition, **TimescaleDB**, Grafana |
+| **1 — Harmonize** (OT) | synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage | OpenPLC + **OPC-UA**, two-tier MQTT (**Mosquitto** edge + **EMQX** central, Python forwarder w/ store-and-forward), Sparkplug B, Ignition, **TimescaleDB**, Grafana |
 | **2 — Record** (Enterprise) | curated operational events → SAP-like business records | ERPNext |
 | **3 — Contextualize** (Knowledge) | UNS + IT transactional + ERP + asset topology → **identity reconciliation** → knowledge graph → reasoning | Neo4j (ISO 15926 / DEXPI-aligned ontology), GraphRAG |
 | **4 — Apply** (Intelligence) | consumes Planes 1–3 — **Track A** traditional ML (predictive maintenance, anomaly, forecasting; **flagship: yield improvement / production-leakage, human-in-the-loop & edge-executed**; scored back to UNS) · **Track B** LLM/GenAI (retrieval, copilot via GraphRAG) | ML stack + LLM/GraphRAG *(tooling deferred to Phases 6–7)* |
 
 **Storage by concern (no overlap):** time-series → **TimescaleDB** historian;
 relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS, the
-ODS co-located in the Timescale instance); analytical (OLAP) → **DuckDB** over Parquet;
-relationships → Neo4j; enterprise records → ERPNext.
+ODS co-located in the Timescale instance); analytical (OLAP) → **medallion lakehouse** (Bronze/Silver/
+Gold via **Spark ETL**) + **DuckDB** over Parquet; relationships → Neo4j; enterprise records → ERPNext.
+Pipeline/infra observability via **Prometheus + Grafana**.
 
 ## Guiding principle
 
@@ -79,6 +80,10 @@ The three architecture notes are **phases of one architecture**, not competing p
 - **Abstraction (later) → UMH-anchored.** Replace the hand-wired backbone with United Manufacturing
   Hub Community once the internals are understood.
 
+These styles are captured as **three full architecture diagrams** — hand-built/Python-centric ·
+UMH-anchored · cloud-native (floci→AWS) — in the Eraser `scada_harmonization` workspace. The design
+was benchmarked layer-by-layer against a real industrial-products target architecture (charter §13).
+
 Every component is upgrade-friendly (OSS broker → enterprise; Ignition Maker → licensed; floci →
 real AWS) without invalidating the design.
 
@@ -97,8 +102,10 @@ real AWS) without invalidating the design.
 ## Status
 
 Pre-implementation — design and charter complete, all infrastructure decisions resolved (broker,
-historian, PLC realism, sites/enterprise, Postgres deployment, CDC). Build not yet started; next is
-Phase 0 (repo skeleton + the three-stage mapping table). See the charter's build sequence (Phases 0–7).
+historian, PLC realism, sites/enterprise, Postgres deployment, CDC), and a full **reference-architecture
+review** done (charter §13: OPC-UA, medallion+Spark, observability, MLflow, alerting, the three
+implementation variants). Build not yet started; next is Phase 0 (repo skeleton + the three-stage
+mapping table). See the charter's build sequence (Phases 0–7).
 
 ## License
 

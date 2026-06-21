@@ -33,30 +33,45 @@ conflicts with the charter, the charter wins.
 **Phase: pre-implementation.** Design + charter complete; **all infrastructure decisions resolved**;
 **no source code yet.**
 
-### This session (2026-06-21) — incorporated real-world industry discovery
-Two consulting discovery slides (a **global specialty-chemicals manufacturer** and a **global
-packaged-foods/CPG manufacturer**) were reviewed and folded into the problem statement as
-*problem patterns* (anonymized, not client framing — same treatment as `reference/`). They **validate**
-the existing thesis and **sharpen** it with: days-to-data/manual historian pulls, *within-site*
-integrator-driven divergence, fragmented/site-"owned" data, govern-and-reuse, global-vs-local, M&A
-footprint + in-flight SAP ECC→S/4, and edge/human-in-the-loop yield feedback. Two divergence decisions
-were discussed and resolved with the owner (now charter §12 #13–14):
-- **#13 Governance → lightweight governed catalog:** the `metric_registry`/three-stage mapping table is
-  a *governed data product* (owner/"gatekeeper" + definition + lineage). NOT a full data-mesh pillar.
-- **#14 Plane 4 flagship → yield:** yield-improvement / production-leakage is the named Track-A use case
-  (HITL, edge-executed). NO lab→pilot→plant tier added (LIMS covers the lab leg).
+### This session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
+A long working session, three threads:
 
-Edited: `design/PROJECT_CHARTER.md` (§2 problem statement + new "Grounded in real industry discovery"
-subsection, §3 Plane 4, §4 `metric_registry`, §6 mapping table, §8 Phase 6, §9 principles, §12 #13–14),
-`AGENTS.md`, `README.md`, `design/DOMAIN.md`. On branch **`docs/incorporate-industry-discovery`** —
-**awaiting owner review/merge** (no code touched; design-only).
+**1. Real-world industry discovery (MERGED, PR #6).** Two anonymized consulting discovery slides (a
+global specialty-chemicals manufacturer + a global packaged-foods/CPG manufacturer) folded into the
+problem statement as *problem patterns*. Validated the thesis; sharpened it (days-to-data, within-site
+integrator divergence, govern-and-reuse, M&A footprint + SAP ECC→S/4, yield/HITL feedback). Resolved
+charter §12 **#13** (governance → lightweight governed catalog) and **#14** (Plane 4 flagship → yield).
+No company names anywhere (branch history squashed clean before merge).
+
+**2. Diagram convention + Eraser MCP (PR #7, branch `docs/diagram-convention-eraser`).** DECIDED: all
+project diagrams are created with the **Eraser MCP** and saved to the Eraser workspace
+**`scada_harmonization`** (AGENTS.md "Diagrams", HANDOFF conventions, charter tooling). Eraser MCP
+installed across all local agents (Claude, Codex, Gemini, Cursor, OpenCode, Kimi, Hermes; **`pi` has no
+MCP support**) — each still needs its **own OAuth login on first use** (per-tool, interactive; Hermes
+saved but disabled until login).
+
+**3. Reference-architecture review → charter §13 (same branch).** Benchmarked the design **layer by
+layer (8 layers)** against a real industrial-products target architecture. Resolved 18 add/keep-out
+decisions (charter **§13.1 ledger**). Net-new: OPC-UA (Geismar), edge store-and-forward, Docker-network
+segmentation, historian-less site, real-time alerting, medallion lakehouse + Spark ETL, batch ingestion,
+MLflow, online/offline feature store, Prometheus+Grafana observability. New learning milestones: OPC-UA,
+Spark, Prometheus, MLflow (join Debezium + Redis). **Three implementation-variant diagrams** to draw in
+Eraser (hand-built/Python-centric · UMH-anchored · cloud-native→floci) — **NOT yet drawn; owner asked to
+hold.**
+
+Edited this branch: `design/PROJECT_CHARTER.md` (§4, §8, §12 #15, new **§13**), `AGENTS.md`, `README.md`,
+`HANDOFF.md`. Design-only; no code.
+
+⏭ **Open for next session:** (a) merge PR #7; (b) complete Eraser OAuth in Claude (`/mcp`) then **draw
+the three §13.4 architecture diagrams** into the `scada_harmonization` Eraser workspace; (c) finish
+per-agent Eraser OAuth as needed; (d) then start Phase 0.
 
 ### Git / PR state
-- **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED**.
-- **PR #2** — PostgreSQL OLTP tier + IT/OT/ET source model → **MERGED**.
-- **PR #3** — infra decisions (#2,3,4,6,7,8) + schema layout + handoff doc + learning-first model +
-  domain narrative → **MERGED** (`31ffcfb`); branch deleted. `main` is current.
-- **All design work is on `main`.** No open PRs. ⚠️ **First action for the next agent: start Phase 0.**
+- **PR #1–#5** — earlier charter / infra / gitignore work → **MERGED**.
+- **PR #6** — anonymized industry discovery → **MERGED** (`2d99eb5`); branch deleted.
+- **PR #7** — diagram convention (Eraser → `scada_harmonization`) **+ reference-architecture review
+  (charter §13)** → **OPEN**, branch `docs/diagram-convention-eraser`, **awaiting owner merge**.
+- ⚠️ **Next agent:** merge PR #7 → draw §13.4 diagrams (after Eraser auth) → then start Phase 0.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -64,7 +79,7 @@ subsection, §3 Plane 4, §4 `metric_registry`, §6 mapping table, §8 Phase 6, 
 | 1 | Domain | Multi-site process / specialty-chemicals (data-driven by TEP + Industrial IoT) |
 | 2 | MQTT broker | **Two-tier:** Mosquitto per-site edge + EMQX OSS central UNS, connected by a **Python site-forwarder** (not a raw broker bridge — preserves Sparkplug state; the forwarder is the cross-site harmonization point) |
 | 3 | Historian | **TimescaleDB** (SQL everywhere; modeling not ingest rate is the bottleneck) |
-| 4 | PLC literalness | **Hybrid** — most sites Python-modeled cryptic tags; **one** site (Beaumont) real **OpenPLC** over Modbus TCP |
+| 4 | PLC literalness | **Hybrid** — Rotterdam & Corpus Christi Python-modeled; **two real protocol sites: OpenPLC/Modbus (Beaumont) + OPC-UA/`asyncua` (Geismar)** (charter §13 L1.1) |
 | 6 | Sites + enterprise | **Lagos Specialty Chemicals** (UNS root `lagos-chem`); **4 sites** — Beaumont (Allen-Bradley), Geismar (Siemens), Rotterdam (Ignition-style), Corpus Christi (CygNet) |
 | 7 | Postgres deployment | Historian + role-B ODS consolidated in the Timescale instance (separate schemas); role-A source systems in a **separate** Postgres home so CDC captures from a foreign system |
 | 8 | CDC | **Start Python poll** (Debezium-shaped events), **design for Debezium**, with an explicit hands-on Debezium learning milestone in Phase 5a (5a.1 → 5a.2 → 5a.3) |
