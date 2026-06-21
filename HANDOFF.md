@@ -148,6 +148,10 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
   package (the source of truth). Prefer raw mechanism before convenience wrappers; Docker Compose is a
   learning artifact; keep a glossary; tests encode understanding; YAGNI; deterministic re-runs; owner
   runs commands themselves. See AGENTS.md → "How we work" for the full cadence + practices.
+- **Diagrams → Eraser only, saved to the `scada_harmonization` Eraser workspace.** All project diagrams
+  are created with the **Eraser MCP** (registered for every local agent) and saved to the Eraser folder
+  **`scada_harmonization`**; embed/link the diagram URL in the relevant `design/*.md`. See AGENTS.md →
+  "Diagrams (DECIDED)".
 - **Update `HANDOFF.md` at the end of EVERY session** (status, git/PR state, next steps). Mandatory.
 
 ---

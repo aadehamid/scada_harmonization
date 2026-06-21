@@ -575,6 +575,10 @@ beyond ERPNext community.
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
+
+**Diagrams (DECIDED 2026-06-21):** all project diagrams are created with the **Eraser MCP** and saved
+to the Eraser workspace/folder **`scada_harmonization`**; each architecture view / implementation type
+(§5) gets its own diagram there, linked from the relevant design doc. See AGENTS.md → "Diagrams".
 6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
    (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
    (Ignition-style), Corpus Christi (CygNet). See §6.

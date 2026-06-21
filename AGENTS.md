@@ -62,6 +62,19 @@ for understanding, not speed.
   notebook's teaching scaffolding (keep a slim demo or retire it), migrate clean code to `src/`,
   durable concepts to `design/LEARNING_LOG.md`.
 
+**Diagrams (DECIDED) — use Eraser, save to the `scada_harmonization` workspace**
+- **All project diagrams are created with the Eraser MCP** — architecture, data-flow, sequence, ER,
+  ISA-95 topology, knowledge-graph schema, etc. Do **not** produce deliverable diagrams with other
+  tools or as committed ASCII art. Eraser is the single source of truth for visual artifacts.
+- **Every diagram is saved to the Eraser workspace/folder named `scada_harmonization`** so all diagrams
+  live in one place. Always target that folder when calling Eraser.
+- **One diagram per architecture view.** Each implementation type (hand-built / Python-centric,
+  UMH-anchored, cloud-native) gets its own full architecture diagram in that workspace (charter §5).
+- Quick inline **ASCII sketches are fine for discussion**, but the canonical artifact is the Eraser
+  diagram — embed/link its URL in the relevant `design/*.md` doc so it's discoverable.
+- The Eraser MCP is registered for all local agents (Claude, Codex, Gemini, Cursor, OpenCode, Kimi,
+  Hermes); each authenticates via its own OAuth login on first use.
+
 **Pace is owner-set.** Pause at natural boundaries; ask "go deeper or move on?" Don't race ahead.
 
 **Learning practices**
