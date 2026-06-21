@@ -148,6 +148,11 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
   caveat, log-based vs. poll CDC). The user explicitly wants hands-on **Debezium** experience.
 - **Git workflow:** create a **branch per change → open a PR → the _user_ merges → the assistant then
   deletes the branch** (local + remote) and fast-forwards `main`. Do **not** push straight to `main`.
+  **Delete the branch as soon as its PR is merged** (`git branch -d` + `git push origin --delete`).
+- **Before telling the user a PR is "ready to merge," push ALL commits and verify the branch is fully
+  up to date** — `git status` clean and `git log origin/<branch>..HEAD` empty. (Learned the hard way:
+  PR #7 was merged before later commits were pushed, dropping charter §13 from `main` until PR #8 fixed
+  it. Commits added to a branch *after* its PR merged are NOT in `main` — open a **new** PR for them.)
 - **Commit messages** end with the trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
 - **Never commit `.codex/`** (unrelated pre-existing tooling, like `.claude/`). Stage files explicitly.
 - **`reference/` is local-only** — `reference/docs/` (ISHE) and `reference/engineering_drawing_business_case/`
