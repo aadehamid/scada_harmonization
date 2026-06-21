@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-06-21
 
 ---
 
@@ -37,11 +37,16 @@ abstracts those layers away.
 The core problem is **not** collecting plant telemetry. It is that different sites, lines, and
 machines represent the *same underlying reality* in different ways — because of local PLC naming
 conventions, controller memory structures, brownfield integrations, differing tag taxonomies,
-and uneven operational modeling. What should be enterprise-comparable data arrives as
-site-specific, cryptic, inconsistent signals.
+uneven operational modeling, and even **different system integrators contracted per project** — so
+tag modeling diverges not only site-to-site but *within* a single site. What should be
+enterprise-comparable data arrives as site-specific, cryptic, inconsistent signals.
 
-The lab deliberately manufactures this mess (same reality, different names per site), then proves
-it can be conformed to one namespace and enriched into connected context.
+The consequences are operational, not cosmetic. When every plant organizes data differently and
+there is **no standardized contextualization**, analytics data can take **days to assemble by hand**
+(engineers pull historian extracts manually), real-time plant data stays **fragmented and "owned" by
+individual sites**, and ML/analytics cannot scale across the enterprise. The lab deliberately
+manufactures this mess (same reality, different names per site), then proves it can be conformed to
+one namespace, **governed as a reusable data product**, and enriched into connected context.
 
 The same fragmentation spans **three source domains** — the classic IT/OT/ET integration problem —
 and each contributes a distinct kind of mess:
@@ -52,14 +57,51 @@ and each contributes a distinct kind of mess:
 | **IT** — business-transactional | on-prem relational systems (Postgres: MES/LIMS/CMMS/quality) | own business keys (batch/material/work-order/asset IDs) that don't align to OT identities |
 | **ET** — engineering context | asset topology / drawings | relationships trapped in static documents/silos |
 
-The two recurring challenges across these domains:
+The three recurring challenges across these domains:
 
 - **Harmonization** — cryptic OT tag → semantic metric (Plane 1).
 - **Identity reconciliation** — stitching IT business keys, OT asset identities, and ET topology
   references together so they describe one asset/batch/event (the heart of Plane 3).
+- **Governance & reuse** — once harmonized, the canonical definitions must be *owned, documented, and
+  discoverable* so the same signal is reusable by every business and technical consumer without
+  re-interpretation. The three-stage mapping table doubles as a **governed data-product catalog** with
+  named owners ("data creators as gatekeepers") and per-field lineage — the lab's lightweight answer to
+  "a unified approach for contextualizing *and governing* data, reusable for all users" (see §4).
 
 Clean operational data **plus** reconciled transactional records **plus** accurate engineering
 context = a complete foundation for industrial AI. None is useful at full scale without the others.
+
+### Grounded in real industry discovery
+
+The simulated problem is not invented — it mirrors what real process and CPG manufacturers report in
+digital-transformation discovery. Two representative inputs are folded in as problem *patterns* (not
+client/sales framing — consistent with how the `reference/` material is treated):
+
+- **A global specialty-chemicals manufacturer:** "Every plant organizes data differently
+  (different tags, names, descriptions); real-time plant data is fragmented and often considered owned
+  by the sites." "We pull historian data manually, sometimes it takes days." "No standardized
+  contextualization; tag modeling varies site by site, and at times within sites depending on the
+  integrator." *Aspirations:* automate end-to-end pipelines from historians **and labs** to the cloud;
+  enable ML/analytics at scale serving **global and local** requirements; a unified approach for
+  contextualizing **and governing** data, reusable by all users; a **data-marketplace model where data
+  creators are gatekeepers**; blend **edge + historian + SAP**.
+- **A global packaged-foods (CPG) manufacturer:** drivers include **M&A reshaping the manufacturing
+  footprint** and an **ongoing SAP ECC → S/4 transformation**; the ask is a unified, near-real-time
+  data foundation feeding **yield-improvement** feedback loops, **root-cause analysis**, and
+  **edge-executed, human-in-the-loop** actions, with **governance that preserves operator control while
+  enabling autonomy** across a **variable plant footprint**.
+
+These map onto the lab without changing the thesis — they sharpen *why* it matters:
+
+| Real-world signal | Where it lives in the lab |
+|---|---|
+| same reality / different names; site & integrator variance | Plane 1 harmonization · `DOMAIN.md` divergence roster |
+| fragmented, site-"owned" data; govern + reuse; data-marketplace/gatekeepers | governed data-product catalog — `metric_registry` (§4) |
+| days-to-data, manual historian pulls | automated pipelines (Phases 1–5) — the cost of *not* harmonizing |
+| M&A footprint; ongoing SAP migration | acquisition backstory (`DOMAIN.md`); ERP-in-flux realism |
+| global **and** local requirements | two-tier broker — local site autonomy + central enterprise UNS (§4) |
+| yield improvement / production-leakage; edge + human-in-the-loop feedback | Plane 4 Track A flagship use case (§3, §6, §8) |
+| blend edge + historian + SAP; labs feed predictive models | IT/OT/ET fusion; LIMS as the lab leg of the IT source |
 
 ---
 
@@ -101,8 +143,11 @@ a **derived operational data store** populated *by* the pipeline (see §4).
 **Plane 4 (Apply)** is the intelligence layer the foundation exists for — two tracks that *consume* the
 harmonized + contextualized data: **traditional ML** on the time-series/operational side (predictive
 maintenance, anomaly detection, forecasting, soft sensors — scoring back into the UNS) and **LLM/GenAI**
-on the knowledge side (retrieval, understanding, copilots via GraphRAG). Tooling and specifics are
-**deferred** — captured here so the foundation is built to feed both; details when we reach Phases 6–7.
+on the knowledge side (retrieval, understanding, copilots via GraphRAG). The **flagship Track-A use case
+is yield improvement / "production-leakage" detection** — a concrete business KPI computable from the TEP
+product streams — delivered as **action-ready, human-in-the-loop recommendations executed at the edge**
+(the OT→IT→OT loop made operator-governed). Tooling and specifics are **deferred** — captured here so the
+foundation is built to feed both; details when we reach Phases 6–7.
 
 ---
 
@@ -142,7 +187,9 @@ Each engine owns one concern; nothing duplicates another:
   its own business keys that don't align to OT/ISA-95 identities. This is the IT leg of IT/OT/ET.
 - **Role B — derived ODS:** the pipeline's relational integration/staging store — current harmonized
   state (a SQL-queryable mirror of UNS retained state), the asset/equipment master, the semantic
-  mapping registry (the grown-up home of the three-stage mapping table once it outgrows YAML),
+  mapping registry (the grown-up home of the three-stage mapping table once it outgrows YAML — a
+  **governed data-product catalog**: every metric carries an owner/"gatekeeper", a human definition,
+  and lineage, so harmonized signals are discoverable and reusable without re-interpretation),
   curated events, and per-field lineage / dead-letter log.
 
 Run the two roles as **separate databases/schemas** so the "system of record vs. integration copy"
@@ -213,7 +260,7 @@ ERPNext keeps its own MariaDB; `erp_shadow` is only an ODS convenience copy for 
 | Schema | Purpose | Sample tables |
 |--------|---------|---------------|
 | `ts_historian` | Time-series telemetry (hypertables) | `telemetry` (ts, metric_id, value, quality), `events` (alarms/faults/downtime) |
-| `ods_core` | Derived ODS: current state + master data + registry + reconciliation | `asset_master` (ISA-95 hierarchy), `metric_registry` (the 3-stage mapping table), `current_state` (last value per metric), `identity_map`, `lineage`, `dead_letter` |
+| `ods_core` | Derived ODS: current state + master data + **governed registry** + reconciliation | `asset_master` (ISA-95 hierarchy), `metric_registry` (the 3-stage mapping table as a **governed data product** — each metric has an owner/"gatekeeper", definition, and lineage), `current_state` (last value per metric), `identity_map`, `lineage`, `dead_letter` |
 | `erp_shadow` | Read-only convenience copy of ERP rows for SQL joins | `work_order_shadow`, `material_shadow` |
 
 **Home 2 — separate Postgres (the "plant" source-of-record, CDC-captured):**
@@ -322,9 +369,11 @@ context and intentional messiness.
 | 2. Site-specific PLC tag | `FIC101_PV` / `N7:20` (differs per site) | PLC-world layer |
 | 3. Sparkplug metric + asset path | `Reactor1/FeedFlow` | UNS / harmonization |
 
-This table also carries unit, range, cadence, asset class, site context, and the
-work-order/batch/material/graph-entity IDs that later feed ERPNext and Neo4j. **Build this table
-well and the rest is plumbing.**
+This table also carries unit, range, cadence, asset class, site context, the
+work-order/batch/material/graph-entity IDs that later feed ERPNext and Neo4j, and **governance
+metadata — each metric's owner ("gatekeeper"), human-readable definition, and lineage** — so it
+doubles as a governed data-product catalog (its grown-up home is `ods_core.metric_registry`, §4).
+**Build this table well and the rest is plumbing.**
 
 **Six implementation layers** (from `synthetic_data_generation_notes.md`):
 1. Ingestion · 2. Augmentation · 3. PLC mapping · 4. Sparkplug · 5. Context export · 6. Replay/orchestration
@@ -413,7 +462,7 @@ around them is **discarded**.
 | **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Modbus TCP → Sparkplug); **Python site-forwarders** conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
-| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting) over historian features; publishes predictions back into Sparkplug; floci cloud landing; **Redis online feature-store learning milestone** |
+| **6** | Loop closure — **Plane 4 Track A (ML)** | Traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian features; **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing; **Redis online feature-store learning milestone** |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
 
@@ -451,6 +500,9 @@ spanning OT + IT + ET).
   identity, but each source system stays authoritative for its own domain; the ODS is a derived copy.
 - **Right store for the shape** — time-series→historian, relational/transactional→Postgres (OLTP),
   analytical→DuckDB (OLAP), relationships→Neo4j. No engine duplicates another's concern.
+- **Govern what you harmonize** — every canonical metric has an owner ("gatekeeper"), a definition, and
+  lineage, so harmonized data is a *reusable, discoverable data product*, not just a clean signal. Local
+  site autonomy and central enterprise standards coexist (serve *global and local* at once).
 - **Config over code** — site mappings, status maps, unit factors, ontology are data.
 - **Upgrade-friendly** — every OSS component has a credible paid/enterprise replacement path.
 - **Python as a first-class participant** — not just glue; a native UNS node.
@@ -533,5 +585,15 @@ beyond ERPNext community.
 8. ~~CDC mechanism~~ — **DECIDED (2026-05-30):** **start Python poll, design for Debezium** — with an
    explicit hands-on Debezium learning milestone (goal is to *learn* Debezium, not avoid it). Three
    steps inside build Phase 5a — see §8.
+13. ~~Governance / data-product framing~~ — **DECIDED (2026-06-21):** adopt a **lightweight governed
+    catalog** — the three-stage mapping table / `metric_registry` is a governed data product (owner/
+    "gatekeeper" + definition + lineage). **Not** a full data-mesh pillar; no separate governance build
+    phase. Folds the specialty-chemicals discovery "govern + reuse / data-marketplace,
+    creators-as-gatekeepers" pattern into
+    what we already build. See §2, §4, §6, §9.
+14. ~~Plane 4 flagship use case~~ — **DECIDED (2026-06-21):** **yield improvement / production-leakage**
+    is the named flagship Track-A use case (generic ML methods retained), delivered as human-in-the-loop,
+    edge-executed recommendations. **No** lab→pilot→plant tier added — LIMS covers the lab leg. Folds the
+    CPG discovery yield / edge-feedback / HITL pattern. See §3, §6, §8.
 </content>
 </invoke>

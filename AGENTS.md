@@ -6,10 +6,13 @@ Guidance for AI agents (and humans) working in this repository.
 
 An **industrial data harmonization & contextualization home lab** that simulates a **multi-site
 process / specialty-chemicals manufacturer**. It harmonizes deliberately-divergent OT data from
-multiple sites into a common Sparkplug B / MQTT **Unified Namespace (UNS)**, then contextualizes
-the result into a Neo4j knowledge graph. It is a **learning environment and architecture
-prototype**, not a product — the goal is to understand each layer of a modern industrial data stack
-before adopting enterprise software that abstracts it away.
+multiple sites (tags differ site-to-site *and* within a site, by integrator) into a common
+Sparkplug B / MQTT **Unified Namespace (UNS)** — **governed as a reusable data product** — then
+contextualizes the result into a Neo4j knowledge graph. It is a **learning environment and
+architecture prototype**, not a product — the goal is to understand each layer of a modern
+industrial data stack before adopting enterprise software that abstracts it away. The simulated
+problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
+days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
 The project is currently in a **pre-implementation state** (design/charter complete, no source code
 yet).
@@ -104,7 +107,7 @@ explain, even where a simpler stand-in would suffice. The owner wants the genuin
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
 3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
-4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors; predictions scored back into the UNS) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
+4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors; predictions scored back into the UNS) — **flagship use case: yield improvement / production-leakage detection, delivered as human-in-the-loop, edge-executed recommendations** [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
@@ -137,8 +140,11 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
 - **Preserve the PLC-world boundary** — never publish clean semantic names straight from Python; the
   cryptic → harmonized transition is the whole point of the lab.
 - **The three-stage mapping table is the spine** — `friendly variable → site-specific PLC tag →
-  Sparkplug metric`, carrying unit, range, cadence, asset class, site context, and downstream
-  ERP/graph IDs.
+  Sparkplug metric`, carrying unit, range, cadence, asset class, site context, downstream
+  ERP/graph IDs, **and governance metadata (owner/"gatekeeper", definition, lineage)**.
+- **Govern what you harmonize** — the mapping table / `metric_registry` is a *governed data product*:
+  every canonical metric is owned, defined, and lineage-tracked so it is reusable without
+  re-interpretation. Local site autonomy + central enterprise standards coexist (global *and* local).
 - **Pydantic-first** — every data boundary is a validated model; no raw dicts cross layers.
 - **Deterministic, reproducible transforms** — same input → same output.
 - **Cross-source equivalence** — the same physical event from different sites must produce identical

@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-05-30
+**Last updated:** 2026-06-21
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,10 +28,28 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-05-30)
+## 2. Current status (2026-06-21)
 
 **Phase: pre-implementation.** Design + charter complete; **all infrastructure decisions resolved**;
 **no source code yet.**
+
+### This session (2026-06-21) — incorporated real-world industry discovery
+Two consulting discovery slides (a **global specialty-chemicals manufacturer** and a **global
+packaged-foods/CPG manufacturer**) were reviewed and folded into the problem statement as
+*problem patterns* (anonymized, not client framing — same treatment as `reference/`). They **validate**
+the existing thesis and **sharpen** it with: days-to-data/manual historian pulls, *within-site*
+integrator-driven divergence, fragmented/site-"owned" data, govern-and-reuse, global-vs-local, M&A
+footprint + in-flight SAP ECC→S/4, and edge/human-in-the-loop yield feedback. Two divergence decisions
+were discussed and resolved with the owner (now charter §12 #13–14):
+- **#13 Governance → lightweight governed catalog:** the `metric_registry`/three-stage mapping table is
+  a *governed data product* (owner/"gatekeeper" + definition + lineage). NOT a full data-mesh pillar.
+- **#14 Plane 4 flagship → yield:** yield-improvement / production-leakage is the named Track-A use case
+  (HITL, edge-executed). NO lab→pilot→plant tier added (LIMS covers the lab leg).
+
+Edited: `design/PROJECT_CHARTER.md` (§2 problem statement + new "Grounded in real industry discovery"
+subsection, §3 Plane 4, §4 `metric_registry`, §6 mapping table, §8 Phase 6, §9 principles, §12 #13–14),
+`AGENTS.md`, `README.md`, `design/DOMAIN.md`. On branch **`docs/incorporate-industry-discovery`** —
+**awaiting owner review/merge** (no code touched; design-only).
 
 ### Git / PR state
 - **PR #1** — charter + README/AGENTS rewrite + move business cases to `reference/` → **MERGED**.
