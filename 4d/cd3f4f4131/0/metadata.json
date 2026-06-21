@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "4dcd3f4f4131",
+  "session_id": "ac34f076-8752-4445-a02a-ffff57120a75",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-21T23:56:36.196509Z",
+  "branch": "docs/git-pr-discipline",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "AGENTS.md",
+    "HANDOFF.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8[1m]",
+  "turn_id": "03e9cf18f25d",
+  "checkpoint_transcript_start": 797,
+  "transcript_lines_at_start": 797,
+  "token_usage": {
+    "input_tokens": 280,
+    "cache_creation_tokens": 12129,
+    "cache_read_tokens": 3278988,
+    "output_tokens": 10434,
+    "api_call_count": 11
+  },
+  "session_metrics": {
+    "turn_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-21T23:56:35.686754Z",
+    "agent_lines": 16,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 16,
+    "total_lines_changed": 16,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

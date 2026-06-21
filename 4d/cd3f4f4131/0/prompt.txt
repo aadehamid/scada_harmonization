@@ -1,0 +1,5 @@
+there is no PR to merge. is that the case?
+
+---
+
+merged #8, go ahead and clean up the branches and also add the lesson notes to the way of working so that we dont repeat the same mistake. Also add that branch should be delted once a PR from that branch is merged
