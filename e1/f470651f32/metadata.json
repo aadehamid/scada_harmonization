@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "e1f470651f32",
+  "strategy": "manual-commit",
+  "branch": "docs/databricks-iggy-decisions",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/e1/f470651f32/0/metadata.json",
+      "transcript": "/e1/f470651f32/0/full.jsonl",
+      "content_hash": "/e1/f470651f32/0/content_hash.txt",
+      "prompt": "/e1/f470651f32/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 16662,
+    "cache_creation_tokens": 780166,
+    "cache_read_tokens": 43569736,
+    "output_tokens": 306469,
+    "api_call_count": 194
+  }
+}

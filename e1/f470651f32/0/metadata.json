@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "e1f470651f32",
+  "session_id": "ac34f076-8752-4445-a02a-ffff57120a75",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-22T01:06:58.271597Z",
+  "branch": "docs/databricks-iggy-decisions",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "f12c82f8b6c0",
+  "token_usage": {
+    "input_tokens": 16662,
+    "cache_creation_tokens": 780166,
+    "cache_read_tokens": 43569736,
+    "output_tokens": 306469,
+    "api_call_count": 194
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
