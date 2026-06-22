@@ -53,14 +53,18 @@ Eraser MCP authenticated in Claude; began the three §13.4 implementation-varian
   writeback (OpenPLC/OPC-UA) → actuators. Model never actuates; controller executes; human gates.
 - Two-tier MQTT broker topology clarified/visualized (no new decision — charter §4): 1 Mosquitto per
   site (local autonomy + local Sparkplug map) + 1 EMQX central cluster (enterprise harmonized namespace).
+- **Two-component evaluation DECIDED** (now charter **§13.6**): **Databricks Free Edition** → adopt as a
+  "graduate-to managed lakehouse" milestone + cloud-native-variant option (Delta Lake, Unity Catalog;
+  build medallion by hand first, then mirror) — *not* in the hand-built core. **Apache Iggy** → keep
+  **Kafka** as the backbone; Iggy only as an optional explore milestone on a non-Debezium stream (Iggy
+  has no Debezium/Connect ecosystem and is incubating).
 - ⚠️ **Eraser gotcha:** the AI edit path (`update_diagram`) repeatedly **reverses connection arrow
   directions**. Use **`manually_update_diagram`** (verbatim DSL) whenever direction matters.
 
 ⏭ **Open for next session / agent:**
 - (a) **Keep reviewing/refining Diagram 1** (hand-built) until it fully captures the design — **NOT yet
   approved** as the template to replicate.
-- (b) **The "two components" discussion is still pending** — owner wants to discuss two components to
-  consider before moving on.
+- (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) Then draw **Diagram 2 (UMH-anchored)** and **Diagram 3 (cloud-native → floci)**, matching #1.
 - (d) Then start **Phase 0**.
 
