@@ -112,6 +112,9 @@ for understanding, not speed.
 (medallion ETL, Phase 6), **Prometheus** (observability, Phase 3), and **MLflow** (model registry,
 Phase 6) are deliberate hands-on goals — build them the real way and explain, even where a simpler
 stand-in would suffice. The owner wants the genuine experience. (Full list & rationale: charter §13.)
+Optional *later* "graduate-to / explore" milestones (charter §13.6): **Databricks Free Edition**
+(graduate the hand-built medallion to a managed lakehouse — Delta Lake, Unity Catalog) and **Apache
+Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **Kafka stays the backbone**).
 
 ## Key documentation (all in `design/`)
 

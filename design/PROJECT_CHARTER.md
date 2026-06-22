@@ -644,7 +644,8 @@ Spark ETL · batch/file-drop ingestion · MLflow · online/offline feature store
 observability · `ods_core` named the MDM analog.
 
 **New hands-on learning milestones** (join Debezium + Redis): **OPC-UA · Spark · observability
-(Prometheus) · MLflow.**
+(Prometheus) · MLflow.** Optional *later* "graduate-to / explore" milestones (§13.6):
+**Databricks Free Edition** (managed lakehouse) · **Apache Iggy** (alternative streaming).
 
 ### 13.3 Deliberately out of scope
 
@@ -688,3 +689,13 @@ How models run and how their output becomes control action (refines §3 / §13 L
 | L6.5 | Closed-loop control + HITL | Model (edge or cloud) → **HITL Operator Console** (approve / edit / reject) → approved command published to the **UNS as a Sparkplug setpoint/command topic** → site edge → **controller writeback** (OpenPLC register / OPC-UA write) → actuators. The **model never actuates directly**; the **controller executes**, the **human gates**, and all writeback flows through the single auditable **UNS command path** (no direct edge→PLC bypass). |
 
 This makes "edge-executed, human-in-the-loop" concrete and closes the OT→IT→OT loop with a human gate.
+
+### 13.6 Optional "graduate-to" / explore components (DECIDED 2026-06-22)
+
+Two free tools evaluated and slotted as **post-hand-built options** (the upgrade-friendly / abstraction
+pattern — **neither changes the hand-built core**):
+
+| Component | Decision | Where it fits |
+|-----------|----------|---------------|
+| **Databricks Free Edition** — managed cloud lakehouse (Delta Lake, **Unity Catalog**, Spark/Photon, MLflow, Genie AI/BI, Lakeflow; free, non-commercial, serverless) | **Adopt as a "graduate-to managed lakehouse" learning milestone + the managed-lakehouse option in the cloud-native variant.** Build the medallion + Spark + MLflow **by hand first** (the learning), then mirror Bronze/Silver/Gold onto Databricks to learn **Delta Lake**, **Unity Catalog** (fills the lab's lake-catalog/governance gap), Lakeflow, and Genie. **Not** in the hand-built core (cloud-hosted; would abstract the bare-metal lesson). Low lock-in (Delta + Unity Catalog are open source). | §13 L4 analytics layer → Databricks; cloud-native variant (§13.4 #3) may use Databricks in place of raw Glue/Athena/SageMaker. |
+| **Apache Iggy** — Rust single-binary ultra-high-throughput persistent streaming (incubating) | **Keep Kafka as the backbone; add Iggy as an *optional explore milestone*** on a **non-Debezium** stream (e.g. UNS→analytics fan-out or alerting) to learn it and compare hands-on. **Do not replace Kafka:** it would break the **Debezium CDC milestone** (Iggy has no Kafka-Connect/Debezium/Schema-Registry ecosystem), the lab's bottleneck is **modeling, not ingest rate**, and Iggy is **not production-ready**. | Streaming layer (§4) — Kafka default; Iggy a swap-seam experiment (Phase 6+/later). |
