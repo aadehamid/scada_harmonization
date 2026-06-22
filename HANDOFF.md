@@ -28,12 +28,43 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-06-21)
+## 2. Current status (2026-06-22)
 
 **Phase: pre-implementation.** Design + charter complete; **all infrastructure decisions resolved**;
-**no source code yet.**
+**no source code yet.** Architecture diagrams begun in Eraser (hand-built diagram #1 in progress).
 
-### This session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
+### This session (2026-06-22) — Eraser architecture diagrams (hand-built #1, in progress)
+
+Eraser MCP authenticated in Claude; began the three §13.4 implementation-variant diagrams.
+
+- **Diagram 1 of 3 — Hand-built / Python-centric** created in the Eraser folder **"SCADA Harmonization"**
+  (the project's existing folder; the convention's `scada_harmonization`). **URL:**
+  https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas
+  Built to **reference-level density**: Level 0 device layer (synthetic TEP+IIoT replay, sensors,
+  actuators) → L1/L2 PLC (OpenPLC/OPC-UA/Python) → two-tier brokers (4 Mosquitto edge + 1 EMQX cluster)
+  + Python site-forwarders (store-and-forward + cross-site conforming = harmonization) → DMZ/Docker
+  boundary → OT consumers, IT sources+CDC+file-drop, ods_core mapping store, medallion lakehouse+Spark,
+  ERPNext, Neo4j+GraphRAG, ML, Prometheus/floci, 5 consumer personas, richly labeled flows.
+- **New Plane-4 design refinements DECIDED this session** (now charter **§13.5**): edge inference runs
+  **per-site** (true edge) + cloud/central for training/batch; ML trains on **three feature planes**
+  (OT historian, IT/ods_core, harmonized gold); MLflow deploys the same model to **edge + cloud**;
+  online(Redis)/offline(gold) split; **closed-loop control with HITL** — model → HITL Operator Console
+  (approve/edit/reject) → approved command via **UNS Sparkplug setpoint topic** → site edge → controller
+  writeback (OpenPLC/OPC-UA) → actuators. Model never actuates; controller executes; human gates.
+- Two-tier MQTT broker topology clarified/visualized (no new decision — charter §4): 1 Mosquitto per
+  site (local autonomy + local Sparkplug map) + 1 EMQX central cluster (enterprise harmonized namespace).
+- ⚠️ **Eraser gotcha:** the AI edit path (`update_diagram`) repeatedly **reverses connection arrow
+  directions**. Use **`manually_update_diagram`** (verbatim DSL) whenever direction matters.
+
+⏭ **Open for next session / agent:**
+- (a) **Keep reviewing/refining Diagram 1** (hand-built) until it fully captures the design — **NOT yet
+  approved** as the template to replicate.
+- (b) **The "two components" discussion is still pending** — owner wants to discuss two components to
+  consider before moving on.
+- (c) Then draw **Diagram 2 (UMH-anchored)** and **Diagram 3 (cloud-native → floci)**, matching #1.
+- (d) Then start **Phase 0**.
+
+### Previous session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
 A long working session, three threads:
 
 **1. Real-world industry discovery (MERGED, PR #6).** Two anonymized consulting discovery slides (a
@@ -59,19 +90,18 @@ Spark, Prometheus, MLflow (join Debezium + Redis). **Three implementation-varian
 Eraser (hand-built/Python-centric · UMH-anchored · cloud-native→floci) — **NOT yet drawn; owner asked to
 hold.**
 
-Edited this branch: `design/PROJECT_CHARTER.md` (§4, §8, §12 #15, new **§13**), `AGENTS.md`, `README.md`,
-`HANDOFF.md`. Design-only; no code.
-
-⏭ **Open for next session:** (a) merge PR #7; (b) complete Eraser OAuth in Claude (`/mcp`) then **draw
-the three §13.4 architecture diagrams** into the `scada_harmonization` Eraser workspace; (c) finish
-per-agent Eraser OAuth as needed; (d) then start Phase 0.
+(All 2026-06-21 work is **merged to `main`**; see Git/PR state below.)
 
 ### Git / PR state
 - **PR #1–#5** — earlier charter / infra / gitignore work → **MERGED**.
 - **PR #6** — anonymized industry discovery → **MERGED** (`2d99eb5`); branch deleted.
-- **PR #7** — diagram convention (Eraser → `scada_harmonization`) **+ reference-architecture review
-  (charter §13)** → **OPEN**, branch `docs/diagram-convention-eraser`, **awaiting owner merge**.
-- ⚠️ **Next agent:** merge PR #7 → draw §13.4 diagrams (after Eraser auth) → then start Phase 0.
+- **PR #7** — diagram convention (Eraser → `scada_harmonization`) → **MERGED**; branch deleted.
+- **PR #8** — reference-architecture review (charter §13) → **MERGED** (`2a4db7b`); branch deleted.
+  *(Lesson: #8 existed because #7 was merged before its later commits were pushed — see git/PR discipline in AGENTS.md.)*
+- **PR #9** — git/PR discipline notes → **MERGED** (`adc85b4`); branch deleted.
+- **This session's doc update** → branch `docs/session-eraser-diagrams-plane4`, **awaiting owner merge**
+  (no code; design + §13.5). The Eraser diagram itself lives in Eraser, not git.
+- ⚠️ **Next agent:** merge this branch → continue refining Diagram 1 → discuss the two components → draw Diagrams 2 & 3 → Phase 0.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
