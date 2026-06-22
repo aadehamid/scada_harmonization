@@ -38,6 +38,17 @@ for understanding, not speed.
 - **Update `HANDOFF.md` at the end of EVERY session** — refresh "Current status," git/PR state, and
   "What's next" so the next agent (or the owner) is never confused. This is mandatory, not optional.
 
+**Git / PR discipline (learned the hard way — do NOT repeat)**
+- **Branch per change → PR → the _owner_ merges → delete the branch.** Never push straight to `main`.
+- **Before telling the owner a PR is "ready to merge," push ALL commits and confirm the branch is fully
+  up to date** — run `git status` (clean) and `git log origin/<branch>..HEAD` (empty). *Why:* a PR was
+  once merged while later commits were still unpushed, silently dropping a whole work section from
+  `main`. Verify the remote branch HEAD is what you think it is *before* you say "ready."
+- **Delete every branch as soon as its PR is merged** — local *and* remote (`git branch -d <b>` +
+  `git push origin --delete <b>`) — then fast-forward `main`. No merged branch lingers.
+- If you add commits to a branch *after* its PR was already merged, those commits are NOT in `main`:
+  open a **new** PR for them (you can't reopen a merged PR).
+
 **Build cadence (per component) — explain → align → build → observe → prune**
 1. **Explain first.** Before writing non-trivial code, describe *what* we're about to build, *why*, a
    short **concept primer** for any new tech (Sparkplug B, hypertables, CDC/Debezium, Cypher, ISO
