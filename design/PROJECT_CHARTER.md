@@ -655,7 +655,8 @@ DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · V
 ### 13.4 The three implementation variants (architecture diagrams)
 
 The three architecture notes (§5) are realized as **three full architecture diagrams**, all saved to
-the **Eraser workspace `scada_harmonization`**, each delivering the *same* capability set:
+the project's Eraser folder **"SCADA Harmonization"** (= the convention's `scada_harmonization`), each
+delivering the *same* capability set:
 
 1. **Hand-built / Python-centric** — self-hosted OSS, every boundary explicit; the learning
    architecture built across Phases 0–7 (EMQX, Kafka, TimescaleDB, Spark, DuckDB, Neo4j, MLflow,
@@ -669,3 +670,21 @@ the **Eraser workspace `scada_harmonization`**, each delivering the *same* capab
 > Where the lab **exceeds** the reference: Sparkplug-B contract · two-tier broker + Python
 > site-forwarder (the harmonization point) · Neo4j + ISO 15926/DEXPI ontology · GraphRAG/GenAI ·
 > first-class identity reconciliation · the governed data-product catalog.
+
+**Status (2026-06-22):** Diagram 1 (Hand-built / Python-centric) is **in progress / under review**
+([Eraser link](https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas));
+Diagrams 2–3 (UMH-anchored, cloud-native) not yet started. *Tooling note:* Eraser's AI edit path
+(`update_diagram`) tends to reverse connection arrow directions — use `manually_update_diagram`
+(verbatim DSL) when direction matters.
+
+### 13.5 Plane 4 — edge/cloud ML execution & closed-loop control (DECIDED 2026-06-22)
+
+How models run and how their output becomes control action (refines §3 / §13 L6):
+
+| # | Decision | Resolution |
+|---|----------|-----------|
+| L6.3 | ML execution tiers | **Per-site edge inference** (true edge — low latency, survives WAN loss, scores live OT off the local Mosquitto) **+ cloud/central** for training and batch serving. |
+| L6.4 | Feature planes & deploy | Models consume **three planes**: **OT** (historian / live UNS), **IT** (`ods_core` / CDC), and **harmonized OT/IT** (gold features + graph context — the *premium* source). **MLflow** registry deploys the *same* model to **both** edge and cloud; **online (Redis) / offline (gold)** feature split. |
+| L6.5 | Closed-loop control + HITL | Model (edge or cloud) → **HITL Operator Console** (approve / edit / reject) → approved command published to the **UNS as a Sparkplug setpoint/command topic** → site edge → **controller writeback** (OpenPLC register / OPC-UA write) → actuators. The **model never actuates directly**; the **controller executes**, the **human gates**, and all writeback flows through the single auditable **UNS command path** (no direct edge→PLC bypass). |
+
+This makes "edge-executed, human-in-the-loop" concrete and closes the OT→IT→OT loop with a human gate.
