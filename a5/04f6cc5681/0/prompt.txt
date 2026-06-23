@@ -1,0 +1,104 @@
+merged.
+
+---
+
+eraser is now autheticated.
+
+---
+
+I want it to be as detailed as [Image #4] the attached image.
+
+Once we align on the this diagram let us chat about tow components I want us to consider.
+
+---
+
+where are the device layer. Sensors, actuators, devices and so on. That is level 0
+
+---
+
+where does MQTT broker or broker cluster sits.Do we need one for each site for local harmonization and one for enterosie consumption. Let us discuss this if it is not clear? Can we add it it?
+
+---
+
+what about running machine learning or AI model on the OT data, IT, data, ahrmonized OT/IT data. Where will that sits and how should it be reflected. By the way we want a way to run the model at the edge and in the cloud. And also to use the result of the model to inform changes controller will need to make . It must involve human in the loop. We can discuss this before you draw if it is not clear
+
+---
+
+We will continue to review this fisrt diagram to make sure it captures what we need before we move to the next one. But for now we will stop here and continue from next session or with another agents in a separate session. Can you update relevant documents, including the HANDOFF documents. Also check that entire is capturing everything we have done in this session. Once you are done we can chat about the two components
+
+---
+
+merged.
+
+So what role will Databrick Free Edition play here if we have to use it. Also how does Apache Iggy compare with Kafka. Should we use iggy?
+
+https://www.databricks.com/learn/free-edition
+
+https://github.com/apache/iggy
+
+---
+
+merged. We can stop here
+
+---
+
+one final thing... how do i use what Entire is capturing versus what i am capturing in files here?
+
+---
+
+i just added a file that we will use to begin our review or discussion of the design next time. Can you this to .gitignore . I dont want to commit to git. Just take a note of it
+
+---
+
+the log in screen did not pop up
+
+---
+
+how do i escape from using /btw to the main session
+
+---
+
+is there anything we need to commit . I noticed we took note of a documents we will review our design with to see what we miss. is that correct?
+
+---
+
+done
+
+---
+
+merged, delete the branch
+
+---
+
+❯ can you review the sample /SAMPLE_conagra-dyi-aym-architecture-reference.html to see what our design is missing. Remember that this is for a CPg company so we dont really have to be tied to the specifics we just want to make sure that the design as illustrated in that documents make sesne and that our design also cover the pattern. Let me know if there is a pattern that we are clearly missing
+
+---
+
+merged, delete the branch
+
+---
+
+Let us refine Diagram 1. By the way you created the initial diagram outside of the "SCADA Harmonization" folder. I moved it into that folder. All diagrams in this project should be created in this folder. Please see the link to the digarma we are working on below. The one I moved to the working folder for this project. The goal of this review is to refine the diagram based on findings from the review we just carried on
+
+https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY
+
+---
+
+http://localhost:3118/callback?REDACTED&REDACTED
+
+---
+
+Can you check the location of the DMZ is that not supposed to be the air gap between OT and IT. Doe sits current location denotes this? It seems to not be the case. can you review and tell what you think?
+
+---
+
+I like the change. A couple of changes :
+1. can we have the diagram flow OT (left) to IT (right). We just need to flip the side in the diagram.
+2. Also let us place MES/LIMS/CMMS on OT if they truly belong in OT side. If part of it belong in the IT let us leave them there. Basically leave the system on the side they are supposed to be
+3. can you do a search for best practices on the placement of the EMQX central UNS. Is is typically placed on the OT or IT side what is the recommended design.
+
+Let us discuss these points befor eyou amke chnages to the diagram
+
+---
+
+looks good. Can we stop here today. Please update all relevant documents, including HANDOFF
