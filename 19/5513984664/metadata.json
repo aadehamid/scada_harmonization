@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "195513984664",
+  "strategy": "manual-commit",
+  "branch": "docs/reference-audit-patterns",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/19/5513984664/0/metadata.json",
+      "transcript": "/19/5513984664/0/full.jsonl",
+      "content_hash": "/19/5513984664/0/content_hash.txt",
+      "prompt": "/19/5513984664/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18469,
+    "cache_creation_tokens": 1131128,
+    "cache_read_tokens": 58052827,
+    "output_tokens": 342399,
+    "api_call_count": 237
+  }
+}
