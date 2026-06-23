@@ -55,3 +55,7 @@ the log in screen did not pop up
 ---
 
 how do i escape from using /btw to the main session
+
+---
+
+is there anything we need to commit . I noticed we took note of a documents we will review our design with to see what we miss. is that correct?
