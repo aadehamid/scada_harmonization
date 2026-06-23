@@ -170,3 +170,6 @@ reference/engineering_drawing_business_case/
 BUSINESS_CASE.md
 OT_DATA_INTEGRATION_CHALLENGE.md
 PROBLEM_STATEMEMENT.md
+
+# Local-only design reference/sample inputs (SAMPLE_ prefix = do not commit; mine for patterns only)
+design/SAMPLE_*

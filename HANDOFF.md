@@ -62,6 +62,10 @@ Eraser MCP authenticated in Claude; began the three §13.4 implementation-varian
   directions**. Use **`manually_update_diagram`** (verbatim DSL) whenever direction matters.
 
 ⏭ **Open for next session / agent:**
+- (0) **Start next session by reviewing the owner-provided reference:**
+  `design/SAMPLE_conagra-dyi-aym-architecture-reference.html` — a **local-only, gitignored** input
+  (the `SAMPLE_` prefix = do not commit; mine for *patterns* only, like `reference/`). It kicks off the
+  next design review/discussion (a Conagra-style DYI/AYM yield architecture reference).
 - (a) **Keep reviewing/refining Diagram 1** (hand-built) until it fully captures the design — **NOT yet
   approved** as the template to replicate.
 - (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
