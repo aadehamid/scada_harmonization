@@ -87,8 +87,15 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
   equipment-type templates (P6), Bronze schema validation (P7), business-joins-downstream principle (P8),
   golden-batch reference (P9). Tier 3 noted as conscious scope choices (no CV, no connected-worker,
   central-EMQX-UNS kept). (`SAMPLE_*` stays local-only/gitignored.)
-- (a) **Diagram 1 (hand-built) refined & owner-approved look (2026-06-23)** — §13.7 patterns + §13.8
-  OT/IT zoning applied. Do a final pass / lock it as the template, then replicate for Diagrams 2 & 3.
+- (a) **NEXT SESSION — teaching walkthrough of Diagram 1 (owner's explicit plan).** Before drawing
+  Diagrams 2 & 3, walk **component-by-component through Diagram 1**, explaining *why each piece exists in
+  terms of the problem we're solving*, at a depth the owner can **teach to others / build a presentation**
+  from. For each component: tie it to the problem → explain the mechanism → **do a web search to augment**
+  the project's own material so the teaching is comprehensive and current → note any **gap or refinement**
+  → update the diagram where needed. Two goals: (1) a presentation the owner will deliver, (2) surface
+  further refinements. **This is the review pass that locks Diagram 1 as the template.** Diagram 1 already
+  has §13.7 patterns + §13.8 OT/IT zoning applied and the owner approved its look (2026-06-23).
+  Eraser: folder "SCADA Harmonization", fileId `6Ng61sTaot9VjtU87bEY`, diagramId `vheRVPpajwodCEDwqnBZ`.
 - (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) Then draw **Diagram 2 (UMH-anchored)** and **Diagram 3 (cloud-native → floci)**, matching #1.
 - (d) Then start **Phase 0**.
