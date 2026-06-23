@@ -218,6 +218,7 @@ enterprise harmonization):
   the WAN/central system is down. Holds the site's *own* (still-divergent) Sparkplug namespace.
 - **EMQX OSS (central):** the enterprise UNS broker — cross-site harmonization target, IT
   integrations, fan-out. Justified centrally by its rule engine, native data bridges, and clustering.
+  **Network placement: in the iDMZ (Level 3.5)** as the controlled OT/IT conduit — see §13.8 Z2.
 - **Connection = a Python site-forwarder, NOT a raw broker bridge.** Sparkplug B is stateful (death
   certificates via LWT, primary-host `STATE`); a naive `spBv1.0/#` broker bridge breaks that coherence
   across tiers and gives no control over what forwards. A site-forwarder subscribes locally and
@@ -730,3 +731,28 @@ refine, not replace, prior decisions.
 - **Machine vision / CNN modality** — *out* (charter §7 already dropped CV/VLM); our anchors are time-series.
 - **Connected-worker / manual-operation digitization** (pick-to-light, AR, connected-worker apps) — *out* (no human operators in a synthetic lab); transferable bit kept: **operator/shift/lot as ML covariates**.
 - **Broker topology divergence** — the reference uses **no central broker** (per-plant brokers → cloud gateway); we **keep the central EMQX UNS cluster** as a *conscious* choice (the "central UNS broker" school; richer for the cross-site harmonization thesis). Both are valid.
+
+### 13.8 OT/IT network zoning & the iDMZ (DECIDED 2026-06-23)
+
+Resolved while refining the hand-built architecture diagram (Diagram 1), grounded in Purdue/ISA-95 +
+IEC 62443 and UNS best-practice research. These fix *where the OT/IT air gap sits* and *what lives on
+each side* — a network-zone question distinct from the data-domain (IT/OT/ET) framing of §2.
+
+**Two distinct axes (don't conflate them):**
+- **Data domain** (§2 IT/OT/ET) — *what kind* of data: OT telemetry vs IT transactional vs ET topology.
+- **Network zone** (Purdue / the diagram's zones) — *where on the network*: OT Levels 0–3 vs the **iDMZ
+  (Level 3.5)** vs IT/Enterprise Levels 4–5. The iDMZ is the IT/OT boundary; all cross-boundary traffic
+  terminates there.
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| Z1 | **The iDMZ (Level 3.5) is the OT/IT air gap.** OT zone = Levels 0–3 (operational/real-time); IT/Enterprise/Cloud zone = Levels 4–5. | Purdue/IEC 62443: only enterprise (L4–5) sits above the iDMZ; everything operational is below it. |
+| Z2 | **The central EMQX enterprise UNS broker sits *in* the iDMZ (Level 3.5)** as the controlled OT/IT conduit — *not* purely OT, *not* IT. Per-site **Mosquitto edge brokers stay OT** (Levels 2–3, local autonomy). | Documented best practice: site/edge brokers buffer in OT; the **enterprise broker is the DMZ conduit** (HiveMQ/Siemens "broker-as-DMZ-gateway"). Forwarders publish up to it; OT historian/dashboards/console subscribe down; IT analytics bridge across. |
+| Z3 | **MES, LIMS, CMMS, Quality + the plant Postgres are OT-side (ISA-95 Level 3)** — even though they are "IT data-domain." **ERPNext (Level 4) stays IT-side.** | ISA-95: MES/LIMS/CMMS/WMS/historian are Level 3 (below the iDMZ); only ERP/enterprise is Level 4. Their **CDC (Debezium) is an iDMZ crossing** carrying transactional data *up* to IT analytics — reinforces §13.7 P8. |
+| Z4 | **TimescaleDB historian + Grafana + the HITL operator console + safety layers are OT-side (Level 3).** | Historians and SCADA dashboards are classic OT systems; control/HITL must stay operational. The earlier draft wrongly stranded them above the gap. |
+
+**The iDMZ is crossed by exactly three flows** (everything else is zone-internal): harmonized telemetry
+**up** (EMQX → Kafka), transactional data **up** (plant Postgres → Debezium → Kafka), and cloud-ML
+recommendations **down** (Model Serving → EMQX → operator console). Model/feature deployment to the edge
+also transits the iDMZ. The closed-loop **command path is mediated by the iDMZ UNS broker** but control
+execution stays OT-internal (broker → forwarder → PLC-clamp → controller).
