@@ -187,6 +187,16 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
   analytical→DuckDB (OLAP), relationships→Neo4j. No engine duplicates another's concern.
 - **Config over code** — site mappings, status maps, unit factors, ontology are data.
 - **Upgrade-friendly** — every OSS component has a credible enterprise replacement path.
+- **Scan rate matches process physics** — sample/RBE-deadband per metric by class (fast ~1s / supporting
+  ~5s / environmental ~30s / state on-change); too-wide deadband hides slow drift (charter §13.7 P1).
+- **Defense-in-depth for closed-loop** — setpoint writeback is guarded by model safety-envelope + edge/PLC
+  limit-clamping + an independent safety check off the model path; graded HITL (L1 alert / L2 recommend /
+  L3 closed-loop); every recommendation carries explainability (SHAP/saliency) (charter §13.7 P2–P4).
+- **SPC-first yield/quality detection** — adaptive control charts (EWMA/CUSUM/adaptive limits) with ML
+  tuning the chart, not generic "anomaly detection" (charter §13.7 P5).
+- **Equipment-type templates** — define an equipment class once (metrics/units/ranges/scan/limits),
+  instantiate per asset binding only the site PLC tag; Bronze validates against `metric_registry`
+  (schema-drift → dead-letter); UNS carries OT real-time only, business data joins downstream (§13.7 P6–P8).
 
 ## Domain & data
 
