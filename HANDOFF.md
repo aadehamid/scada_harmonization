@@ -61,6 +61,24 @@ Eraser MCP authenticated in Claude; began the three §13.4 implementation-varian
 - ⚠️ **Eraser gotcha:** the AI edit path (`update_diagram`) repeatedly **reverses connection arrow
   directions**. Use **`manually_update_diagram`** (verbatim DSL) whenever direction matters.
 
+### Diagram 1 refinement session (2026-06-23, later)
+Refined **Diagram 1 (Hand-built / Python-centric)** in Eraser to reflect the §13.7 audit patterns and
+fix OT/IT zoning. Diagram lives in the **"SCADA Harmonization"** Eraser folder (fileId
+`6Ng61sTaot9VjtU87bEY`, diagramId `vheRVPpajwodCEDwqnBZ`):
+https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas
+- Added all 9 §13.7 patterns visually (P1 scan-rate note · P2 defense-in-depth safety group on the
+  writeback · P3 graded HITL console · P4 SHAP on recommendations · P5 SPC labels · P6 equipment-template
+  registry · P7 Bronze schema-validation + dead_letter · P8 downstream-join note · P9 golden-batch node).
+- **OT/IT zoning corrected → new charter §13.8 (Z1–Z4):** the diagram is now **three zones** — **OT
+  (left, L0–3)** · **iDMZ (middle, L3.5)** · **IT/Cloud (right, L4–5)**. **EMQX moved into the iDMZ** as
+  the OT/IT conduit (Z2); **MES/LIMS/CMMS/Quality + plant Postgres moved to OT-side Level 3** (Z3, ERPNext
+  stays IT); historian/Grafana/console/safety are OT-side (Z4). iDMZ crossed by exactly 3 flows
+  (telemetry up, CDC up, cloud-recommendation down).
+- **Owner approved the current diagram look.** Still the working hand-built diagram; once locked it
+  becomes the template for Diagrams 2 (UMH) & 3 (cloud-native).
+- **Eraser gotchas captured to memory:** AI `update_diagram` reverses arrow directions → use
+  `manually_update_diagram`; all diagrams go in the "SCADA Harmonization" folder.
+
 ⏭ **Open for next session / agent:**
 - (0) ~~Review the owner-provided reference `design/SAMPLE_*`~~ — **DONE (2026-06-23):** audited the CPG
   DYI/AYM reference pattern-by-pattern. Design validated; adopted **9 patterns** (charter **§13.7**):
@@ -69,8 +87,8 @@ Eraser MCP authenticated in Claude; began the three §13.4 implementation-varian
   equipment-type templates (P6), Bronze schema validation (P7), business-joins-downstream principle (P8),
   golden-batch reference (P9). Tier 3 noted as conscious scope choices (no CV, no connected-worker,
   central-EMQX-UNS kept). (`SAMPLE_*` stays local-only/gitignored.)
-- (a) **Keep reviewing/refining Diagram 1** (hand-built) until it fully captures the design — **NOT yet
-  approved** as the template to replicate.
+- (a) **Diagram 1 (hand-built) refined & owner-approved look (2026-06-23)** — §13.7 patterns + §13.8
+  OT/IT zoning applied. Do a final pass / lock it as the template, then replicate for Diagrams 2 & 3.
 - (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) Then draw **Diagram 2 (UMH-anchored)** and **Diagram 3 (cloud-native → floci)**, matching #1.
 - (d) Then start **Phase 0**.
