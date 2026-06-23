@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-23
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -62,10 +62,13 @@ Eraser MCP authenticated in Claude; began the three §13.4 implementation-varian
   directions**. Use **`manually_update_diagram`** (verbatim DSL) whenever direction matters.
 
 ⏭ **Open for next session / agent:**
-- (0) **Start next session by reviewing the owner-provided reference:**
-  `design/SAMPLE_conagra-dyi-aym-architecture-reference.html` — a **local-only, gitignored** input
-  (the `SAMPLE_` prefix = do not commit; mine for *patterns* only, like `reference/`). It kicks off the
-  next design review/discussion (a Conagra-style DYI/AYM yield architecture reference).
+- (0) ~~Review the owner-provided reference `design/SAMPLE_*`~~ — **DONE (2026-06-23):** audited the CPG
+  DYI/AYM reference pattern-by-pattern. Design validated; adopted **9 patterns** (charter **§13.7**):
+  Tier 1 — scan-rate/deadband strategy (P1), defense-in-depth closed-loop safety (P2), graded HITL
+  L1/L2/L3 (P3), explainability as required ML output (P4), SPC/adaptive control charts (P5); Tier 2 —
+  equipment-type templates (P6), Bronze schema validation (P7), business-joins-downstream principle (P8),
+  golden-batch reference (P9). Tier 3 noted as conscious scope choices (no CV, no connected-worker,
+  central-EMQX-UNS kept). (`SAMPLE_*` stays local-only/gitignored.)
 - (a) **Keep reviewing/refining Diagram 1** (hand-built) until it fully captures the design — **NOT yet
   approved** as the template to replicate.
 - (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).

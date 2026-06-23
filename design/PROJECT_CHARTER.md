@@ -686,7 +686,7 @@ How models run and how their output becomes control action (refines §3 / §13 L
 |---|----------|-----------|
 | L6.3 | ML execution tiers | **Per-site edge inference** (true edge — low latency, survives WAN loss, scores live OT off the local Mosquitto) **+ cloud/central** for training and batch serving. |
 | L6.4 | Feature planes & deploy | Models consume **three planes**: **OT** (historian / live UNS), **IT** (`ods_core` / CDC), and **harmonized OT/IT** (gold features + graph context — the *premium* source). **MLflow** registry deploys the *same* model to **both** edge and cloud; **online (Redis) / offline (gold)** feature split. |
-| L6.5 | Closed-loop control + HITL | Model (edge or cloud) → **HITL Operator Console** (approve / edit / reject) → approved command published to the **UNS as a Sparkplug setpoint/command topic** → site edge → **controller writeback** (OpenPLC register / OPC-UA write) → actuators. The **model never actuates directly**; the **controller executes**, the **human gates**, and all writeback flows through the single auditable **UNS command path** (no direct edge→PLC bypass). |
+| L6.5 | Closed-loop control + HITL | Model (edge or cloud) → **HITL Operator Console** (approve / edit / reject) → approved command published to the **UNS as a Sparkplug setpoint/command topic** → site edge → **controller writeback** (OpenPLC register / OPC-UA write) → actuators. The **model never actuates directly**; the **controller executes**, the **human gates**, and all writeback flows through the single auditable **UNS command path** (no direct edge→PLC bypass). *Refined by §13.7:* HITL is **graded** (L1 alert / L2 recommend / L3 closed-loop, P3) and guarded by **defense-in-depth safety layers** (P2); recommendations carry **explainability** (P4). |
 
 This makes "edge-executed, human-in-the-loop" concrete and closes the OT→IT→OT loop with a human gate.
 
@@ -699,3 +699,34 @@ pattern — **neither changes the hand-built core**):
 |-----------|----------|---------------|
 | **Databricks Free Edition** — managed cloud lakehouse (Delta Lake, **Unity Catalog**, Spark/Photon, MLflow, Genie AI/BI, Lakeflow; free, non-commercial, serverless) | **Adopt as a "graduate-to managed lakehouse" learning milestone + the managed-lakehouse option in the cloud-native variant.** Build the medallion + Spark + MLflow **by hand first** (the learning), then mirror Bronze/Silver/Gold onto Databricks to learn **Delta Lake**, **Unity Catalog** (fills the lab's lake-catalog/governance gap), Lakeflow, and Genie. **Not** in the hand-built core (cloud-hosted; would abstract the bare-metal lesson). Low lock-in (Delta + Unity Catalog are open source). | §13 L4 analytics layer → Databricks; cloud-native variant (§13.4 #3) may use Databricks in place of raw Glue/Athena/SageMaker. |
 | **Apache Iggy** — Rust single-binary ultra-high-throughput persistent streaming (incubating) | **Keep Kafka as the backbone; add Iggy as an *optional explore milestone*** on a **non-Debezium** stream (e.g. UNS→analytics fan-out or alerting) to learn it and compare hands-on. **Do not replace Kafka:** it would break the **Debezium CDC milestone** (Iggy has no Kafka-Connect/Debezium/Schema-Registry ecosystem), the lab's bottleneck is **modeling, not ingest rate**, and Iggy is **not production-ready**. | Streaming layer (§4) — Kafka default; Iggy a swap-seam experiment (Phase 6+/later). |
+
+### 13.7 Patterns adopted from the reference-architecture audit (DECIDED 2026-06-23)
+
+A detailed external reference (a CPG yield-intelligence / autonomous-yield-management architecture —
+local-only `design/SAMPLE_*`) was audited pattern-by-pattern. The design was validated; the items below
+are **adopted to close real gaps** (CPG specifics dropped — general industrial-AI patterns kept). They
+refine, not replace, prior decisions.
+
+**Tier 1 — clear gaps now closed:**
+
+| # | Pattern | How it lands in the lab |
+|---|---------|-------------------------|
+| P1 | **Scan-rate strategy tied to process physics** + **deadband/compression** + cascade check | Formalize the mapping table's `cadence` into an explicit **scan rate + RBE deadband per metric**, classed by physics: **fast process vars ~1 s · supporting ~5 s · environmental ~30 s · state = on-change**. The rate must hold across every link (replay → PLC/poll → Sparkplug RBE → historian); deadband too wide *hides* slow drift. "Scan rate decides whether the model can even *see* the problem." |
+| P2 | **Defense-in-depth safety for closed-loop** (not just a human gate) | Three independent layers guard any setpoint writeback: (1) **model safety-envelope** — recommendations clamped to a safe range in the serving layer; (2) **PLC/edge-side limits** — the writeback validates & **rejects/clamps** unsafe setpoints (hardcoded bounds, independent of the model); (3) an **independent safety-check service** *not on the model write path* (GuardLogix analog). The model can never drive the process unsafe even if a human approves a bad value. Extends §13.5 L6.5. |
+| P3 | **Graded HITL maturity** (replaces single-mode HITL) | **L1 Alert** (notify, operator acts) → **L2 Recommend** (specific setpoint + confidence, operator accepts/edits) → **L3 Closed-loop** (auto-write with override + the P2 safety layers). Climb the ladder only where feedback is fast and stakes low; **some metrics stay L1-only**. Refines §13.5 L6.5. |
+| P4 | **Explainability as a required ML output** | Every alert/recommendation (edge **and** cloud) must carry a **feature attribution** (SHAP for tabular; saliency/Grad-CAM where applicable) — "top factor: reactor feed-temp +4 °C (SHAP 0.47)". The HITL console renders the *why*; without it operators can't trust or act. Hard requirement on the model-serving contract. |
+| P5 | **SPC / adaptive control charts** as the detection method | Frame Track-A yield/quality detection as **statistical process control** — **EWMA / CUSUM / adaptive limits** — with ML **adjusting the chart parameters from covariates** ("dynamic SPC"), not generic "anomaly detection." This is the established, explainable yield method and the bare-metal mechanic the lab should teach. |
+
+**Tier 2 — strengtheners (we had analogs; now explicit):**
+
+| # | Pattern | How it lands |
+|---|---------|--------------|
+| P6 | **Equipment-type templates** (UDT analog) | Define an **equipment class once** (its metric set + units + ranges + scan/deadband + alarm limits) as a Pydantic type; **instantiate per site/asset** binding only the site-specific PLC tag. This is *how harmonization scales* to N sites consistently — the spine's type system. |
+| P7 | **Bronze-layer schema validation** | The medallion **Bronze** stage validates incoming data against the governed `metric_registry` — detect **missing / unexpected / schema-drifted** metrics → route to `dead_letter`; only conforming data advances to Silver. Makes the registry an *enforced* contract, not just documentation. |
+| P8 | **Business data joins downstream, not in the UNS** (explicit principle) | The **UNS/Sparkplug carries OT real-time only**; IT/business records (CDC) join OT **downstream** in `ods_core` / lakehouse / Neo4j — they run on different timescales (min/hr vs ms) and must not flow through the MQTT broker. (We already do this; now stated as a principle.) |
+| P9 | **Golden-batch / golden-run reference** | Persist the **best-performing historical run per asset/SKU**; models (and operators) compare the live run against its golden reference for drift and yield. A simple, high-value yield pattern. |
+
+**Tier 3 — conscious scope decisions (noted, not adopted):**
+- **Machine vision / CNN modality** — *out* (charter §7 already dropped CV/VLM); our anchors are time-series.
+- **Connected-worker / manual-operation digitization** (pick-to-light, AR, connected-worker apps) — *out* (no human operators in a synthetic lab); transferable bit kept: **operator/shift/lot as ML covariates**.
+- **Broker topology divergence** — the reference uses **no central broker** (per-plant brokers → cloud gateway); we **keep the central EMQX UNS cluster** as a *conscious* choice (the "central UNS broker" school; richer for the cross-site harmonization thesis). Both are valid.
