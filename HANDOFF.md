@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-06-23
+**Last updated:** 2026-06-29
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,10 +28,13 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-06-22)
+## 2. Current status (2026-06-29)
 
-**Phase: pre-implementation.** Design + charter complete; **all infrastructure decisions resolved**;
-**no source code yet.** Architecture diagrams begun in Eraser (hand-built diagram #1 in progress).
+**Phase: pre-implementation — Diagram 1 teaching walkthrough (next).** Design + charter complete;
+**all infrastructure decisions resolved**; **no source code yet.** Hand-built Eraser Diagram 1 is
+drawn, §13.7 patterns + §13.8 OT/IT zoning applied, owner approved its look (2026-06-23). **Owner
+confirmed the next step (2026-06-29):** end-to-end teaching review of Diagram 1 with external research
+→ lock Diagram 1 as template → Diagrams 2 & 3 → **then** Phase 0 code.
 
 ### This session (2026-06-22) — Eraser architecture diagrams (hand-built #1, in progress)
 
@@ -79,26 +82,17 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
 - **Eraser gotchas captured to memory:** AI `update_diagram` reverses arrow directions → use
   `manually_update_diagram`; all diagrams go in the "SCADA Harmonization" folder.
 
-⏭ **Open for next session / agent:**
-- (0) ~~Review the owner-provided reference `design/SAMPLE_*`~~ — **DONE (2026-06-23):** audited the CPG
-  DYI/AYM reference pattern-by-pattern. Design validated; adopted **9 patterns** (charter **§13.7**):
-  Tier 1 — scan-rate/deadband strategy (P1), defense-in-depth closed-loop safety (P2), graded HITL
-  L1/L2/L3 (P3), explainability as required ML output (P4), SPC/adaptive control charts (P5); Tier 2 —
-  equipment-type templates (P6), Bronze schema validation (P7), business-joins-downstream principle (P8),
-  golden-batch reference (P9). Tier 3 noted as conscious scope choices (no CV, no connected-worker,
-  central-EMQX-UNS kept). (`SAMPLE_*` stays local-only/gitignored.)
-- (a) **NEXT SESSION — teaching walkthrough of Diagram 1 (owner's explicit plan).** Before drawing
-  Diagrams 2 & 3, walk **component-by-component through Diagram 1**, explaining *why each piece exists in
-  terms of the problem we're solving*, at a depth the owner can **teach to others / build a presentation**
-  from. For each component: tie it to the problem → explain the mechanism → **do a web search to augment**
-  the project's own material so the teaching is comprehensive and current → note any **gap or refinement**
-  → update the diagram where needed. Two goals: (1) a presentation the owner will deliver, (2) surface
-  further refinements. **This is the review pass that locks Diagram 1 as the template.** Diagram 1 already
-  has §13.7 patterns + §13.8 OT/IT zoning applied and the owner approved its look (2026-06-23).
-  Eraser: folder "SCADA Harmonization", fileId `6Ng61sTaot9VjtU87bEY`, diagramId `vheRVPpajwodCEDwqnBZ`.
-- (b) ~~The "two components" discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
-- (c) Then draw **Diagram 2 (UMH-anchored)** and **Diagram 3 (cloud-native → floci)**, matching #1.
-- (d) Then start **Phase 0**.
+### This session (2026-06-29) — owner confirmed Diagram 1 walkthrough plan
+
+Owner reviewed repo scope and **confirmed sequencing:** (1) Diagram 1 end-to-end teaching walkthrough
+with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Phase 0. Detailed agenda in §3.
+
+⏭ **Roadmap (ordered):**
+- (0) ~~Review `design/SAMPLE_*`~~ — **DONE (2026-06-23)** (charter §13.7 patterns adopted).
+- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29). See §3.
+- (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
+- (c) **After Diagram 1 locked** — Diagram 2 (UMH) & Diagram 3 (cloud-native → floci).
+- (d) **After Diagrams 2 & 3** — Phase 0.
 
 ### Previous session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
 A long working session, three threads:
@@ -129,15 +123,10 @@ hold.**
 (All 2026-06-21 work is **merged to `main`**; see Git/PR state below.)
 
 ### Git / PR state
-- **PR #1–#5** — earlier charter / infra / gitignore work → **MERGED**.
-- **PR #6** — anonymized industry discovery → **MERGED** (`2d99eb5`); branch deleted.
-- **PR #7** — diagram convention (Eraser → `scada_harmonization`) → **MERGED**; branch deleted.
-- **PR #8** — reference-architecture review (charter §13) → **MERGED** (`2a4db7b`); branch deleted.
-  *(Lesson: #8 existed because #7 was merged before its later commits were pushed — see git/PR discipline in AGENTS.md.)*
-- **PR #9** — git/PR discipline notes → **MERGED** (`adc85b4`); branch deleted.
-- **This session's doc update** → branch `docs/session-eraser-diagrams-plane4`, **awaiting owner merge**
-  (no code; design + §13.5). The Eraser diagram itself lives in Eraser, not git.
-- ⚠️ **Next agent:** merge this branch → continue refining Diagram 1 → discuss the two components → draw Diagrams 2 & 3 → Phase 0.
+- **PR #1–#9** — charter, infra, diagram convention, §13 review, git discipline → **MERGED**.
+- **PR #15** — handoff teaching-walkthrough plan → **MERGED** (`90b6cc1`).
+- **This session** — branch `cursor/handoff-diagram1-walkthrough-plan-58a8` — owner-confirmed sequencing
+  (Diagram 1 walkthrough → lock → Diagrams 2 & 3 → Phase 0). Eraser diagram edits live in Eraser, not git.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -157,36 +146,69 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ---
 
-## 3. What's next — Phase 0 (turn design into code)
+## 3. What's next — Diagram 1 teaching walkthrough (then Diagrams 2–3, then Phase 0)
 
-**State:** branch `feat/phase-0-foundation` exists (doc/decision commits only; **no code yet**). Phase 0
-was paused mid-discussion for an owner break.
+### ⭐ IMMEDIATE NEXT ACTION (do this first, before Diagrams 2–3 or any code)
 
-### ⭐ IMMEDIATE NEXT ACTION (do this first, before any code)
+**End-to-end teaching walkthrough of Eraser Diagram 1 (Hand-built / Python-centric).** Owner goal:
+understand and be able to **explain the full data and integration flow** — each component's role, why it
+exists, and where it sits — well enough to **teach others / build a presentation**. Use external research
+to validate best practices and augment explanations. **Identify gaps in Diagram 1 and correct them** in
+Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 3.
 
-**Re-explain Phase 0 to the owner (learning-first), then align, then build.** The owner is learning the
-stack bare-metal and may resume with a *different agent*, so do NOT assume the prior explanation is
-fresh — **walk through the Phase 0 concept again from scratch**, conversationally, and get explicit
-alignment before writing files. The owner specifically wants this re-explanation to happen.
+**Diagram URL:** https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas
 
-Re-explanation must cover (this is the script to reproduce):
+**Per-component cadence (repeat for every block on the diagram):**
+1. **Problem tie-in** — which real pain (days-to-data, site divergence, governance, identity, yield/HITL)
+   does this component solve?
+2. **Mechanism** — what it does, inputs/outputs, protocols/formats, which plane/zone it lives in.
+3. **External research** — web search for current best practice / industry convention; note where we align
+   or deliberately diverge (e.g. central EMQX UNS vs per-plant-only brokers — charter §13.7 P9 Tier 3).
+4. **Gap check** — missing arrow, wrong zone, missing consumer, ambiguous flow? Log it; fix in Eraser
+   (`manually_update_diagram` when arrow direction matters).
+5. **One-line teach-back** — a sentence the owner can reuse in a presentation.
 
-- **What Phase 0 is:** foundation/scaffolding — *not* Marimo notebook work (Marimo starts Phase 1 with
-  real runtime logic). Three pieces:
-  1. **Python project skeleton** — `pyproject.toml` **managed by `uv`** + `src/scada_harmonizer/` +
-     `notebooks/` + `tests/`. Concepts to teach: `src/` layout, package-vs-scripts, `uv` workflow
-     (`uv add`/`sync`/`run`, `uv.lock`), minimal deps (add each when needed, justify it).
-  2. **The three-stage name mapping table as config (THE SPINE 🫀)** — `friendly variable →
-     site-specific PLC tag → Sparkplug metric` + metadata (unit, range, cadence, asset class, ISA-95
-     path, downstream IDs). Format leaning **YAML**, validated on load by a **Pydantic** model (the
-     owner's first hands-on Pydantic concept + ISA-95 made concrete). Model ONE measurement (e.g. a
-     reactor feed-flow) across ALL 4 sites' divergent naming — seeing one physical truth expressed 4
-     ways, validated into one canonical identity, is the harmonization thesis in miniature.
-  3. **Seed `design/LEARNING_LOG.md`** — learning log + glossary, from day one.
-- **Open alignment questions to ask the owner:** (a) Phase 0 scope OK? (b) **YAML** for the mapping
-  config (vs TOML/JSON/CSV)? (c) start with a deep concept walk-through of the three-stage table (fully
-  worked 4-site example) or go straight to drafting skeleton + first mapping?
-- **Then build** per the cadence: explain → align → build piece by piece → run & observe → prune.
+**Suggested walkthrough order (follow the data, left → right, OT → iDMZ → IT):**
+
+| Block | Components to cover |
+|-------|---------------------|
+| **A — Problem & L0** | Synthetic TEP + IIoT replay; why only L0 is synthetic; scan-rate/deadband (P1) |
+| **B — OT edge (L1–2)** | Sensors/actuators; OpenPLC/Modbus (Beaumont); OPC-UA (Geismar); Python-modeled PLCs (Rotterdam, Corpus Christi); equipment-type templates (P6) |
+| **C — OT messaging (L3)** | Per-site Mosquitto; Sparkplug B contract (births/RBE); Python Sparkplug publishers; local site namespace |
+| **D — Harmonization** | Python site-forwarder (store-and-forward L1.2); cross-site conforming; `metric_registry` / three-stage mapping table as governed data product |
+| **E — iDMZ (L3.5)** | Central EMQX UNS broker (Z2); the three iDMZ crossings (telemetry ↑, CDC ↑, recommendations ↓) |
+| **F — OT consumers (L3)** | TimescaleDB historian; Grafana; Ignition; real-time alerting (L2.1); HITL operator console + graded HITL (P3); defense-in-depth safety on writeback (P2); historian-less site (L1.4) |
+| **G — OT transactional (L3, IT-domain)** | MES/LIMS/CMMS/Quality + plant Postgres (Z3); why they're OT-side by ISA-95; P8 business-joins-downstream |
+| **H — iDMZ → IT streaming** | CDC (Python poll → Debezium milestone); Kafka; UNS → Kafka bridge |
+| **I — IT storage & analytics (L4–5)** | `ods_core` + `identity_map` (MDM analog L3.1); medallion Bronze/Silver/Gold + Spark ETL; Bronze schema validation + dead_letter (P7); DuckDB OLAP; batch/file-drop (L4.2); golden-batch reference (P9) |
+| **J — Enterprise & context** | ERPNext (L4); Neo4j + GraphRAG; ISO 15926/DEXPI ontology (minimal start L5.1) |
+| **K — Plane 4 (Apply)** | Edge inference (per-site) + cloud training; three feature planes; MLflow; Redis online / gold offline (L6.2); SPC/EWMA (P5); SHAP explainability (P4); closed-loop UNS command path (L6.5) |
+| **L — Cross-cutting** | Prometheus + Grafana observability (L7.1); Docker OT/IT segmentation (L1.3); floci AWS emulation; 5 consumer personas; Databricks/Iggy as post-hand-built options (§13.6) |
+
+**Session deliverables:**
+- Owner can narrate **end-to-end flows** (OT telemetry path, IT CDC path, closed-loop command path,
+  analytics/ML path, context/graph path) without looking at notes.
+- **Gap log** — anything found → fixed in Diagram 1 or recorded as a charter follow-up if it needs a
+  decision.
+- Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
+
+**After Diagram 1 is locked:** draw Diagrams 2 & 3, **then** Phase 0.
+
+---
+
+### Phase 0 (after diagrams — turn design into code)
+
+**State:** deferred until Diagrams 1–3 are complete. Branch `feat/phase-0-foundation` may exist from
+earlier discussion (doc/decision commits only; **no code yet**).
+
+When Phase 0 starts, re-explain from scratch (learning-first), align, then build:
+
+- **What Phase 0 is:** foundation/scaffolding — *not* Marimo notebook work (Marimo starts Phase 1). Three pieces:
+  1. **Python project skeleton** — `pyproject.toml` via **`uv`** + `src/scada_harmonizer/` + `notebooks/` + `tests/`.
+  2. **Three-stage mapping table as config (THE SPINE)** — YAML + Pydantic validation; one measurement across all 4 sites.
+  3. **Seed `design/LEARNING_LOG.md`** — learning log + glossary.
+- **Alignment questions:** Phase 0 scope OK? YAML vs TOML/JSON? Deep concept walk-through first or straight to skeleton?
+- **Then build** per cadence: explain → align → build → run & observe → prune.
 
 ### Tooling decided this session
 - **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
@@ -259,7 +281,7 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 
 ## 6. No open blocking questions
 
-All design work is merged to `main`; no open PRs. There is **no unanswered question blocking
-progress** — the next concrete action is to **start Phase 0** in learning-first mode (concept primer
-for the repo skeleton + three-stage mapping table → align → build → seed `design/LEARNING_LOG.md`).
+All design work is merged to `main`. There is **no unanswered question blocking progress** — the next
+concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3), owner-confirmed 2026-06-29.
+Phase 0 waits until Diagram 1 is locked and Diagrams 2 & 3 are drawn.
 </content>
