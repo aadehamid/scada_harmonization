@@ -122,7 +122,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 - `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
 - `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
 - `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
-- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase) *(archived — see charter §12 #16, UMH Core re-validation)*
+- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)*
 - `synthetic_data_generation_notes.md` — data strategy & the 6-layer synthetic pipeline
 
 > **Reference material (local-only):** `reference/docs/` (ISHE harmonization patterns) and
@@ -224,8 +224,8 @@ real-protocol sites (**OpenPLC Beaumont & OPC-UA Geismar**) + full roster → **
 (store-and-forward + Docker IT/OT segmentation + historian-less site) → 5a IT source + CDC
 (Python→Debezium milestone) → 5b context
 (ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
-ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH (Core vs Classic —
-re-validate first, charter §12 #16).
+ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform the forwarder/bridge/streaming
+leg onto **UMH Core** (charter §12 #16; Timescale + Grafana stay).
 
 **Reference-architecture review (2026-06-21):** the design was benchmarked layer-by-layer against a
 real industrial-products target architecture; all add/keep-out decisions and the **three

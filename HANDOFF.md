@@ -34,8 +34,8 @@ conflicts with the charter, the charter wins.
 **all infrastructure decisions resolved**; **no source code yet.** Hand-built Eraser Diagram 1 is
 drawn, §13.7 patterns + §13.8 OT/IT zoning applied, owner approved its look (2026-06-23).
 **Resequenced (owner-confirmed 2026-07-06):** Diagram 1 walkthrough → lock → **Phase 0 immediately**;
-Diagrams 2 & 3 are drawn **just-in-time** later (charter §8 sequencing note; Diagram 2 also waits on
-the §12 #16 UMH Core re-validation).
+Diagrams 2 & 3 are drawn **just-in-time** later (charter §8 sequencing note; Diagram 2's target is
+decided — **UMH Core**, §12 #16).
 
 ### This session (2026-07-06) — IT/OT best-practice review adopted (charter §14 + §4.1)
 
@@ -68,6 +68,10 @@ genuine gaps were adopted as **charter §14 (ledger N1–N35)**. Highlights:
   *candidate* (Pre-Alpha); TimescaleDB Community ≥2.26 / TigerData; **UMH pivoted to UMH Core** (new
   open decision §12 #16 — re-validate before Diagram 2); Redis 8 AGPLv3; ERPNext v15/16; Ignition
   Maker 8.3 gotchas; floci fallback.
+- **Follow-up (same session): §12 #16 RESOLVED — UMH Core adopted** as the abstraction target
+  (Apache-2.0 umh-core + benthos-umh; embedded Redpanda source-available/free; Management Console =
+  optional SaaS, lab runs standalone YAML; Core replaces forwarders/bridges/streaming — Timescale +
+  Grafana stay hand-built).
 - **Plan:** Phase 4 split into **4a/4b/4c**; per-phase **exit criteria** (§8.1); **risk register**
   (§8.2 — incl. the 16–24 GB RAM reality → compose profiles per phase); staleness sweep (Geismar
   OPC-UA drift, archived-note banners, stray `</content>`/`DOCEOF` artifacts); `LEARNING_LOG.md`
@@ -131,8 +135,8 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) **After Diagram 1 locked → Phase 0** (repo skeleton + the three-stage mapping table **with the
   §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
-- (d) **Just-in-time:** Diagram 2 (UMH — after the §12 #16 Core-vs-Classic re-validation, before the
-  "Later" re-platform) · Diagram 3 (cloud-native → floci, before Phase 6).
+- (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
+  · Diagram 3 (cloud-native → floci, before Phase 6).
 
 ### Previous session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
 A long working session, three threads:
@@ -249,7 +253,7 @@ Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 
 - Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
 
 **After Diagram 1 is locked:** **Phase 0 starts immediately** (resequenced 2026-07-06); Diagrams 2 & 3
-are drawn just-in-time later (Diagram 2 after the §12 #16 UMH re-validation; Diagram 3 before Phase 6).
+are drawn just-in-time later (Diagram 2 = UMH Core, decided §12 #16; Diagram 3 before Phase 6).
 
 ---
 
@@ -342,7 +346,6 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 ## 6. No open blocking questions
 
 The next concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3) with the §14 gap
-checklist; **Phase 0 starts as soon as Diagram 1 locks** (resequenced 2026-07-06). One open (non-
-blocking) decision: **§12 #16** — UMH Core vs Classic, needed only before Diagram 2 / the "Later"
-re-platform. The best-practice-review PR (branch `docs/itot-best-practice-review-adoption`) awaits
-the owner's merge.
+checklist; **Phase 0 starts as soon as Diagram 1 locks** (resequenced 2026-07-06). No open blocking
+decisions (§12 #16 resolved → UMH Core). The best-practice-review PR **#17** (branch
+`docs/itot-best-practice-review-adoption`) awaits the owner's merge.

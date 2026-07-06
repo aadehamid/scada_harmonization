@@ -332,7 +332,7 @@ Version **floors** and editions/licenses the design assumes. Exact pins land in 
 | MLflow | ≥3.0 | Apache-2.0 | model tracking/registry (6) |
 | Redis | ≥8.0 — **AGPLv3, genuinely open source again since May 2025**; Valkey ≥8.0 (BSD) = drop-in fallback | AGPLv3 | online feature store (6) |
 | floci | 0.x — young project (public 2025/2026) | MIT | local AWS emulation (6+). Fallback: LocalStack **Community** for S3/Lambda/Kinesis + DuckDB in place of Glue/Athena (LocalStack gates those behind Pro) |
-| UMH | **UMH Core** (`benthos-umh` + embedded Redpanda) — target under re-validation, §12 #16 | ELv2 / varies | abstraction phase (Later) |
+| UMH | **UMH Core** (`benthos-umh` + embedded Redpanda) — **adopted** abstraction target, §12 #16 | Apache-2.0 (umh-core + benthos-umh); embedded Redpanda = Redpanda Community License (source-available, free self-host); Management Console = optional SaaS | abstraction phase (Later) |
 | Databricks | Free Edition (serverless, non-commercial; Unity Catalog, MLflow) | proprietary (free tier) | graduate-to managed lakehouse (§13.6, post-6) |
 
 ---
@@ -351,9 +351,9 @@ competing projects**. They are phases / styles of the *same* architecture:
 - **Abstraction phase → UMH-anchored (later).**
   Once the internals are understood, United Manufacturing Hub can replace the
   hand-wired MQTT/Kafka/historian/modeling bundle. This is the "graduate to enterprise tooling"
-  step — adopted *after* understanding what it abstracts. **2026 note:** UMH has pivoted from the
-  Classic k8s bundle to **UMH Core** (single container, `benthos-umh` + embedded Redpanda) —
-  re-validate the target before Diagram 2 (§12 #16).
+  step — adopted *after* understanding what it abstracts. **Target (DECIDED 2026-07-06, §12 #16):
+  UMH Core** (single container, `benthos-umh` + embedded Redpanda, Apache-2.0, run standalone) —
+  it replaces the forwarders/bridges/streaming leg; TimescaleDB + Grafana stay hand-built.
 
 Every component is chosen to be **upgrade-friendly**: OSS brokers → EMQX Enterprise/HiveMQ;
 Ignition Maker → licensed Ignition; floci → real AWS; Python replay → real gateways — all without
@@ -533,7 +533,7 @@ around them is **discarded**.
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔lot↔material↔lab-result) |
 | **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
-| **Later** | Abstraction | Re-platform L3 backbone onto UMH (Core vs Classic — re-validate first, §12 #16) |
+| **Later** | Abstraction | Re-platform the forwarder/bridge/streaming leg onto **UMH Core** (§12 #16); Timescale + Grafana stay |
 
 Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
 spanning OT + IT + ET).
@@ -553,7 +553,7 @@ spanning OT + IT + ET).
   changes).
 
 **Sequencing (2026-07-06):** Phase 0 begins **immediately after Diagram 1 is locked**. Diagrams 2–3
-are drawn **just-in-time** (Diagram 2 after the §12 #16 UMH re-validation, before the "Later"
+are drawn **just-in-time** (Diagram 2 — target decided: UMH Core, §12 #16 — before the "Later"
 re-platform; Diagram 3 before the Phase 6 floci work) — neither informs Phase 0, which is
 diagram-independent.
 
@@ -641,7 +641,7 @@ beyond ERPNext community.
 | `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
 | `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
-| `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — see §12 #16 UMH Core re-validation)* |
+| `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
 | `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer pipeline |
 | `reference/docs/` *(local-only ref)* | Reference: ISHE harmonization patterns (Plane 1) |
@@ -716,14 +716,17 @@ beyond ERPNext community.
     CPG discovery yield / edge-feedback / HITL pattern. See §3, §6, §8.
 15. ~~Reference-architecture review~~ — **DECIDED (2026-06-21):** benchmarked the design layer-by-layer
     against a real industrial-products target architecture; resolved all adds/keeps-out. See **§13**.
-16. **UMH abstraction target: Core vs Classic** *(open — decide before Diagram 2)* — the UMH-anchored
-    note describes **UMH Classic** (the k8s/Helm bundle: MQTT + Kafka + historian + visualization).
-    UMH's current product (2024–2026 pivot) is **UMH Core**: a single Docker container built on the
-    `benthos-umh` streaming engine with embedded Redpanda and a cloud Management Console — it does
-    **not** hand you the Classic TimescaleDB+Grafana historian bundle. `benthos-umh` has a stateful
-    **Sparkplug B input** (tracks births, aliases, seq), so the lab's Sparkplug-first design can feed
-    it. Spend one research session deciding the abstraction target — and what it does/doesn't
-    abstract — **before drawing Diagram 2** (§13.4 #2) or planning the "Later" re-platform (§8).
+16. ~~UMH abstraction target: Core vs Classic~~ — **DECIDED (2026-07-06): adopt UMH Core** as the
+    abstraction-phase target. **Licensing verified:** `umh-core` and `benthos-umh` are **Apache-2.0**
+    (genuinely open source); the embedded **Redpanda** broker is source-available (Redpanda Community
+    License — free to self-host); the cloud **Management Console is an optional SaaS** — the lab runs
+    Core **standalone via YAML config** to stay fully self-hosted. **What it abstracts:** UMH Core
+    replaces the Python site-forwarders / protocol converters and the hand-wired UNS→Kafka bridge
+    (benthos-umh Data Flow Components: Modbus, OPC-UA, and stateful **Sparkplug B inputs** — tracks
+    births/aliases/seq — plus Kafka/UNS outputs) and the Kafka leg (embedded Redpanda). **What stays
+    hand-built:** TimescaleDB + Grafana (Core does not bundle the Classic historian/visualization
+    stack). Diagram 2 (§13.4 #2) depicts UMH Core. The UMH-anchored note describes the legacy Classic
+    bundle — kept for background only.
 17. **IT/OT best-practice review adoptions** — **DECIDED (2026-07-06):** see **§14** (N1–N35 ledger:
     Sparkplug namespace encoding, forwarder session contract, primary hosts, DCMD command path,
     replay clock, time/quality/historian semantics, lot-based production model, conduit inventory +
@@ -795,9 +798,10 @@ delivering the *same* capability set:
 1. **Hand-built / Python-centric** — self-hosted OSS, every boundary explicit; the learning
    architecture built across Phases 0–7 (EMQX, Kafka, TimescaleDB, Spark, DuckDB, Neo4j, MLflow,
    Prometheus, Python forwarder/enrichment/alerting).
-2. **UMH-anchored** — United Manufacturing Hub collapses the L3 ingestion/streaming/
-   historian/modeling backbone into one platform; the abstraction phase (§5). **Re-validate the
-   product target first (UMH Core vs Classic — §12 #16) before drawing this diagram.**
+2. **UMH-anchored** — United Manufacturing Hub collapses the L3 ingestion/streaming
+   backbone into one platform; the abstraction phase (§5). **Target: UMH Core (§12 #16, DECIDED)** —
+   the diagram depicts Core (benthos-umh DFCs + embedded Redpanda; TimescaleDB/Grafana remain the
+   lab's own).
 3. **Cloud-native (floci → AWS)** — the same design mapped onto floci-emulated AWS (IoT Core,
    Kinesis, Glue/Spark, Athena, S3 medallion, RDS, SageMaker, KMS/IAM/CloudWatch) ≈ the reference
    target architecture; real AWS is the production upgrade.
@@ -809,8 +813,8 @@ delivering the *same* capability set:
 **Status (2026-06-22):** Diagram 1 (Hand-built / Python-centric) is **in progress / under review**
 ([Eraser link](https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas));
 Diagrams 2–3 (UMH-anchored, cloud-native) not yet started. **Sequencing update (2026-07-06):**
-Diagrams 2–3 are drawn **just-in-time** (see §8 sequencing note) — Phase 0 no longer waits on them,
-and Diagram 2 additionally waits on the §12 #16 UMH Core re-validation. *Tooling note:* Eraser's AI edit path
+Diagrams 2–3 are drawn **just-in-time** (see §8 sequencing note) — Phase 0 no longer waits on them.
+Diagram 2's target is decided: **UMH Core** (§12 #16). *Tooling note:* Eraser's AI edit path
 (`update_diagram`) tends to reverse connection arrow directions — use `manually_update_diagram`
 (verbatim DSL) when direction matters.
 

@@ -77,9 +77,9 @@ The three architecture notes are **phases of one architecture**, not competing p
 
 - **Build & learn → hand-built + Python-centric.** Wire every component explicitly so each boundary
   is visible; Python is a first-class UNS participant, not just glue.
-- **Abstraction (later) → UMH-anchored.** Replace the hand-wired backbone with United Manufacturing
-  Hub once the internals are understood *(UMH has pivoted to UMH Core — target under re-validation,
-  charter §12 #16)*.
+- **Abstraction (later) → UMH-anchored.** Replace the hand-wired forwarders/bridges/streaming leg
+  with **UMH Core** (Apache-2.0; `benthos-umh` + embedded Redpanda) once the internals are understood
+  *(decided — charter §12 #16; TimescaleDB/Grafana stay hand-built)*.
 
 These styles are captured as **three full architecture diagrams** — hand-built/Python-centric ·
 UMH-anchored · cloud-native (floci→AWS) — in the Eraser `scada_harmonization` workspace. The design
@@ -96,7 +96,7 @@ real AWS) without invalidating the design.
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
-| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — UMH product state under re-validation, charter §12 #16)* |
+| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)* |
 | [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | [`design/synthetic_data_generation_notes.md`](design/synthetic_data_generation_notes.md) | Data strategy & the 6-layer pipeline |
 

@@ -4,8 +4,10 @@
 > This note describes **UMH Classic** (the Kubernetes/Helm bundle of MQTT + Kafka + historian +
 > visualization). United Manufacturing Hub's current product is **UMH Core** — a single Docker
 > container built on the `benthos-umh` streaming engine with embedded Redpanda; the Classic
-> TimescaleDB/Grafana bundle is legacy. Re-validate the abstraction target **before drawing
-> Diagram 2** (charter §12 #16). The charter governs.
+> TimescaleDB/Grafana bundle is legacy. **DECIDED (2026-07-06, charter §12 #16): the abstraction
+> target is UMH Core** — Apache-2.0 (umh-core + benthos-umh), embedded Redpanda source-available,
+> Management Console optional SaaS (the lab runs Core standalone via YAML). This note is kept for
+> Classic-era background only. The charter governs.
 
 These notes describe a realistic home-lab architecture anchored on United Manufacturing Hub (UMH) Community, using Sparkplug B as the core industrial messaging and harmonization pattern, and floci as the local AWS-style IT/cloud emulation layer.[cite:80][cite:106][cite:112][cite:185] The goal is to build an end-to-end environment that feels production-like from Levels 1 through 4 while remaining based on open-source or free/community tools.[cite:3][cite:6][cite:68][cite:80][cite:185]
 
