@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-06-29
+**Last updated:** 2026-07-06
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,13 +28,50 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-06-29)
+## 2. Current status (2026-07-06)
 
 **Phase: pre-implementation — Diagram 1 teaching walkthrough (next).** Design + charter complete;
 **all infrastructure decisions resolved**; **no source code yet.** Hand-built Eraser Diagram 1 is
-drawn, §13.7 patterns + §13.8 OT/IT zoning applied, owner approved its look (2026-06-23). **Owner
-confirmed the next step (2026-06-29):** end-to-end teaching review of Diagram 1 with external research
-→ lock Diagram 1 as template → Diagrams 2 & 3 → **then** Phase 0 code.
+drawn, §13.7 patterns + §13.8 OT/IT zoning applied, owner approved its look (2026-06-23).
+**Resequenced (owner-confirmed 2026-07-06):** Diagram 1 walkthrough → lock → **Phase 0 immediately**;
+Diagrams 2 & 3 are drawn **just-in-time** later (charter §8 sequencing note; Diagram 2 also waits on
+the §12 #16 UMH Core re-validation).
+
+### This session (2026-07-06) — IT/OT best-practice review adopted (charter §14 + §4.1)
+
+Ran a deep multi-lens best-practice review (UNS/Sparkplug · IEC 62443/Purdue zoning · ISA-95/-88
+modeling · streaming/lakehouse · historian ops · industrial-ML safety · tool fact-check · plan
+integrity; all web-verified) of every design doc. **The architecture was validated** (forwarder-not-
+bridge, EMQX-in-iDMZ, Z3/Z4 zoning, P8, graded HITL all match or exceed published practice); the
+genuine gaps were adopted as **charter §14 (ledger N1–N35)**. Highlights:
+
+- **N1/N2 — Sparkplug↔ISA-95 namespace encoding decided** (the §6 `lagos-chem/...` root vs Sparkplug's
+  fixed `spBv1.0/...` topics were incompatible as written): site tier = pure Sparkplug
+  (`group_id=lagos-chem:<site>`); enterprise tier = retained plain-MQTT ISA-95 republish on EMQX.
+- **N3–N5** — forwarder = compliant Edge Node per site (bdSeq/seq/alias remap/NCMD Rebirth/
+  `is_historical` flush); Primary Host named per tier; closed-loop commands are **NCMD/DCMD**, not
+  "setpoint topics" (L6.5 amended).
+- **N8–N12** — replay clock decided (TEP is 3-minute data → re-classed; simulated clock w/ rebasing);
+  at-least-once + idempotent sinks; **quality model** (Good/Uncertain/Bad/Stale = 5th divergence
+  dimension); historian lifecycle; store-and-forward semantics.
+- **N13–N20** — **lot-based MES** (continuous process; ISA-88 out, ISA-106 in; `mes.production_lot` +
+  material model); identity_map survivorship; **`ods_core` split to an IT-side Postgres** (zone fix,
+  amends #7); Beaumont raw-counts scaling; UNECE units; ISA-18.2 alarm model.
+- **N21–N25** — conduit inventory + "no IT-initiated connections into OT" rule; broker authn +
+  per-branch ACLs; TLS on forwarder→EMQX; `command_audit`; **SIS/GuardLogix conflation corrected**
+  (BPCS-level guard; IEC 61511 note).
+- **N26–N35** — Apicurio schema registry (5a.2); Bronze immutable-raw; dead-letter redrive; CDC ops
+  specifics; **L0 Shadow HITL rung**; ML drift monitoring + delayed-label eval; recommendation TTL;
+  **multivariate SPC (PCA T²/SPE)**; dataset versioning + model cards; feature single-sourcing.
+- **Tool/version reality (charter §4.1 pinned stack):** EMQX ≥5.9 **BSL 1.1 single-node** (the old
+  "EMQX OSS bridges+clustering" justification was factually wrong); PySparkplug 0.6.x downgraded to
+  *candidate* (Pre-Alpha); TimescaleDB Community ≥2.26 / TigerData; **UMH pivoted to UMH Core** (new
+  open decision §12 #16 — re-validate before Diagram 2); Redis 8 AGPLv3; ERPNext v15/16; Ignition
+  Maker 8.3 gotchas; floci fallback.
+- **Plan:** Phase 4 split into **4a/4b/4c**; per-phase **exit criteria** (§8.1); **risk register**
+  (§8.2 — incl. the 16–24 GB RAM reality → compose profiles per phase); staleness sweep (Geismar
+  OPC-UA drift, archived-note banners, stray `</content>`/`DOCEOF` artifacts); `LEARNING_LOG.md`
+  seeded.
 
 ### This session (2026-06-22) — Eraser architecture diagrams (hand-built #1, in progress)
 
@@ -87,12 +124,15 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
 Owner reviewed repo scope and **confirmed sequencing:** (1) Diagram 1 end-to-end teaching walkthrough
 with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Phase 0. Detailed agenda in §3.
 
-⏭ **Roadmap (ordered):**
+⏭ **Roadmap (ordered — resequenced 2026-07-06):**
 - (0) ~~Review `design/SAMPLE_*`~~ — **DONE (2026-06-23)** (charter §13.7 patterns adopted).
-- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29). See §3.
+- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29; timeboxed, now
+  armed with the §14 gap checklist below). See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
-- (c) **After Diagram 1 locked** — Diagram 2 (UMH) & Diagram 3 (cloud-native → floci).
-- (d) **After Diagrams 2 & 3** — Phase 0.
+- (c) **After Diagram 1 locked → Phase 0** (repo skeleton + the three-stage mapping table **with the
+  §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
+- (d) **Just-in-time:** Diagram 2 (UMH — after the §12 #16 Core-vs-Classic re-validation, before the
+  "Later" re-platform) · Diagram 3 (cloud-native → floci, before Phase 6).
 
 ### Previous session (2026-06-21) — industry discovery, Eraser MCP, full architecture review
 A long working session, three threads:
@@ -125,8 +165,10 @@ hold.**
 ### Git / PR state
 - **PR #1–#9** — charter, infra, diagram convention, §13 review, git discipline → **MERGED**.
 - **PR #15** — handoff teaching-walkthrough plan → **MERGED** (`90b6cc1`).
-- **This session** — branch `cursor/handoff-diagram1-walkthrough-plan-58a8` — owner-confirmed sequencing
-  (Diagram 1 walkthrough → lock → Diagrams 2 & 3 → Phase 0). Eraser diagram edits live in Eraser, not git.
+- **PR #16** — Diagram-1 walkthrough sequencing confirmation → **MERGED** (`bcbd8cd`).
+- **This session (2026-07-06)** — branch `docs/itot-best-practice-review-adoption` — the best-practice
+  review adoption (4 themed commits: staleness sweep · tool/version pins · charter §14 N1–N35 ·
+  plan restructure + this handoff). **PR open — owner to merge**, then delete the branch.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -136,7 +178,7 @@ hold.**
 | 3 | Historian | **TimescaleDB** (SQL everywhere; modeling not ingest rate is the bottleneck) |
 | 4 | PLC literalness | **Hybrid** — Rotterdam & Corpus Christi Python-modeled; **two real protocol sites: OpenPLC/Modbus (Beaumont) + OPC-UA/`asyncua` (Geismar)** (charter §13 L1.1) |
 | 6 | Sites + enterprise | **Lagos Specialty Chemicals** (UNS root `lagos-chem`); **4 sites** — Beaumont (Allen-Bradley), Geismar (Siemens), Rotterdam (Ignition-style), Corpus Christi (CygNet) |
-| 7 | Postgres deployment | Historian + role-B ODS consolidated in the Timescale instance (separate schemas); role-A source systems in a **separate** Postgres home so CDC captures from a foreign system |
+| 7 | Postgres deployment | ~~Historian + role-B ODS consolidated in the Timescale instance~~ **Amended (§14 N16): three Postgres homes** — OT-side Timescale (`ts_historian`), **IT-side Postgres** (`ods_core` + `erp_shadow` — the consolidation straddled the iDMZ), OT-side plant Postgres (role A, CDC-captured) |
 | 8 | CDC | **Start Python poll** (Debezium-shaped events), **design for Debezium**, with an explicit hands-on Debezium learning milestone in Phase 5a (5a.1 → 5a.2 → 5a.3) |
 
 Plus the **relational schema layout** (charter §4): two Postgres homes —
@@ -148,7 +190,7 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ## 3. What's next — Diagram 1 teaching walkthrough (then Diagrams 2–3, then Phase 0)
 
-### ⭐ IMMEDIATE NEXT ACTION (do this first, before Diagrams 2–3 or any code)
+### ⭐ IMMEDIATE NEXT ACTION (do this first — Phase 0 starts as soon as Diagram 1 locks)
 
 **End-to-end teaching walkthrough of Eraser Diagram 1 (Hand-built / Python-centric).** Owner goal:
 understand and be able to **explain the full data and integration flow** — each component's role, why it
@@ -186,6 +228,19 @@ Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 
 | **K — Plane 4 (Apply)** | Edge inference (per-site) + cloud training; three feature planes; MLflow; Redis online / gold offline (L6.2); SPC/EWMA (P5); SHAP explainability (P4); closed-loop UNS command path (L6.5) |
 | **L — Cross-cutting** | Prometheus + Grafana observability (L7.1); Docker OT/IT segmentation (L1.3); floci AWS emulation; 5 consumer personas; Databricks/Iggy as post-hand-built options (§13.6) |
 
+**§14 gap checklist (2026-07-06 review — fold into each block's step 4 "Gap check"; fix in Eraser):**
+
+| Block | Charter §14 items to verify / correct in Diagram 1 |
+|-------|-----------------------------------------------------|
+| C / D / E | **N1** namespace encoding (site tier = `spBv1.0/...`; retained ISA-95 republish at EMQX); **N3/N4** forwarder-as-Edge-Node + Primary-Host STATE; EMQX labeled **single node** (not "cluster" — BSL) |
+| E | **N21** the five conduits + initiation direction (no IT-initiated into OT); **N23** TLS on forwarder→EMQX |
+| F | **N10** quality flow; **N20** ISA-18.2 alarm node placed per-site edge; **N24** `command_audit` |
+| G | **N13/N14** `production_lot` + `material_definition`/`material_lot` tables (not `batch`) |
+| H | **N6** UNS→Kafka bridge as the protobuf decode point (holds BIRTH state); **C3** Debezium/Connect dual-homed in the iDMZ |
+| I | **N16** `ods_core`/`erp_shadow` moved to IT-side Postgres; **N27** Bronze immutable-raw; **N28** dead-letter redrive path |
+| K | **N30** L0 shadow namespace; **N32** TTL on recommendations; **N33** T²/SPE; **N5** DCMD command-path arrows (console → EMQX → forwarder → DCMD → PLC → DDATA read-back) |
+| L | **N21** Prometheus per zone (federated), Redis per-site OT-side; zone labels |
+
 **Session deliverables:**
 - Owner can narrate **end-to-end flows** (OT telemetry path, IT CDC path, closed-loop command path,
   analytics/ML path, context/graph path) without looking at notes.
@@ -193,7 +248,8 @@ Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 
   decision.
 - Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
 
-**After Diagram 1 is locked:** draw Diagrams 2 & 3, **then** Phase 0.
+**After Diagram 1 is locked:** **Phase 0 starts immediately** (resequenced 2026-07-06); Diagrams 2 & 3
+are drawn just-in-time later (Diagram 2 after the §12 #16 UMH re-validation; Diagram 3 before Phase 6).
 
 ---
 
@@ -223,8 +279,9 @@ When Phase 0 starts, re-explain from scratch (learning-first), align, then build
 - **Redis** — online feature store (Phase 6 milestone). Both are *learn-by-building*, not shortcuts.
 
 Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) →
-3 OT consume (TimescaleDB + Grafana) → 4 multi-site + central EMQX + OpenPLC (Beaumont) & OPC-UA
-(Geismar) sites (harmonization proof)
+3 OT consume (TimescaleDB + Grafana) → 4a harmonization proof (Python-modeled sites + forwarders +
+central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont & OPC-UA Geismar) →
+4c resilience & zoning (store-and-forward, Docker segmentation, historian-less site)
 → 5a IT source + CDC (Debezium milestone) → 5b context (ERPNext + Neo4j) → 6 loop closure (ML/inference
 + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
 
@@ -284,6 +341,8 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 
 ## 6. No open blocking questions
 
-All design work is merged to `main`. There is **no unanswered question blocking progress** — the next
-concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3), owner-confirmed 2026-06-29.
-Phase 0 waits until Diagram 1 is locked and Diagrams 2 & 3 are drawn.
+The next concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3) with the §14 gap
+checklist; **Phase 0 starts as soon as Diagram 1 locks** (resequenced 2026-07-06). One open (non-
+blocking) decision: **§12 #16** — UMH Core vs Classic, needed only before Diagram 2 / the "Later"
+re-platform. The best-practice-review PR (branch `docs/itot-best-practice-review-adoption`) awaits
+the owner's merge.

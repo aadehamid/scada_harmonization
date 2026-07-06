@@ -526,7 +526,9 @@ around them is **discarded**.
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
 | **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
 | **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror; **real-time alerting node** (UNS → rules → alerts, §13 L2.1); introduce **Prometheus + Grafana** observability (§13 L7.1) |
-| **4** | Multi-site + central UNS | Clone asset template with *different* site tags; stand up **one real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug) **and one real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1); **Python site-forwarders** (with **store-and-forward** buffer, §13 L1.2) conform each site → central **EMQX** enterprise UNS → prove cross-site harmonization; **Docker-network IT/OT segmentation** (§13 L1.3); one **historian-less site** (§13 L1.4) |
+| **4a** | Harmonization proof — the thesis (all-Python, low integration risk) | Clone the asset template to **≥2 Python-modeled sites** with *different* site tags; **Python site-forwarders** (Sparkplug session contract §14 N3; Primary-Host STATE §14 N4) conform each site → central **EMQX** enterprise UNS + retained ISA-95 republish (§14 N1); broker authn/ACLs (§14 N22) + TLS on forwarder→EMQX (§14 N23); **cross-source equivalence test suite green** |
+| **4b** | Real protocols + full roster | Swap in the **real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug, publishing **raw counts** scaled via §14 N17) and the **real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1) behind the already-proven forwarder seam; add sites 3–4 |
+| **4c** | Resilience & zoning | **Store-and-forward** buffer + outage drill (§13 L1.2, §14 N12); **Docker-network IT/OT segmentation** with zone labels + conduit inventory (§13 L1.3, §14 N21); one **historian-less site** (§13 L1.4); deliberate clock-skew site exercise (§14 N9) |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔lot↔material↔lab-result) |
 | **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
@@ -549,6 +551,37 @@ spanning OT + IT + ET).
   on Python; migrate the rest later. The payoff: see firsthand why log-based CDC (catches deletes +
   ordered changes + initial snapshot `op:r`) beats poll-based (misses hard deletes and intra-interval
   changes).
+
+**Sequencing (2026-07-06):** Phase 0 begins **immediately after Diagram 1 is locked**. Diagrams 2–3
+are drawn **just-in-time** (Diagram 2 after the §12 #16 UMH re-validation, before the "Later"
+re-platform; Diagram 3 before the Phase 6 floci work) — neither informs Phase 0, which is
+diagram-independent.
+
+### 8.1 Exit criteria (definition of done, per phase)
+
+| Phase | Done when |
+|-------|-----------|
+| **0** | Mapping-table YAML validates via Pydantic **including the §14 columns** (scaling N17, quality N10, `source_cadence` N8, `interpolation_type` N11, UNECE units N18); one measurement defined across all 4 sites; `LEARNING_LOG.md` growing |
+| **1** | Replay is deterministic (same seed → identical sequence); simulated clock + speed factor + rebasing work (§14 N8); every metric classed per P1 with `source_cadence` recorded |
+| **2** | `mosquitto_sub` shows NBIRTH/DBIRTH/NDATA matching the mapping table; Sparkplug library verified against spec behaviors incl. Templates (§4.1, §14 N7); Mosquitto authn + ACL enforced (a mis-scoped publish is rejected — §14 N22) |
+| **3** | Telemetry lands in the hypertable **idempotently** (double-replay proves no duplicates, §14 N9); Grafana reads continuous-aggregate rollups (§14 N11); alerting node implements the ISA-18.2 state machine and a TEP fault demonstrates a flood + shelving (§14 N20); Prometheus scraping the OT zone |
+| **4a** | **The same physical event replayed through ≥2 sites yields identical canonical UNS output** (pytest cross-source equivalence suite); an unmapped tag lands in `dead_letter`, not silence; a late subscriber sees retained enterprise-UNS state instantly (§14 N2 demo) |
+| **4b** | All 4 sites conformed, including both real-protocol sites; Beaumont raw counts scale correctly end-to-end (§14 N17) |
+| **4c** | Kill EMQX/WAN for N minutes → the site keeps operating locally; on reconnect the forwarder backfills with `is_historical`, **no gaps and no duplicates** in Timescale, rollups correct (§14 N11/N12); the skewed-clock site is detected and corrected (§14 N9) |
+| **5a** | Python CDC and Debezium emit `ChangeEvent`s passing the **same contract tests**, including a hard-delete case the Python poller provably misses; Apicurio schema-evolution exercise done (§14 N26/N29) |
+| **5b** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations |
+| **6** | A model climbs L0→L1 through defined gates (§14 N30); one recommendation with SHAP + TTL is approved in the console → DCMD → clamped write → DDATA read-back → `command_audit` row (§14 N5/N24/N32); drift dashboard live (§14 N31); T²/SPE catches a TEP fault univariate EWMA misses (§14 N33) |
+| **7** | The copilot answers a cross-domain question (fault → lot → work order → lab result) grounded in graph citations |
+
+### 8.2 Top risks (reviewed at each phase boundary)
+
+| Risk | Signal | Mitigation |
+|------|--------|------------|
+| **Single-host RAM exhaustion** — the full Phase-6 stack (EMQX + Kafka + Connect + Spark + Neo4j + ERPNext + Timescale + 2× Postgres + Ignition + MLflow + Redis + floci + 4 site stacks) is realistically **16–24 GB+** of containers | compose up fails; swapping | **docker compose profiles per phase** (`ot-core` / `streaming` / `analytics` / `enterprise` / `ml`) so only the active phase's services run; per-service `mem_limit`; stated host assumption (32 GB comfortable; 16 GB = strict profiles) |
+| **Diagram/analysis perfectionism** delaying running code | days pass with no runnable artifact | Diagram 1 walkthrough timeboxed; Phase 0 starts at Diagram-1 lock (sequencing note above); Diagrams 2–3 just-in-time |
+| **Scope breadth** (~25 technologies, 8 phases, solo learner) | a phase drags far past estimate | §8.1 exit criteria as gates; YAGNI (AGENTS.md); 4a/4b/4c split front-loads the thesis, defers integration risk |
+| **Library immaturity** (pysparkplug Pre-Alpha; floci young) | Phase 2/6 blockers | fallbacks pre-recorded in §4.1 (hand-rolled `spBv1.0` protobuf; LocalStack + DuckDB) |
+| **License / product drift** (EMQX BSL, UMH Core pivot, Redis relicensing) | upgrade surprises | versions/editions pinned in §4.1; re-verify at each phase start; §12 #16 |
 
 ---
 
@@ -775,7 +808,9 @@ delivering the *same* capability set:
 
 **Status (2026-06-22):** Diagram 1 (Hand-built / Python-centric) is **in progress / under review**
 ([Eraser link](https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas));
-Diagrams 2–3 (UMH-anchored, cloud-native) not yet started. *Tooling note:* Eraser's AI edit path
+Diagrams 2–3 (UMH-anchored, cloud-native) not yet started. **Sequencing update (2026-07-06):**
+Diagrams 2–3 are drawn **just-in-time** (see §8 sequencing note) — Phase 0 no longer waits on them,
+and Diagram 2 additionally waits on the §12 #16 UMH Core re-validation. *Tooling note:* Eraser's AI edit path
 (`update_diagram`) tends to reverse connection arrow directions — use `manually_update_diagram`
 (verbatim DSL) when direction matters.
 

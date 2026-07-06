@@ -103,10 +103,13 @@ real AWS) without invalidating the design.
 ## Status
 
 Pre-implementation — design and charter complete, all infrastructure decisions resolved (broker,
-historian, PLC realism, sites/enterprise, Postgres deployment, CDC), and a full **reference-architecture
-review** done (charter §13: OPC-UA, medallion+Spark, observability, MLflow, alerting, the three
-implementation variants). Build not yet started; next is Phase 0 (repo skeleton + the three-stage
-mapping table). See the charter's build sequence (Phases 0–7).
+historian, PLC realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture
+review** (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35: Sparkplug
+namespace + forwarder session contract, time/quality/historian semantics, conduit inventory + broker
+auth/TLS/audit, lot-based production model, Plane-4 MLOps additions; pinned tool versions in §4.1).
+Build not yet started. Next: Diagram 1 teaching walkthrough → lock → **Phase 0** (repo skeleton +
+the three-stage mapping table); Diagrams 2–3 are drawn just-in-time. See the charter's build
+sequence (Phases 0–7, now with per-phase exit criteria, §8.1).
 
 ## License
 

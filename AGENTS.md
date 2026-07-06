@@ -218,9 +218,11 @@ shape, not its labels, is the constraint.
 ## Build sequence (see charter §8)
 
 Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) → 3 OT consume
-(TimescaleDB historian/Grafana + real-time alerting + Prometheus observability) → 4 multi-site +
-central EMQX + **OpenPLC (Beaumont) & OPC-UA (Geismar)** sites + store-and-forward + Docker IT/OT
-segmentation (harmonization proof) → 5a IT source + CDC (Python→Debezium milestone) → 5b context
+(TimescaleDB historian/Grafana + real-time alerting + Prometheus observability) → **4a** harmonization
+proof (≥2 Python-modeled sites + forwarders + central EMQX + cross-source equivalence suite) → **4b**
+real-protocol sites (**OpenPLC Beaumont & OPC-UA Geismar**) + full roster → **4c** resilience & zoning
+(store-and-forward + Docker IT/OT segmentation + historian-less site) → 5a IT source + CDC
+(Python→Debezium milestone) → 5b context
 (ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
 ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH (Core vs Classic —
 re-validate first, charter §12 #16).
