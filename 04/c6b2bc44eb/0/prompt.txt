@@ -1,0 +1,9 @@
+can automatically switch model and effort if I ask a question that does not require Fable 5 and ultracode effort?
+
+---
+
+diagram looks good. I see we only showed two sites on the diagram. is this deliberate?
+
+---
+
+we dont have to make additional changes. We will go to the end to end wlak though. But before we do so can we document what weh have dne if we have not done so. I want to chnage to a new session to do an end to end walkt through
