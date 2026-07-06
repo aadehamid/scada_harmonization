@@ -1,5 +1,11 @@
 # Python-Centric Sparkplug B UNS Notes
 
+> **⚠️ Archived vision note (pre-decision).** Superseded on decided items by
+> [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13 — e.g. historian = **TimescaleDB Community**
+> (not InfluxDB/QuestDB); broker = two-tier Mosquitto + EMQX; **PySparkplug is a candidate, not a
+> decided dependency** (Pre-Alpha status — verified in Phase 2, see charter §4.1 pinned stack).
+> The Python-centric *philosophy* itself remains adopted (charter §5/§9). The charter governs.
+
 These notes describe a Python-centric implementation of the Sparkplug B / Unified Namespace home-lab architecture, using Python as the primary implementation language wherever it is practical and mature to do so.[cite:90][cite:92][cite:100][cite:104] The architecture remains the same as the previously discussed hand-built and UMH-anchored variants, but the bias here is explicit: when a role can be implemented well in Python, Python is the default choice.[cite:68][cite:89][cite:97]
 
 The goal is not to replace every infrastructure component with Python.[cite:68][cite:89] Brokers, databases, historians, and cloud-emulation platforms still exist as standalone services where that makes sense.[cite:35][cite:39][cite:68][cite:185] But replay, simulation, Sparkplug publishing, enrichment, analytics, feature generation, model training, and edge inference are all treated as Python-native concerns first.[cite:92][cite:97][cite:100][cite:104][cite:105]
@@ -415,4 +421,3 @@ This makes floci a natural complement to Python: Python remains the implementati
 The Python-centric implementation is not a different architecture from the hand-built or UMH-anchored options.[cite:68][cite:80][cite:89] It is the same industrial architecture expressed with a stronger implementation preference: Python should own as much of the custom behavior as possible, especially where replay, signal generation, harmonization logic, enrichment, analytics, and inference are involved.[cite:90][cite:92][cite:97][cite:100][cite:104]
 
 That makes Python a first-class UNS participant rather than just a utility language.[cite:97][cite:100][cite:104] It also keeps the project highly portable because the same Python code can continue to work when brokers, databases, or cloud-style platforms are later replaced by paid or enterprise versions, as long as the surrounding interfaces remain compatible.[cite:68][cite:89][cite:97][cite:185]
-DOCEOF && ls -l output/python_centric_uns_notes.md && head -n 5 output/python_centric_uns_notes.md

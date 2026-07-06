@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-06-21
+**Last updated:** 2026-07-06
 
 ---
 
@@ -344,7 +344,7 @@ differently — so the lab exercises every harmonization dimension at once:
 | Site (`site`) | Heritage / SCADA | Divergence flavor | PLC realism |
 |---|---|---|---|
 | **Beaumont** (TX) | Legacy brownfield, **Allen-Bradley** | Cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; short status codes | **Real OpenPLC** (Modbus TCP) |
-| **Geismar** (LA) | Acquired, **Siemens** | Siemens addresses (`DB10.DBD4`, `MW100`); metric units | Python-modeled |
+| **Geismar** (LA) | Acquired, **Siemens** | Siemens addresses (`DB10.DBD4`, `MW100`); metric units | **Real OPC-UA** (`asyncua`, §13 L1.1) |
 | **Rotterdam** (NL) | Newer European, **Ignition/MQTT-style** | Verbose semi-semantic nested names; metric units; different status vocabulary | Python-modeled |
 | **Corpus Christi** (TX) | Acquired O&G/midstream, **CygNet** | Compound flat tags that *encode* hierarchy (`CC_NORTH_U12_FIC101`); mixed units | Python-modeled |
 
@@ -532,10 +532,11 @@ beyond ERPNext community.
 |----------|------|
 | `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
 | `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
-| `design/uns_home_lab_notes.md` | Vision & high-level scope |
-| `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built |
-| `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) |
-| `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric |
+| `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
+| `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
+| `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
+| `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — see §12 #16 UMH Core re-validation)* |
+| `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer pipeline |
 | `reference/docs/` *(local-only ref)* | Reference: ISHE harmonization patterns (Plane 1) |
 | `reference/engineering_drawing_business_case/` *(local-only ref)* | Reference: EngiGraph ontology/graph patterns (Plane 3) |
@@ -557,11 +558,23 @@ beyond ERPNext community.
 4. ~~How literal the PLC layer is~~ — **DECIDED (2026-05-30):** **hybrid** — most sites Python-modeled
    cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
    once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
+   **Amended (2026-06-21, §13 L1.1):** now **two** real-protocol sites — OpenPLC/Modbus (Beaumont) **+**
+   a real **OPC-UA** server (`asyncua`, Geismar); Rotterdam & Corpus Christi stay Python-modeled.
 5. **When ERPNext and Neo4j enter** — Phase 5 as planned, or earlier stubs.
+6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
+   (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC/Modbus), Geismar (Siemens, **real
+   OPC-UA** per §13 L1.1), Rotterdam (Ignition-style, Python-modeled), Corpus Christi (CygNet,
+   Python-modeled). See §6.
+7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
+   TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
+   **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
+   captures from a foreign system. floci-RDS remains a separate cloud-pattern demo. See §4.
+8. ~~CDC mechanism~~ — **DECIDED (2026-05-30):** **start Python poll, design for Debezium** — with an
+   explicit hands-on Debezium learning milestone (goal is to *learn* Debezium, not avoid it). Three
+   steps inside build Phase 5a — see §8.
 9. **API / backend framework** — **FastAPI** is the *intended* choice for the Plane 3 query / GraphRAG /
    copilot API (and any HTTP service interface). Not needed until that layer (~Phase 5b/7); intent
    recorded, decide concretely then. The core pipeline needs no HTTP backend.
-
 10. **Plane 4 ML tooling** *(deferred to ~Phase 6)* — traditional ML stack (e.g. scikit-learn /
     statsmodels / streaming libs), feature sourcing from TimescaleDB + DuckDB, model packaging, and how
     predictions are published back to the UNS as Sparkplug metrics.
@@ -574,23 +587,6 @@ beyond ERPNext community.
     milestone (same pattern as Debezium), most naturally the **online feature store in Phase 6** (teaches
     the online/offline feature-store split). Candidate secondary roles: LLM semantic/response cache +
     copilot session memory (Phase 7), API cache/rate-limit (if FastAPI). Evaluate at Phases 6–7.
-
-**Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
-`uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
-
-**Diagrams (DECIDED 2026-06-21):** all project diagrams are created with the **Eraser MCP** and saved
-to the Eraser workspace/folder **`scada_harmonization`**; each architecture view / implementation type
-(§5) gets its own diagram there, linked from the relevant design doc. See AGENTS.md → "Diagrams".
-6. ~~Number & identity of sites~~ — **DECIDED (2026-05-30):** enterprise **Lagos Specialty Chemicals**
-   (root `lagos-chem`); **4 sites** — Beaumont (AB, real OpenPLC), Geismar (Siemens), Rotterdam
-   (Ignition-style), Corpus Christi (CygNet). See §6.
-7. ~~Postgres deployment~~ — **DECIDED (2026-05-30):** **consolidate historian + role-B ODS in the
-   TimescaleDB instance** (separate schemas: `ts_historian` / `ods_core` / `erp_shadow`); keep the
-   **role-A source systems** (`mes`/`lims`/`cmms`/`quality`) in a **separate** Postgres home so CDC
-   captures from a foreign system. floci-RDS remains a separate cloud-pattern demo. See §4.
-8. ~~CDC mechanism~~ — **DECIDED (2026-05-30):** **start Python poll, design for Debezium** — with an
-   explicit hands-on Debezium learning milestone (goal is to *learn* Debezium, not avoid it). Three
-   steps inside build Phase 5a — see §8.
 13. ~~Governance / data-product framing~~ — **DECIDED (2026-06-21):** adopt a **lightweight governed
     catalog** — the three-stage mapping table / `metric_registry` is a governed data product (owner/
     "gatekeeper" + definition + lineage). **Not** a full data-mesh pillar; no separate governance build
@@ -603,6 +599,13 @@ to the Eraser workspace/folder **`scada_harmonization`**; each architecture view
     CPG discovery yield / edge-feedback / HITL pattern. See §3, §6, §8.
 15. ~~Reference-architecture review~~ — **DECIDED (2026-06-21):** benchmarked the design layer-by-layer
     against a real industrial-products target architecture; resolved all adds/keeps-out. See **§13**.
+
+**Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
+`uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
+
+**Diagrams (DECIDED 2026-06-21):** all project diagrams are created with the **Eraser MCP** and saved
+to the Eraser workspace/folder **`scada_harmonization`**; each architecture view / implementation type
+(§5) gets its own diagram there, linked from the relevant design doc. See AGENTS.md → "Diagrams".
 
 ---
 

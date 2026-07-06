@@ -163,7 +163,8 @@ Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 
    does this component solve?
 2. **Mechanism** — what it does, inputs/outputs, protocols/formats, which plane/zone it lives in.
 3. **External research** — web search for current best practice / industry convention; note where we align
-   or deliberately diverge (e.g. central EMQX UNS vs per-plant-only brokers — charter §13.7 P9 Tier 3).
+   or deliberately diverge (e.g. central EMQX UNS vs per-plant-only brokers — charter §13.7 Tier 3,
+   "broker topology divergence" bullet).
 4. **Gap check** — missing arrow, wrong zone, missing consumer, ambiguous flow? Log it; fix in Eraser
    (`manually_update_diagram` when arrow direction matters).
 5. **One-line teach-back** — a sentence the owner can reuse in a presentation.
@@ -222,7 +223,8 @@ When Phase 0 starts, re-explain from scratch (learning-first), align, then build
 - **Redis** — online feature store (Phase 6 milestone). Both are *learn-by-building*, not shortcuts.
 
 Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) →
-3 OT consume (TimescaleDB + Grafana) → 4 multi-site + central EMQX + OpenPLC site (harmonization proof)
+3 OT consume (TimescaleDB + Grafana) → 4 multi-site + central EMQX + OpenPLC (Beaumont) & OPC-UA
+(Geismar) sites (harmonization proof)
 → 5a IT source + CDC (Debezium milestone) → 5b context (ERPNext + Neo4j) → 6 loop closure (ML/inference
 + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
 
@@ -241,7 +243,8 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
   up to date** — `git status` clean and `git log origin/<branch>..HEAD` empty. (Learned the hard way:
   PR #7 was merged before later commits were pushed, dropping charter §13 from `main` until PR #8 fixed
   it. Commits added to a branch *after* its PR merged are NOT in `main` — open a **new** PR for them.)
-- **Commit messages** end with the trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+- **Commit messages** end with a `Co-Authored-By` trailer naming the assisting model (currently
+  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`; use whichever model actually assisted).
 - **Never commit `.codex/`** (unrelated pre-existing tooling, like `.claude/`). Stage files explicitly.
 - **`reference/` is local-only** — `reference/docs/` (ISHE) and `reference/engineering_drawing_business_case/`
   (EngiGraph) are gitignored private business-case material kept as design references; only
@@ -284,4 +287,3 @@ Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Spa
 All design work is merged to `main`. There is **no unanswered question blocking progress** — the next
 concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3), owner-confirmed 2026-06-29.
 Phase 0 waits until Diagram 1 is locked and Diagrams 2 & 3 are drawn.
-</content>

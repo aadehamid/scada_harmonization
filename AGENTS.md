@@ -119,10 +119,10 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
-- `uns_home_lab_notes.md` — vision & high-level scope
-- `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase)
-- `python_centric_uns_notes.md` — implementation philosophy: Python-centric
-- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase)
+- `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
+- `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
+- `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
+- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase) *(archived — see charter §12 #16, UMH Core re-validation)*
 - `synthetic_data_generation_notes.md` — data strategy & the 6-layer synthetic pipeline
 
 > **Reference material (local-only):** `reference/docs/` (ISHE harmonization patterns) and
@@ -145,7 +145,8 @@ Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: 
 ```
 L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
   → L1/2 PLC-world disguise — hybrid: Python-modeled cryptic tags (N7:20, FIC101_PV)
-         per site; ONE site (Beaumont) real OpenPLC over Modbus TCP
+         at Rotterdam & Corpus Christi; TWO real-protocol sites — OpenPLC/Modbus TCP
+         (Beaumont) + OPC-UA via asyncua (Geismar)
   → L3 edge broker: Mosquitto per-site (local Sparkplug, divergent namespace)
   → L3 Python site-forwarder → central EMQX (cross-site conforming = harmonization)
   → L3 OT consumers: Ignition (SCADA), TimescaleDB historian (hypertables), Grafana
@@ -235,4 +236,3 @@ adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline ne
 
 Stack so far: Python + Pydantic v2, pandas, paho-mqtt, PySparkplug, Neo4j driver. No build tooling
 exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.
-</content>

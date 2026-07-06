@@ -58,8 +58,8 @@ The domain is **data-driven, not dictated**, so realistic data is always availab
 - **Industrial IoT Dataset (Synthetic)** — rotating machines (pumps, compressors, motors)
 
 The enterprise is **Lagos Specialty Chemicals** (UNS root `lagos-chem`), operating **4 sites** —
-**Beaumont** (Allen-Bradley, real OpenPLC), **Geismar** (Siemens), **Rotterdam** (Ignition-style),
-**Corpus Christi** (CygNet) — each running the same units/machines but on a different SCADA lineage
+**Beaumont** (Allen-Bradley, real OpenPLC/Modbus), **Geismar** (Siemens, real OPC-UA via `asyncua`),
+**Rotterdam** (Ignition-style), **Corpus Christi** (CygNet) — each running the same units/machines but on a different SCADA lineage
 with deliberately divergent naming. Physical meaning is *assigned* at the mapping stage, anchored by
 the **three-stage name mapping table** — `friendly variable → site-specific PLC tag → Sparkplug
 metric` — which is the spine of the lab. The table doubles as a **governed data-product catalog**
@@ -93,10 +93,10 @@ real AWS) without invalidating the design.
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
-| [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope |
-| [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built |
-| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) |
-| [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric |
+| [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
+| [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
+| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — UMH product state under re-validation, charter §12 #16)* |
+| [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | [`design/synthetic_data_generation_notes.md`](design/synthetic_data_generation_notes.md) | Data strategy & the 6-layer pipeline |
 
 ## Status
@@ -110,4 +110,3 @@ mapping table). See the charter's build sequence (Phases 0–7).
 ## License
 
 MIT
-</content>
