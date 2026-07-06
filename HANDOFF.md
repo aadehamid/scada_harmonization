@@ -72,6 +72,16 @@ genuine gaps were adopted as **charter §14 (ledger N1–N35)**. Highlights:
   (Apache-2.0 umh-core + benthos-umh; embedded Redpanda source-available/free; Management Console =
   optional SaaS, lab runs standalone YAML; Core replaces forwarders/bridges/streaming — Timescale +
   Grafana stay hand-built).
+- **Follow-up (same session, post-merge): deck coverage check + two decisions.** Owner supplied an
+  external "Enterprise IT vs Manufacturing/OT" slide deck (now local-only in
+  `reference/enterprise_it_ot_deck/`, gitignored) and asked whether the lab can cover/describe it.
+  Verdict: ~85% covered natively; gaps = L4 business breadth + the demand→floor direction. Resolved:
+  **§12 #18 order-to-cash thin thread** (ERPNext SO → MRP → Work Order → lot → Delivery Note +
+  Invoice, Phase 5b) and **§12 #19 no separate WMS** (ERPNext stock moves + `material_lot` events).
+  Created **`design/E2E_WALKTHROUGH.md`** — the end-to-end walkthrough guide: Thread A (order thread,
+  from the deck) + Thread B (telemetry up) + Thread C (decision/control back — both absent from the
+  deck) + cross-cutting narratives + a describe-anyway table for every consciously-omitted system
+  (CRM, WMS, PLM, EMS/BMS, batch execution, robotics/vision, SIS, low-code, middleware).
 - **Plan:** Phase 4 split into **4a/4b/4c**; per-phase **exit criteria** (§8.1); **risk register**
   (§8.2 — incl. the 16–24 GB RAM reality → compose profiles per phase); staleness sweep (Geismar
   OPC-UA drift, archived-note banners, stray `</content>`/`DOCEOF` artifacts); `LEARNING_LOG.md`
@@ -133,7 +143,10 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
 - (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29; timeboxed, now
   armed with the §14 gap checklist below). See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
-- (c) **After Diagram 1 locked → Phase 0** (repo skeleton + the three-stage mapping table **with the
+- (b2) **After Diagram 1 locked → end-to-end narrative walkthrough** — three threads per
+  `design/E2E_WALKTHROUGH.md` (order thread from the deck · telemetry thread · decision/control
+  thread back), describing industry practice fully incl. consciously-omitted systems.
+- (c) **Then → Phase 0** (repo skeleton + the three-stage mapping table **with the
   §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
 - (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
   · Diagram 3 (cloud-native → floci, before Phase 6).
@@ -252,8 +265,10 @@ Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 
   decision.
 - Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
 
-**After Diagram 1 is locked:** **Phase 0 starts immediately** (resequenced 2026-07-06); Diagrams 2 & 3
-are drawn just-in-time later (Diagram 2 = UMH Core, decided §12 #16; Diagram 3 before Phase 6).
+**After Diagram 1 is locked:** run the **end-to-end narrative walkthrough** (three threads —
+`design/E2E_WALKTHROUGH.md` + the deck in `reference/enterprise_it_ot_deck/`), then **Phase 0 starts**
+(resequenced 2026-07-06); Diagrams 2 & 3 are drawn just-in-time later (Diagram 2 = UMH Core, decided
+§12 #16; Diagram 3 before Phase 6).
 
 ---
 
