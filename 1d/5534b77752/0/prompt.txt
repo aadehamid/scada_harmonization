@@ -1,0 +1,20 @@
+what does the below mean? Doe sit mean we have now added oreder to cash that flows data from Enteprise to the physical process
+
+ §12 #18 — order-to-cash thin thread (DECIDED): ERPNext Sales Order → MRP/Production Plan → Work Order → mes.production_order (keys still deliberately misaligned — the reconciliation lesson survives) → production_lot → Delivery Note + Sales Invoice. Phase 5b scope, ~a day of ERPNext-native work, and the §8.1 exit criterion now requires the thread to close end-to-end with genealogy linking every hop.
+
+---
+
+Okay. I merged the PR. 
+We can now review the eraser diagmarm. Here is the link https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY
+
+Please review and share your reviews feedback here. Again keep industry best practices that we just went thriugh in mind.
+
+If we ever needs to create a new diagram it should be created in the "SCADA Harmonization" folder at https://app.eraser.io/folder/YSTJxkJUdzkToZgT15Nv
+
+Use eraser mcp
+
+---
+
+1.Let us apply everything you recokmmende or called out from A:D. Let us create a new diagram with toda's date in its name. Thhe new diagram should be in the same folder. We will use this new diagram, project contents, and web search to carry out the walk through end to end.
+
+What do you think? What is your plan?
