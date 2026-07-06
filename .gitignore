@@ -164,9 +164,10 @@ Temporary Items
 *.swo
 *~
 
-# Reference material (local-only, superseded source docs — see reference/README.md)
+# Reference material (local-only, superseded source docs / third-party content — see reference/README.md)
 reference/docs/
 reference/engineering_drawing_business_case/
+reference/enterprise_it_ot_deck/
 BUSINESS_CASE.md
 OT_DATA_INTEGRATION_CHALLENGE.md
 PROBLEM_STATEMEMENT.md

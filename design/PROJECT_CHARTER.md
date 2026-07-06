@@ -530,7 +530,7 @@ around them is **discarded**.
 | **4b** | Real protocols + full roster | Swap in the **real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug, publishing **raw counts** scaled via §14 N17) and the **real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1) behind the already-proven forwarder seam; add sites 3–4 |
 | **4c** | Resilience & zoning | **Store-and-forward** buffer + outage drill (§13 L1.2, §14 N12); **Docker-network IT/OT segmentation** with zone labels + conduit inventory (§13 L1.3, §14 N21); one **historian-less site** (§13 L1.4); deliberate clock-skew site exercise (§14 N9) |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
-| **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔lot↔material↔lab-result) |
+| **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔lot↔material↔lab-result); **order-to-cash thin thread** (Sales Order → MRP → Work Order → `production_lot` → Delivery Note + Invoice, §12 #18) |
 | **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform the forwarder/bridge/streaming leg onto **UMH Core** (§12 #16); Timescale + Grafana stay |
@@ -569,7 +569,7 @@ diagram-independent.
 | **4b** | All 4 sites conformed, including both real-protocol sites; Beaumont raw counts scale correctly end-to-end (§14 N17) |
 | **4c** | Kill EMQX/WAN for N minutes → the site keeps operating locally; on reconnect the forwarder backfills with `is_historical`, **no gaps and no duplicates** in Timescale, rollups correct (§14 N11/N12); the skewed-clock site is detected and corrected (§14 N9) |
 | **5a** | Python CDC and Debezium emit `ChangeEvent`s passing the **same contract tests**, including a hard-delete case the Python poller provably misses; Apicurio schema-evolution exercise done (§14 N26/N29) |
-| **5b** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations |
+| **5b** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations; **the order-to-cash thread closes end-to-end** — Sales Order → plan → work order → lot → Delivery Note → Invoice, with genealogy linking every hop (§12 #18) |
 | **6** | A model climbs L0→L1 through defined gates (§14 N30); one recommendation with SHAP + TTL is approved in the console → DCMD → clamped write → DDATA read-back → `command_audit` row (§14 N5/N24/N32); drift dashboard live (§14 N31); T²/SPE catches a TEP fault univariate EWMA misses (§14 N33) |
 | **7** | The copilot answers a cross-domain question (fault → lot → work order → lab result) grounded in graph citations |
 
@@ -639,6 +639,7 @@ beyond ERPNext community.
 | `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
 | `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
 | `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
+| `design/E2E_WALKTHROUGH.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
 | `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
@@ -731,6 +732,19 @@ beyond ERPNext community.
     Sparkplug namespace encoding, forwarder session contract, primary hosts, DCMD command path,
     replay clock, time/quality/historian semantics, lot-based production model, conduit inventory +
     broker auth/TLS/audit, functional-safety correction, and the Plane-4 MLOps additions).
+18. **Order-to-cash thin thread** — **DECIDED (2026-07-06):** Plane 2 gains the **demand→floor
+    direction** (previously only confirmations-up): one **ERPNext Sales Order → MRP/Production Plan →
+    Work Order**, synced into `mes.production_order` (the plant's own key space — still deliberately
+    misaligned), driving one `production_lot`; the thread closes with an ERPNext **Delivery Note +
+    Sales Invoice**. Gives the lab all ten handoffs of the industry order thread (Thread A,
+    `design/E2E_WALKTHROUGH.md`) and makes ISA-95 L3↔L4 *schedule-down + performance-up*. Phase 5b
+    scope (ERPNext-native, ~a day); §8.1 exit criteria updated. CRM stays out — the Sales Order is
+    the lab's entry point.
+19. **No separate WMS** — **DECIDED (2026-07-06):** warehouse semantics are represented as **ERPNext
+    stock movements + `mes.material_lot` staging/consumption events**, not a WMS system. A real WMS
+    (bins, waves, pick paths, dock scheduling) is *described* in walkthroughs at its proper place
+    (Thread A steps 3 & 9, `design/E2E_WALKTHROUGH.md`) but adds no harmonization/contextualization
+    lesson the lab doesn't already teach. Joins the §13.3 conscious-out list.
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
@@ -785,7 +799,8 @@ observability · `ods_core` named the MDM analog.
 
 ### 13.3 Deliberately out of scope
 
-CRM/Salesforce · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
+CRM/Salesforce · **separate WMS** (ERPNext stock moves + `material_lot` events cover the warehouse
+semantics — §12 #19) · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
 plants · EDMS (ET topology is synthesized) · separate real-time "hot" store · Power BI (Grafana +
 DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now.
 
