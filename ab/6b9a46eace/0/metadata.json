@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "ab6b9a46eace",
+  "session_id": "9321151b-0afb-4afc-96b9-b86dae822d05",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-06T18:34:50.068008Z",
+  "branch": "docs/itot-best-practice-review-adoption",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "HANDOFF.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8[1m]",
+  "turn_id": "ec7a95ad3450",
+  "checkpoint_transcript_start": 592,
+  "transcript_lines_at_start": 592,
+  "token_usage": {
+    "input_tokens": 10773,
+    "cache_creation_tokens": 19315,
+    "cache_read_tokens": 2170280,
+    "output_tokens": 10462,
+    "api_call_count": 5
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-06T18:34:48.939931Z",
+    "agent_lines": 12,
+    "agent_removed": 9,
+    "human_added": 35,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 47,
+    "total_lines_changed": 85,
+    "agent_percentage": 24.705882352941178,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

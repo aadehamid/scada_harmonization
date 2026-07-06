@@ -1,0 +1,4 @@
+1. are these PR for me to merge
+2. can we just adopt UMH Core? Is this still open source?
+
+Once you answer this questions we can go on to a thorough review of diagram 1
