@@ -14,6 +14,37 @@ deck.
 
 ---
 
+## 0. Opening primer — ISA-95, the spine (do this FIRST, owner-requested 2026-07-06)
+
+Before any thread: a **high-level ISA-95 primer**, because every layer of the lab hangs off it.
+Teach it as *three different lenses that are often conflated*, then show where each appears in the lab:
+
+1. **What ISA-95 is** — the enterprise–control-system integration standard (IEC 62264): a *functional
+   and data* model for how manufacturing operations and business systems exchange information. It is
+   **not** a network architecture and **not** a security standard.
+2. **The functional hierarchy (Levels 0–4)** — physical process → sensing/actuation → supervisory
+   control → manufacturing operations (MES/LIMS/CMMS live at L3) → business planning (ERP at L4).
+   Distinguish from its two siblings: the **Purdue model** (the *network* reference architecture the
+   levels are usually drawn on) and **IEC 62443** (the *security* zones-and-conduits standard — the
+   iDMZ "Level 3.5" is a Purdue/62443 construct, not part of ISA-95 proper).
+3. **The equipment hierarchy** — enterprise → site → area → **production unit** (the continuous-process
+   branch; "line/cell" is the discrete branch) → equipment. This is literally the lab's UNS topic path
+   (`lagos-chem/<site>/<area>/<production-unit>/...`, §14 N19) and the `asset_master` shape.
+4. **Part 2 object models** — material (definition/lot — the lab's N14 tables), equipment
+   (class vs instance — P6 templates), personnel, process segments.
+5. **The L3↔L4 exchange pattern** — *schedule down, performance up* (B2MML is the XML binding):
+   the lab's order-to-cash conduit C6 down, production confirmations up (§12 #18).
+6. **Sidebar** — ISA-88 (batch) vs ISA-106 (continuous): why LSC is lot-based, not batch (§14 N13).
+
+**Teach-back target:** the owner can place any lab component on the ISA-95 hierarchy, name which of
+the three lenses (function / network / security) a given diagram element belongs to, and explain why
+MES is Level 3 *function* on the OT *network* side of the 62443 *security* boundary (Z3).
+
+Use web research to ground it (ISA/IEC sources preferred). Log glossary terms to `LEARNING_LOG.md`
+as they appear (ISA-95, IEC 62264, Purdue, B2MML, production unit, equipment class…).
+
+---
+
 ## Thread A — The transaction thread (order-to-cash, top-down then confirmations up)
 
 *Source: deck slides 3 & 5 (ten handoffs). Lab: ERPNext + role-A schemas + CDC (charter §12 #18).*
