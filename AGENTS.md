@@ -218,7 +218,8 @@ Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosqu
 central EMQX + **OpenPLC (Beaumont) & OPC-UA (Geismar)** sites + store-and-forward + Docker IT/OT
 segmentation (harmonization proof) → 5a IT source + CDC (Python→Debezium milestone) → 5b context
 (ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
-ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
+ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH (Core vs Classic —
+re-validate first, charter §12 #16).
 
 **Reference-architecture review (2026-06-21):** the design was benchmarked layer-by-layer against a
 real industrial-products target architecture; all add/keep-out decisions and the **three
@@ -234,5 +235,8 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-Stack so far: Python + Pydantic v2, pandas, paho-mqtt, PySparkplug, Neo4j driver. No build tooling
+Stack so far: Python ≥3.12 + Pydantic v2, pandas, paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate**
+— PyPI status Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2, fallback = hand-rolled `spBv1.0`
+protobuf), Neo4j driver. **Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
+single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8 AGPLv3, …). No build tooling
 exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.

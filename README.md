@@ -78,7 +78,8 @@ The three architecture notes are **phases of one architecture**, not competing p
 - **Build & learn → hand-built + Python-centric.** Wire every component explicitly so each boundary
   is visible; Python is a first-class UNS participant, not just glue.
 - **Abstraction (later) → UMH-anchored.** Replace the hand-wired backbone with United Manufacturing
-  Hub Community once the internals are understood.
+  Hub once the internals are understood *(UMH has pivoted to UMH Core — target under re-validation,
+  charter §12 #16)*.
 
 These styles are captured as **three full architecture diagrams** — hand-built/Python-centric ·
 UMH-anchored · cloud-native (floci→AWS) — in the Eraser `scada_harmonization` workspace. The design

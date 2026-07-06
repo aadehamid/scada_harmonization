@@ -157,14 +157,14 @@ foundation is built to feed both; details when we reach Phases 6–7.
 |-------|------|----------------|
 | **L0** | Synthetic & benchmark process reality | Python replay of benchmark datasets + generated signals |
 | **L1/2** | PLC-world representation (brownfield realism) — **hybrid** | Python-modeled cryptic tags (`N7:20`, `MW100`, `FIC101_PV`) at Rotterdam + Corpus Christi. **Two** real protocol sites: **OpenPLC** over **Modbus TCP** (Beaumont) + an **OPC-UA** server (`asyncua`, Geismar) — both polled into Sparkplug (§13 L1.1) |
-| **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto** per-site edge broker (local autonomy) + **EMQX OSS** central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B** throughout |
+| **L3 — transport/UNS** | Harmonization backbone (two-tier) | **Mosquitto 2.0.x** per-site edge broker (local autonomy) + **EMQX ≥5.9** (BSL 1.1, **single node**) central UNS broker; connected by a **Python site-forwarder** (not a raw broker bridge). **Sparkplug B 3.0** throughout |
 | **L3 — OT consumers** | SCADA / storage / dashboards | Ignition Maker Edition, **TimescaleDB** historian (hypertables), Grafana |
 | **L3 — relational store (OLTP)** | Transactional **system of record** (role A) + derived **operational data store / ODS** (role B) | **PostgreSQL** — role A: independent MES/LIMS/CMMS/quality source systems (CDC-captured); role B: ODS co-located in the TimescaleDB instance |
 | **L3/4 — analytics (OLAP)** | Streaming & analytical path | Kafka → **medallion lakehouse** (Bronze/Silver/Gold, Parquet/object store) via **Spark ETL** → **DuckDB** (interactive OLAP query — distinct from Postgres OLTP); plus a **batch/file-drop** ingestion path (§13 L4) |
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
-| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver) |
+| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (paho-mqtt ≥2.x, pysparkplug 0.6.x *candidate — see §4.1*, pandas, Pydantic v2, Neo4j driver) |
 | **Cross-cutting — observability** | Pipeline/infra monitoring | **Prometheus + Grafana** — container health, message rates, CDC lag, dead-letter counts, broker state (§13 L7.1) |
 
 ### Storage concern separation (no overlap)
@@ -209,15 +209,23 @@ enterprise harmonization):
    │ (site A's own namespace)     │ (site B's own namespace)
    └─── Python site-forwarder ────┴─── Python site-forwarder ───┐
         (cross-site conforming)                                 ↓
-                                            CENTRAL: EMQX OSS  — enterprise UNS
+                                            CENTRAL: EMQX ≥5.9 (single node) — enterprise UNS
                                             (one harmonized namespace; rule engine,
                                              Kafka/Postgres bridges, fan-out to IT)
 ```
 
 - **Mosquitto (per-site edge):** lightweight local broker; the site keeps exchanging OT data even if
   the WAN/central system is down. Holds the site's *own* (still-divergent) Sparkplug namespace.
-- **EMQX OSS (central):** the enterprise UNS broker — cross-site harmonization target, IT
-  integrations, fan-out. Justified centrally by its rule engine, native data bridges, and clustering.
+- **EMQX ≥5.9 (central, single node):** the enterprise UNS broker — cross-site harmonization target,
+  IT integrations, fan-out. **Licensing reality (verified 2026-07-06):** from v5.9 EMQX ships as one
+  unified edition under **BSL 1.1** — all former Enterprise features (rule engine, native
+  Kafka/Postgres data integrations) included, and **free in production on a single node only**;
+  clustering requires a paid license, and each version reverts to Apache-2.0 after 4 years. (The
+  older Apache-2.0 "EMQX OSS" 5.x editions had *no* Kafka/Postgres bridges — MQTT/HTTP sinks only —
+  so the original "rule engine + native bridges + clustering" justification never held for any free
+  edition.) The lab runs **one EMQX node** (no broker HA needed); a licensed EMQX cluster or HiveMQ
+  is the enterprise upgrade path. The UNS→Kafka bridge is **custom Python** in the learning phase
+  (§14 N6 — the bare-metal lesson); EMQX's native Kafka sink is the "graduate-to" comparison.
   **Network placement: in the iDMZ (Level 3.5)** as the controlled OT/IT conduit — see §13.8 Z2.
 - **Connection = a Python site-forwarder, NOT a raw broker bridge.** Sparkplug B is stateful (death
   certificates via LWT, primary-host `STATE`); a naive `spBv1.0/#` broker bridge breaks that coherence
@@ -284,6 +292,39 @@ ERPNext keeps its own MariaDB; `erp_shadow` is only an ODS convenience copy for 
 3. **Lane discipline:** the historian never holds business keys; the source systems never hold telemetry.
 4. **Neo4j reads from the harmonized/reconciled side** (`ods_core` + UNS), not from the raw source schemas.
 
+### 4.1 Pinned stack (tool names, versions, editions — verified 2026-07-06)
+
+Version **floors** and editions/licenses the design assumes. Exact pins land in `uv.lock` /
+`docker-compose.yml` as each phase starts — re-verify a row when its phase begins.
+
+| Tool | Version / edition (floor) | License | Role (build phase) |
+|------|---------------------------|---------|--------------------|
+| Python + `uv` | Python ≥3.12, uv-pinned; `uv.lock` committed | PSF / MIT+Apache | all custom logic (0+) |
+| paho-mqtt | ≥2.1 | EPL-2.0/EDL | MQTT transport (2+) |
+| pysparkplug | 0.6.x — **candidate, not decided** (PyPI dev status: *Pre-Alpha*; Sparkplug 3.0 conformance undocumented) | Apache-2.0 | Sparkplug payloads (2+). Phase 2 acceptance test = spec behavior (NBIRTH-before-NDATA, seq 0–255 wraparound, alias resolution, NCMD Rebirth, LWT NDEATH) observed via a compliant consumer. Fallbacks: hand-rolled `spBv1.0` protobuf over paho-mqtt (also the raw-mechanism lesson), Eclipse Tahu, `mqtt-spb-wrapper` |
+| Sparkplug B | spec **3.0** (= ISO/IEC 20237:2023) | — | the wire contract (2+) |
+| Mosquitto | 2.0.x | EPL-2.0 | per-site edge broker ×4 (2+) |
+| EMQX | **≥5.9, single node** (BSL grant covers one production node; each version → Apache-2.0 after 4 yrs) | BSL 1.1 | central enterprise UNS broker in the iDMZ (4+) |
+| OpenPLC Runtime | v3 | GPLv3 | Beaumont real PLC, Modbus TCP :502 (4) |
+| asyncua (opcua-asyncio) | ≥1.1 | LGPL-3.0 | Geismar real OPC-UA server (4) |
+| Ignition | **Maker Edition 8.3.x** (8.1.x fallback) — free personal/non-commercial, online *leased* activation, 10k tags, 10 Perspective sessions | proprietary (free tier) | SCADA consumer (3+). Use Maker-compatible **Cirrus Link MQTT Engine** builds; in Docker do **not** set `GATEWAY_MODULES_ENABLED` (known Maker license conflict). Licensed Ignition = upgrade path |
+| TimescaleDB | **Community Edition ≥2.26** on PostgreSQL ≥17.2 (compression + continuous aggregates are Community/TSL features; Apache-2.0 edition lacks them). Vendor renamed **TigerData**, 2025 | TSL (free self-hosted) | historian (3+) |
+| PostgreSQL | ≥17.2 | PostgreSQL License | role-A plant OLTP + IT-side ODS home (5a+) |
+| Apache Kafka | ≥4.0 (KRaft — no ZooKeeper) | Apache-2.0 | IT streaming backbone (4+) |
+| Kafka Connect + Debezium | Debezium ≥3.4 | Apache-2.0 | log-based CDC milestone (5a.2) |
+| Apicurio Registry | 3.x | Apache-2.0 | Kafka schema registry, Avro + compatibility rules (5a.2, §14 N21) |
+| Apache Spark | ≥4.0 | Apache-2.0 | medallion ETL (6) |
+| DuckDB | ≥1.2 | MIT | interactive OLAP over Parquet (3+) |
+| Neo4j | **Community 2025.x** (CalVer since Jan 2025; native vector index included) + `neo4j-graphrag` | GPLv3 / Apache-2.0 | knowledge graph + GraphRAG (5b, 7) |
+| ERPNext | **v15 LTS or v16** (v16 GA Dec 2025) on MariaDB 10.x — Postgres unsupported | GPLv3 | enterprise business records (5b) |
+| Grafana | OSS ≥11 | AGPLv3 | dashboards + observability UI (3+) |
+| Prometheus | ≥3.0 | Apache-2.0 | pipeline/infra metrics (3+) |
+| MLflow | ≥3.0 | Apache-2.0 | model tracking/registry (6) |
+| Redis | ≥8.0 — **AGPLv3, genuinely open source again since May 2025**; Valkey ≥8.0 (BSD) = drop-in fallback | AGPLv3 | online feature store (6) |
+| floci | 0.x — young project (public 2025/2026) | MIT | local AWS emulation (6+). Fallback: LocalStack **Community** for S3/Lambda/Kinesis + DuckDB in place of Glue/Athena (LocalStack gates those behind Pro) |
+| UMH | **UMH Core** (`benthos-umh` + embedded Redpanda) — target under re-validation, §12 #16 | ELv2 / varies | abstraction phase (Later) |
+| Databricks | Free Edition (serverless, non-commercial; Unity Catalog, MLflow) | proprietary (free tier) | graduate-to managed lakehouse (§13.6, post-6) |
+
 ---
 
 ## 5. Implementation approach
@@ -298,9 +339,11 @@ competing projects**. They are phases / styles of the *same* architecture:
   Sparkplug publishers, enrichment nodes, inference services), not just glue.
 
 - **Abstraction phase → UMH-anchored (later).**
-  Once the internals are understood, United Manufacturing Hub Community can replace the
+  Once the internals are understood, United Manufacturing Hub can replace the
   hand-wired MQTT/Kafka/historian/modeling bundle. This is the "graduate to enterprise tooling"
-  step — adopted *after* understanding what it abstracts.
+  step — adopted *after* understanding what it abstracts. **2026 note:** UMH has pivoted from the
+  Classic k8s bundle to **UMH Core** (single container, `benthos-umh` + embedded Redpanda) —
+  re-validate the target before Diagram 2 (§12 #16).
 
 Every component is chosen to be **upgrade-friendly**: OSS brokers → EMQX Enterprise/HiveMQ;
 Ignition Maker → licensed Ignition; floci → real AWS; Python replay → real gateways — all without
@@ -466,7 +509,7 @@ around them is **discarded**.
 | **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔batch↔lab-result) |
 | **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
-| **Later** | Abstraction | Re-platform L3 backbone onto UMH Community |
+| **Later** | Abstraction | Re-platform L3 backbone onto UMH (Core vs Classic — re-validate first, §12 #16) |
 
 Phases 0–4 are the core harmonization proof. Phases 5–7 are the contextualization story (now
 spanning OT + IT + ET).
@@ -550,11 +593,16 @@ beyond ERPNext community.
    specialty-chemicals plant; TEP process units + Industrial-IoT rotating machines, cloned across
    ≥2 sites with divergent naming. See §6.
 2. ~~Broker choice~~ — **DECIDED (2026-05-30):** two-tier — **Mosquitto** per-site edge (local
-   autonomy) + **EMQX OSS** central UNS, connected by a **Python site-forwarder** (not a raw broker
+   autonomy) + **EMQX** central UNS, connected by a **Python site-forwarder** (not a raw broker
    bridge, to preserve Sparkplug state). Harmonization becomes two-step (local mapping → cross-site
-   conforming). See §4.
+   conforming). See §4. **Amended (2026-07-06):** pinned **EMQX ≥5.9, single node, BSL 1.1** — the
+   pre-5.9 "OSS" edition had no Kafka/Postgres bridges and the BSL grant covers one production node;
+   see §4 licensing reality + §4.1 pinned stack.
 3. ~~Historian choice~~ — **DECIDED (2026-05-30):** **TimescaleDB** (SQL everywhere; modeling, not
-   ingest rate, is the bottleneck). See §4 database topology.
+   ingest rate, is the bottleneck). See §4 database topology. **Amended (2026-07-06):** pinned
+   **TimescaleDB Community Edition ≥2.26** (TSL license, free self-hosted — **compression +
+   continuous aggregates required**, and the Apache-2.0 edition lacks them) on **PostgreSQL ≥17.2**;
+   vendor renamed **TigerData** (2025). See §4.1.
 4. ~~How literal the PLC layer is~~ — **DECIDED (2026-05-30):** **hybrid** — most sites Python-modeled
    cryptic tags; **one** site runs a real **OpenPLC** runtime over **Modbus TCP** (the realism lesson
    once, without taxing every site). Start Python-modeled in Phase 2; add the OpenPLC site in Phase 4.
@@ -587,6 +635,9 @@ beyond ERPNext community.
     milestone (same pattern as Debezium), most naturally the **online feature store in Phase 6** (teaches
     the online/offline feature-store split). Candidate secondary roles: LLM semantic/response cache +
     copilot session memory (Phase 7), API cache/rate-limit (if FastAPI). Evaluate at Phases 6–7.
+    **License note (2026-07-06):** Redis 8 returned to genuine open source (**AGPLv3**, May 2025), so
+    "Redis (open source)" is accurate again; **Valkey** (BSD, CNCF) is the drop-in fallback if AGPL
+    ever matters.
 13. ~~Governance / data-product framing~~ — **DECIDED (2026-06-21):** adopt a **lightweight governed
     catalog** — the three-stage mapping table / `metric_registry` is a governed data product (owner/
     "gatekeeper" + definition + lineage). **Not** a full data-mesh pillar; no separate governance build
@@ -599,6 +650,17 @@ beyond ERPNext community.
     CPG discovery yield / edge-feedback / HITL pattern. See §3, §6, §8.
 15. ~~Reference-architecture review~~ — **DECIDED (2026-06-21):** benchmarked the design layer-by-layer
     against a real industrial-products target architecture; resolved all adds/keeps-out. See **§13**.
+16. **UMH abstraction target: Core vs Classic** *(open — decide before Diagram 2)* — the UMH-anchored
+    note describes **UMH Classic** (the k8s/Helm bundle: MQTT + Kafka + historian + visualization).
+    UMH's current product (2024–2026 pivot) is **UMH Core**: a single Docker container built on the
+    `benthos-umh` streaming engine with embedded Redpanda and a cloud Management Console — it does
+    **not** hand you the Classic TimescaleDB+Grafana historian bundle. `benthos-umh` has a stateful
+    **Sparkplug B input** (tracks births, aliases, seq), so the lab's Sparkplug-first design can feed
+    it. Spend one research session deciding the abstraction target — and what it does/doesn't
+    abstract — **before drawing Diagram 2** (§13.4 #2) or planning the "Later" re-platform (§8).
+17. **IT/OT best-practice review adoptions** — **DECIDED (2026-07-06):** see **§14** (N1–N30 ledger:
+    Sparkplug namespace encoding, forwarder session contract, time/quality semantics, conduit
+    inventory, safety-layer correction, Plane-4 MLOps additions, and more).
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
@@ -666,8 +728,9 @@ delivering the *same* capability set:
 1. **Hand-built / Python-centric** — self-hosted OSS, every boundary explicit; the learning
    architecture built across Phases 0–7 (EMQX, Kafka, TimescaleDB, Spark, DuckDB, Neo4j, MLflow,
    Prometheus, Python forwarder/enrichment/alerting).
-2. **UMH-anchored** — United Manufacturing Hub Community collapses the L3 ingestion/streaming/
-   historian/modeling backbone into one platform; the abstraction phase (§5).
+2. **UMH-anchored** — United Manufacturing Hub collapses the L3 ingestion/streaming/
+   historian/modeling backbone into one platform; the abstraction phase (§5). **Re-validate the
+   product target first (UMH Core vs Classic — §12 #16) before drawing this diagram.**
 3. **Cloud-native (floci → AWS)** — the same design mapped onto floci-emulated AWS (IoT Core,
    Kinesis, Glue/Spark, Athena, S3 medallion, RDS, SageMaker, KMS/IAM/CloudWatch) ≈ the reference
    target architecture; real AWS is the production upgrade.

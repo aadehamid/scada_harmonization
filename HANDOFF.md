@@ -132,7 +132,7 @@ hold.**
 | # | Decision | Resolution |
 |---|----------|-----------|
 | 1 | Domain | Multi-site process / specialty-chemicals (data-driven by TEP + Industrial IoT) |
-| 2 | MQTT broker | **Two-tier:** Mosquitto per-site edge + EMQX OSS central UNS, connected by a **Python site-forwarder** (not a raw broker bridge — preserves Sparkplug state; the forwarder is the cross-site harmonization point) |
+| 2 | MQTT broker | **Two-tier:** Mosquitto per-site edge + **EMQX ≥5.9 central UNS (BSL 1.1, single node** — clustering is paid; pre-5.9 "OSS" had no Kafka/Postgres bridges), connected by a **Python site-forwarder** (not a raw broker bridge — preserves Sparkplug state; the forwarder is the cross-site harmonization point) |
 | 3 | Historian | **TimescaleDB** (SQL everywhere; modeling not ingest rate is the bottleneck) |
 | 4 | PLC literalness | **Hybrid** — Rotterdam & Corpus Christi Python-modeled; **two real protocol sites: OpenPLC/Modbus (Beaumont) + OPC-UA/`asyncua` (Geismar)** (charter §13 L1.1) |
 | 6 | Sites + enterprise | **Lagos Specialty Chemicals** (UNS root `lagos-chem`); **4 sites** — Beaumont (Allen-Bradley), Geismar (Siemens), Rotterdam (Ignition-style), Corpus Christi (CygNet) |
