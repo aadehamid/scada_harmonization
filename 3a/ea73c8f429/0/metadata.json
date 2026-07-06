@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "3aea73c8f429",
+  "session_id": "9321151b-0afb-4afc-96b9-b86dae822d05",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-06T22:37:27.981855Z",
+  "branch": "docs/walkthrough-isa95-primer",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "HANDOFF.md",
+    "design/E2E_WALKTHROUGH.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8[1m]",
+  "turn_id": "d9f61d9d0c9e",
+  "checkpoint_transcript_start": 1110,
+  "transcript_lines_at_start": 1110,
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 1427,
+    "cache_read_tokens": 1486862,
+    "output_tokens": 3532,
+    "api_call_count": 2
+  },
+  "session_metrics": {
+    "turn_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-06T22:37:26.22667Z",
+    "agent_lines": 35,
+    "agent_removed": 3,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 35,
+    "total_lines_changed": 38,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
