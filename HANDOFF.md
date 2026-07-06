@@ -242,9 +242,10 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ### ⭐ IMMEDIATE NEXT ACTION — NEW SESSION: the end-to-end walkthrough
 
-**Suggested kickoff prompt for the new session:** *"Start the end-to-end walkthrough — follow
-`design/E2E_WALKTHROUGH.md` (Thread B from the physics up, then C back down, then A), block-by-block
-against Diagram 1 v2, with the §3 teaching cadence and web research per block."*
+**Suggested kickoff prompt for the new session:** *"Start the end-to-end walkthrough — begin with
+the three-lens primer — ISA-95, Purdue, IEC 62443 (`design/E2E_WALKTHROUGH.md` §0, owner-requested), then follow the
+threads (B from the physics up, then C back down, then A), block-by-block against Diagram 1 v2, with
+the §3 teaching cadence and web research per block."*
 
 **End-to-end teaching walkthrough of Eraser Diagram 1 v2 (Hand-built / Python-centric).** Owner goal:
 understand and be able to **explain the full data and integration flow** — each component's role, why it
