@@ -82,6 +82,20 @@ genuine gaps were adopted as **charter §14 (ledger N1–N35)**. Highlights:
   from the deck) + Thread B (telemetry up) + Thread C (decision/control back — both absent from the
   deck) + cross-cutting narratives + a describe-anyway table for every consciously-omitted system
   (CRM, WMS, PLM, EMS/BMS, batch execution, robotics/vision, SIS, low-code, middleware).
+- **Follow-up (same session, later): Diagram 1 reviewed against §14 → Diagram 1 v2 created.**
+  Review verdict: bones excellent (zoning, forwarder pattern, command hops); 28 findings where the
+  2026-06-23 drawing predated §14 (EMQX "cluster", GuardLogix label, IT-side Redis feeding edge,
+  MLflow push-to-edge, iDMZ alerting node, golden-batch label, "command topic" language, single
+  cross-zone Prometheus, floci straddling zones, P7 validation point, missing Ignition / UNS→Kafka
+  bridge / command_audit / DDATA read-back / ET leg / order-to-cash flows). All applied in a **new
+  dated diagram — Diagram 1 v2 (2026-07-06)**, same "SCADA Harmonization" folder:
+  https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
+  (June-23 original kept for history). The review also caught two charter gaps, now fixed: **C6**
+  order-to-cash schedule-down conduit added to §14 N21, and the **L6.4 sourcing rule** (cloud
+  training reads the OT-historian plane from the lakehouse — no direct OT reads; edge computes
+  online features locally). **MinIO** added to §4.1 (hand-built object store). ⚠️ Eraser export API
+  returned empty PNGs for this large diagram — verify visually in the app canvas; DSL is confirmed
+  stored.
 - **Plan:** Phase 4 split into **4a/4b/4c**; per-phase **exit criteria** (§8.1); **risk register**
   (§8.2 — incl. the 16–24 GB RAM reality → compose profiles per phase); staleness sweep (Geismar
   OPC-UA drift, archived-note banners, stray `</content>`/`DOCEOF` artifacts); `LEARNING_LOG.md`
@@ -140,8 +154,9 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
 
 ⏭ **Roadmap (ordered — resequenced 2026-07-06):**
 - (0) ~~Review `design/SAMPLE_*`~~ — **DONE (2026-06-23)** (charter §13.7 patterns adopted).
-- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29; timeboxed, now
-  armed with the §14 gap checklist below). See §3.
+- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29; timeboxed).
+  Runs on **Diagram 1 v2 (2026-07-06)** — the §14 gap checklist below has already been *applied* to
+  v2, so the walkthrough's gap-check step verifies rather than fixes. See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (b2) **After Diagram 1 locked → end-to-end narrative walkthrough** — three threads per
   `design/E2E_WALKTHROUGH.md` (order thread from the deck · telemetry thread · decision/control
@@ -215,7 +230,10 @@ exists, and where it sits — well enough to **teach others / build a presentati
 to validate best practices and augment explanations. **Identify gaps in Diagram 1 and correct them** in
 Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 3.
 
-**Diagram URL:** https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas
+**Diagram URL (v2, 2026-07-06 — the walkthrough + lock target):**
+https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
+*(2026-06-23 original kept for history:
+https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas)*
 
 **Per-component cadence (repeat for every block on the diagram):**
 1. **Problem tie-in** — which real pain (days-to-data, site divergence, governance, identity, yield/HITL)
