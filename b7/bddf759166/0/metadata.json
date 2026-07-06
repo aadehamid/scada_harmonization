@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "b7bddf759166",
+  "session_id": "9321151b-0afb-4afc-96b9-b86dae822d05",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-06T17:52:14.272759Z",
+  "branch": "docs/itot-best-practice-review-adoption",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "design/PROJECT_CHARTER.md",
+    "AGENTS.md",
+    "README.md",
+    "HANDOFF.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8[1m]",
+  "turn_id": "20ab08d2b47c",
+  "checkpoint_transcript_start": 343,
+  "transcript_lines_at_start": 343,
+  "token_usage": {
+    "input_tokens": 274,
+    "cache_creation_tokens": 17122,
+    "cache_read_tokens": 2615775,
+    "output_tokens": 14706,
+    "api_call_count": 8
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-06T17:52:13.332502Z",
+    "agent_lines": 85,
+    "agent_removed": 17,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 85,
+    "total_lines_changed": 102,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
