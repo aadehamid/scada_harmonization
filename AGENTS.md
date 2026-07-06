@@ -83,6 +83,12 @@ for understanding, not speed.
   UMH-anchored, cloud-native) gets its own full architecture diagram in that workspace (charter §5).
 - Quick inline **ASCII sketches are fine for discussion**, but the canonical artifact is the Eraser
   diagram — embed/link its URL in the relevant `design/*.md` doc so it's discoverable.
+- **Eraser gotchas:** (1) the AI edit path (`update_diagram`) reverses arrow directions — use
+  `manually_update_diagram` (verbatim DSL) when direction matters; (2) auto-layout ranks nodes by
+  **connection operand order** (the LEFT operand lands further left, regardless of arrow direction —
+  `A < B` = same arrow as `B > A`, different layout) — declare each cross-zone edge with the
+  leftward zone's node as the left operand to force zone geometry; (3) `export_diagram` PNG fails on
+  very large canvases — export **JPEG**.
 - The Eraser MCP is registered for all local agents (Claude, Codex, Gemini, Cursor, OpenCode, Kimi,
   Hermes); each authenticates via its own OAuth login on first use.
 

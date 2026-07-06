@@ -96,6 +96,14 @@ genuine gaps were adopted as **charter §14 (ledger N1–N35)**. Highlights:
   online features locally). **MinIO** added to §4.1 (hand-built object store). ⚠️ Eraser export API
   returned empty PNGs for this large diagram — verify visually in the app canvas; DSL is confirmed
   stored.
+- **Follow-up (same session, final): Diagram 1 v2 layout corrected + OWNER-APPROVED.** The iDMZ
+  initially rendered at the far right; fixed purely in DSL across four render-verified experiments
+  after discovering Eraser's layout rule (connection **operand order = left-right rank** — see the
+  Eraser gotchas). Geometry is now **OT | iDMZ | IT** (Purdue). Owner confirmed *"diagram looks
+  good"*; all **four sites verified present** (Beaumont/Geismar are dense because they are the
+  real-protocol sites; Rotterdam/Corpus Christi are lean Python-modeled chains, and repeated
+  cross-site flows use the "(all sites, shown once)" convention at Beaumont). **No further diagram
+  edits planned before the walkthrough** — v2 is the walkthrough surface.
 - **Plan:** Phase 4 split into **4a/4b/4c**; per-phase **exit criteria** (§8.1); **risk register**
   (§8.2 — incl. the 16–24 GB RAM reality → compose profiles per phase); staleness sweep (Geismar
   OPC-UA drift, archived-note banners, stray `</content>`/`DOCEOF` artifacts); `LEARNING_LOG.md`
@@ -146,6 +154,13 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
   becomes the template for Diagrams 2 (UMH) & 3 (cloud-native).
 - **Eraser gotchas captured to memory:** AI `update_diagram` reverses arrow directions → use
   `manually_update_diagram`; all diagrams go in the "SCADA Harmonization" folder.
+  **Added 2026-07-06 (Diagram 1 v2 layout fix):** Eraser's auto-layout ranks nodes by connection
+  **operand order — the LEFT operand is placed further left, regardless of arrow direction**
+  (`A < B` draws the same arrow as `B > A` but pins A left). To force the Purdue geometry
+  OT | iDMZ | IT, every edge touching the iDMZ is declared with the leftward node as the left
+  operand (e.g. `TimescaleDB < EMQX` for subscribe-down, `EMQX < Model Serving` for C4). Also:
+  `export_diagram` **PNG fails on very large canvases — use JPEG**; reversed dotted arrows `A <-- B`
+  parse fine; labeled group-to-group edges (`OT Zone --> iDMZ`) work as zone-order annotations.
 
 ### This session (2026-06-29) — owner confirmed Diagram 1 walkthrough plan
 
@@ -154,15 +169,15 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
 
 ⏭ **Roadmap (ordered — resequenced 2026-07-06):**
 - (0) ~~Review `design/SAMPLE_*`~~ — **DONE (2026-06-23)** (charter §13.7 patterns adopted).
-- (a) **IN PROGRESS — Diagram 1 teaching walkthrough** (owner confirmed 2026-06-29; timeboxed).
-  Runs on **Diagram 1 v2 (2026-07-06)** — the §14 gap checklist below has already been *applied* to
-  v2, so the walkthrough's gap-check step verifies rather than fixes. See §3.
+- (a) **NEXT SESSION — the END-TO-END WALKTHROUGH** (owner confirmed 2026-07-06; supersedes/absorbs
+  the Diagram-1 teaching walkthrough). Three threads per `design/E2E_WALKTHROUGH.md` (A order ·
+  B telemetry up · C decision/control back) + the deck (`reference/enterprise_it_ot_deck/`) + web
+  research, walked block-by-block against **Diagram 1 v2** using the §3 per-component cadence; the
+  §14 gap checklist is *verification only* (already applied to v2). **Completing the walkthrough
+  locks Diagram 1.** See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
-- (b2) **After Diagram 1 locked → end-to-end narrative walkthrough** — three threads per
-  `design/E2E_WALKTHROUGH.md` (order thread from the deck · telemetry thread · decision/control
-  thread back), describing industry practice fully incl. consciously-omitted systems.
-- (c) **Then → Phase 0** (repo skeleton + the three-stage mapping table **with the
-  §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
+- (c) **After the walkthrough (= Diagram 1 locked) → Phase 0** (repo skeleton + the three-stage
+  mapping table **with the §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
 - (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
   · Diagram 3 (cloud-native → floci, before Phase 6).
 
@@ -198,9 +213,12 @@ hold.**
 - **PR #1–#9** — charter, infra, diagram convention, §13 review, git discipline → **MERGED**.
 - **PR #15** — handoff teaching-walkthrough plan → **MERGED** (`90b6cc1`).
 - **PR #16** — Diagram-1 walkthrough sequencing confirmation → **MERGED** (`bcbd8cd`).
-- **This session (2026-07-06)** — branch `docs/itot-best-practice-review-adoption` — the best-practice
-  review adoption (4 themed commits: staleness sweep · tool/version pins · charter §14 N1–N35 ·
-  plan restructure + this handoff). **PR open — owner to merge**, then delete the branch.
+- **This session (2026-07-06), four PRs:** **#17** best-practice review adoption (charter §14
+  N1–N35, §4.1 pinned stack, plan restructure) → **MERGED**. **#18** order-to-cash + no-WMS +
+  `design/E2E_WALKTHROUGH.md` → **MERGED**. **#19** Diagram 1 v2 + conduit C6 + L6.4 sourcing rule +
+  MinIO pin → **MERGED**. **#20** Eraser layout gotchas + this session wrap → **OPEN, owner to
+  merge** (then delete the branch). Diagram 1 v2 (layout-corrected, owner-approved) lives in Eraser:
+  https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -222,9 +240,13 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ## 3. What's next — Diagram 1 teaching walkthrough (then Diagrams 2–3, then Phase 0)
 
-### ⭐ IMMEDIATE NEXT ACTION (do this first — Phase 0 starts as soon as Diagram 1 locks)
+### ⭐ IMMEDIATE NEXT ACTION — NEW SESSION: the end-to-end walkthrough
 
-**End-to-end teaching walkthrough of Eraser Diagram 1 (Hand-built / Python-centric).** Owner goal:
+**Suggested kickoff prompt for the new session:** *"Start the end-to-end walkthrough — follow
+`design/E2E_WALKTHROUGH.md` (Thread B from the physics up, then C back down, then A), block-by-block
+against Diagram 1 v2, with the §3 teaching cadence and web research per block."*
+
+**End-to-end teaching walkthrough of Eraser Diagram 1 v2 (Hand-built / Python-centric).** Owner goal:
 understand and be able to **explain the full data and integration flow** — each component's role, why it
 exists, and where it sits — well enough to **teach others / build a presentation**. Use external research
 to validate best practices and augment explanations. **Identify gaps in Diagram 1 and correct them** in
@@ -283,10 +305,8 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
   decision.
 - Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
 
-**After Diagram 1 is locked:** run the **end-to-end narrative walkthrough** (three threads —
-`design/E2E_WALKTHROUGH.md` + the deck in `reference/enterprise_it_ot_deck/`), then **Phase 0 starts**
-(resequenced 2026-07-06); Diagrams 2 & 3 are drawn just-in-time later (Diagram 2 = UMH Core, decided
-§12 #16; Diagram 3 before Phase 6).
+**Walkthrough complete → Diagram 1 locked → Phase 0 starts** (resequenced 2026-07-06); Diagrams
+2 & 3 are drawn just-in-time later (Diagram 2 = UMH Core, decided §12 #16; Diagram 3 before Phase 6).
 
 ---
 
@@ -378,7 +398,7 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-The next concrete action is the **Diagram 1 end-to-end teaching walkthrough** (§3) with the §14 gap
-checklist; **Phase 0 starts as soon as Diagram 1 locks** (resequenced 2026-07-06). No open blocking
-decisions (§12 #16 resolved → UMH Core). The best-practice-review PR **#17** (branch
-`docs/itot-best-practice-review-adoption`) awaits the owner's merge.
+The next concrete action — **in a fresh session** — is the **end-to-end walkthrough** (§3;
+`design/E2E_WALKTHROUGH.md` three threads + deck + web research, against Diagram 1 v2). Completing it
+locks Diagram 1; **then Phase 0 starts**. No open blocking decisions (§12 #16 resolved → UMH Core).
+PRs #17–#19 merged; **PR #20** (Eraser gotchas + this session wrap) awaits the owner's merge.
