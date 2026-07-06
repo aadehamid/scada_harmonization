@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "e3d90dd3b7ed",
+  "strategy": "manual-commit",
+  "branch": "docs/itot-best-practice-review-adoption",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "design/PROJECT_CHARTER.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e3/d90dd3b7ed/0/metadata.json",
+      "transcript": "/e3/d90dd3b7ed/0/full.jsonl",
+      "content_hash": "/e3/d90dd3b7ed/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7321,
+    "cache_creation_tokens": 52104,
+    "cache_read_tokens": 7773307,
+    "output_tokens": 44707,
+    "api_call_count": 21
+  }
+}
