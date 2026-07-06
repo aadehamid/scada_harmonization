@@ -14,34 +14,73 @@ deck.
 
 ---
 
-## 0. Opening primer — ISA-95, the spine (do this FIRST, owner-requested 2026-07-06)
+## 0. Opening primer — the three architecture lenses: ISA-95 · Purdue · IEC 62443 (do this FIRST, owner-requested 2026-07-06)
 
-Before any thread: a **high-level ISA-95 primer**, because every layer of the lab hangs off it.
-Teach it as *three different lenses that are often conflated*, then show where each appears in the lab:
+Before any thread: high-level descriptions of the **three standards/models every industrial
+architecture diagram silently mixes** — ISA-95 (the deepest, since everything in the lab hangs off
+it), then Purdue and IEC 62443 at the same high-level treatment. The core lesson: they answer three
+*different* questions — **what function runs where** (ISA-95), **how the network is layered**
+(Purdue), and **how it is secured** (IEC 62443) — and one diagram element carries all three at once.
 
-1. **What ISA-95 is** — the enterprise–control-system integration standard (IEC 62264): a *functional
-   and data* model for how manufacturing operations and business systems exchange information. It is
-   **not** a network architecture and **not** a security standard.
+*(Naming crosswalk, worth 30 seconds: many ISA standards have IEC twins — same content, US vs
+international designation: ISA-95 = IEC 62264 · ISA-99 = IEC 62443 · ISA-88 = IEC 61512 ·
+ISA-18.2 = IEC 62682.)*
+
+### 0.1 ISA-95 / IEC 62264 — the function & data lens (the lab's spine)
+
+1. **What it is** — the enterprise–control-system integration standard: a *functional and data*
+   model for how manufacturing operations and business systems exchange information. It is **not**
+   a network architecture and **not** a security standard.
 2. **The functional hierarchy (Levels 0–4)** — physical process → sensing/actuation → supervisory
    control → manufacturing operations (MES/LIMS/CMMS live at L3) → business planning (ERP at L4).
-   Distinguish from its two siblings: the **Purdue model** (the *network* reference architecture the
-   levels are usually drawn on) and **IEC 62443** (the *security* zones-and-conduits standard — the
-   iDMZ "Level 3.5" is a Purdue/62443 construct, not part of ISA-95 proper).
-3. **The equipment hierarchy** — enterprise → site → area → **production unit** (the continuous-process
-   branch; "line/cell" is the discrete branch) → equipment. This is literally the lab's UNS topic path
-   (`lagos-chem/<site>/<area>/<production-unit>/...`, §14 N19) and the `asset_master` shape.
+3. **The equipment hierarchy** — enterprise → site → area → **production unit** (the
+   continuous-process branch; "line/cell" is the discrete branch) → equipment. This is literally the
+   lab's UNS topic path (`lagos-chem/<site>/<area>/<production-unit>/...`, §14 N19) and the
+   `asset_master` shape.
 4. **Part 2 object models** — material (definition/lot — the lab's N14 tables), equipment
    (class vs instance — P6 templates), personnel, process segments.
 5. **The L3↔L4 exchange pattern** — *schedule down, performance up* (B2MML is the XML binding):
    the lab's order-to-cash conduit C6 down, production confirmations up (§12 #18).
 6. **Sidebar** — ISA-88 (batch) vs ISA-106 (continuous): why LSC is lot-based, not batch (§14 N13).
 
-**Teach-back target:** the owner can place any lab component on the ISA-95 hierarchy, name which of
-the three lenses (function / network / security) a given diagram element belongs to, and explain why
-MES is Level 3 *function* on the OT *network* side of the 62443 *security* boundary (Z3).
+### 0.2 Purdue model (PERA) — the network lens
 
-Use web research to ground it (ISA/IEC sources preferred). Log glossary terms to `LEARNING_LOG.md`
-as they appear (ISA-95, IEC 62264, Purdue, B2MML, production unit, equipment class…).
+1. **What it is** — the Purdue Enterprise Reference Architecture (Theodore Williams, early 1990s):
+   the reference for **segmenting the plant network into numbered levels** (0–5). ISA-95 borrowed
+   its level numbering, which is why the two get conflated — but Purdue is about *where wires and
+   subnets go*, not what functions do.
+2. **The shape** — cell/area zones at L0–2, site operations L3, the **DMZ between 3 and 4** (the
+   "Level 3.5" everyone cites — a Purdue/security construct, *not* an ISA-95 level), enterprise
+   L4–5. The lab's diagram *is* this shape: OT zone left, iDMZ middle, IT right.
+3. **The modern debate** — cloud, edge computing, and the UNS blur strict level-by-level traversal
+   ("data no longer climbs one level at a time"); the lab's answer is the industry's current
+   consensus: **keep Purdue for network segmentation, let data flow hub-and-spoke through the UNS,
+   with the broker in the DMZ as the conduit** (worth a web-research stop — the "is Purdue dead?"
+   literature vs. the CISA/vendor guidance that still mandates it for segmentation).
+
+### 0.3 IEC 62443 (ISA-99) — the security lens
+
+1. **What it is** — *the* industrial-cybersecurity standard family (asset owners, integrators, and
+   product vendors each get their own parts). Where Purdue says "layer the network," 62443 says
+   "now govern what crosses the layers."
+2. **Core concepts, each with its lab artifact** — **zones** (groupings of assets with common
+   security requirements → the diagram's three zones + Docker networks + `lab.zone` labels, L1.3);
+   **conduits** (the *only* sanctioned paths between zones, each documented with initiator/protocol
+   → the C1–C6 conduit inventory, N21, and the no-IT-initiated-into-OT rule); **defense in depth**
+   (→ P2 safety layers, broker ACLs N22, TLS N23, command audit N24); **security levels SL1–4**
+   (target vs achieved — the lab doesn't claim an SL, but can *describe* what SL2 would demand).
+3. **Boundary note** — functional safety is a *different* standard (IEC 61511/SIS, consciously not
+   modeled — N25); 62443 is security, not safety, and the two onions are independent.
+
+**Teach-back target:** the owner can place any lab component on the ISA-95 hierarchy, name which of
+the three lenses a given diagram element belongs to, and explain compound sentences like: *"MES is a
+Level 3 **function** (ISA-95), on the OT side of the **network** (Purdue), below the **security**
+boundary (62443 Z3)"* — and *"the iDMZ broker is a Purdue/62443 construct that ISA-95 doesn't even
+know about."*
+
+Use web research to ground all three (ISA/IEC/CISA sources preferred). Log glossary terms to
+`LEARNING_LOG.md` as they appear (ISA-95, IEC 62264, Purdue/PERA, DMZ, zone, conduit, SL, B2MML,
+production unit, equipment class…).
 
 ---
 
