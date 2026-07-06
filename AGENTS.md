@@ -119,10 +119,10 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
-- `uns_home_lab_notes.md` — vision & high-level scope
-- `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase)
-- `python_centric_uns_notes.md` — implementation philosophy: Python-centric
-- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase)
+- `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
+- `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
+- `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
+- `umh_anchored_sparkplug_uns_notes.md` — architecture option: UMH-anchored (later abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)*
 - `synthetic_data_generation_notes.md` — data strategy & the 6-layer synthetic pipeline
 
 > **Reference material (local-only):** `reference/docs/` (ISHE harmonization patterns) and
@@ -136,7 +136,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
 3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
-4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command via the UNS (Sparkplug setpoint topic) → site edge → controller writeback (OpenPLC/OPC-UA) → actuators — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
+4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command delivered as a **Sparkplug DCMD** issued by the site-forwarder (as site host application) on the site broker (charter §14 N5) → controller writeback (clamped OpenPLC/OPC-UA) → actuators, confirmed by DDATA read-back (audited, §14 N24) — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
@@ -145,11 +145,13 @@ Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: 
 ```
 L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
   → L1/2 PLC-world disguise — hybrid: Python-modeled cryptic tags (N7:20, FIC101_PV)
-         per site; ONE site (Beaumont) real OpenPLC over Modbus TCP
+         at Rotterdam & Corpus Christi; TWO real-protocol sites — OpenPLC/Modbus TCP
+         (Beaumont) + OPC-UA via asyncua (Geismar)
   → L3 edge broker: Mosquitto per-site (local Sparkplug, divergent namespace)
   → L3 Python site-forwarder → central EMQX (cross-site conforming = harmonization)
   → L3 OT consumers: Ignition (SCADA), TimescaleDB historian (hypertables), Grafana
-  → L3 Postgres (OLTP): role A = separate source systems; role B = ODS in Timescale instance
+  → L3 Postgres (OLTP): role A = separate plant source systems (OT-side)
+  → L4 IT-side Postgres: role B = derived ODS (ods_core + erp_shadow; zone split §14 N16)
   → L3/4 Kafka → Parquet/object store → DuckDB ... analytics path (OLAP)
        ↑ Postgres role A → CDC (Python poll → Debezium) → Kafka → identity reconciliation → UNS/Neo4j
   → L4 floci ..................................... local AWS emulation (incl. RDS)
@@ -190,10 +192,13 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
 - **Scan rate matches process physics** — sample/RBE-deadband per metric by class (fast ~1s / supporting
   ~5s / environmental ~30s / state on-change); too-wide deadband hides slow drift (charter §13.7 P1).
 - **Defense-in-depth for closed-loop** — setpoint writeback is guarded by model safety-envelope + edge/PLC
-  limit-clamping + an independent safety check off the model path; graded HITL (L1 alert / L2 recommend /
-  L3 closed-loop); every recommendation carries explainability (SHAP/saliency) (charter §13.7 P2–P4).
+  limit-clamping + an independent safety check off the model path (a BPCS-level guard, NOT an SIS —
+  charter §14 N25); graded HITL (L0 shadow / L1 alert / L2 recommend / L3 closed-loop, with promotion
+  gates + auto-demotion, §14 N30); every recommendation carries explainability (SHAP/saliency) and a
+  validity TTL (§14 N32) (charter §13.7 P2–P4).
 - **SPC-first yield/quality detection** — adaptive control charts (EWMA/CUSUM/adaptive limits) with ML
-  tuning the chart, not generic "anomaly detection" (charter §13.7 P5).
+  tuning the chart, not generic "anomaly detection"; plus PCA-based multivariate T²/SPE with
+  contribution plots across the correlated TEP set (charter §13.7 P5, §14 N33).
 - **Equipment-type templates** — define an equipment class once (metrics/units/ranges/scan/limits),
   instantiate per asset binding only the site PLC tag; Bronze validates against `metric_registry`
   (schema-drift → dead-letter); UNS carries OT real-time only, business data joins downstream (§13.7 P6–P8).
@@ -213,11 +218,14 @@ shape, not its labels, is the constraint.
 ## Build sequence (see charter §8)
 
 Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) → 3 OT consume
-(TimescaleDB historian/Grafana + real-time alerting + Prometheus observability) → 4 multi-site +
-central EMQX + **OpenPLC (Beaumont) & OPC-UA (Geismar)** sites + store-and-forward + Docker IT/OT
-segmentation (harmonization proof) → 5a IT source + CDC (Python→Debezium milestone) → 5b context
+(TimescaleDB historian/Grafana + real-time alerting + Prometheus observability) → **4a** harmonization
+proof (≥2 Python-modeled sites + forwarders + central EMQX + cross-source equivalence suite) → **4b**
+real-protocol sites (**OpenPLC Beaumont & OPC-UA Geismar**) + full roster → **4c** resilience & zoning
+(store-and-forward + Docker IT/OT segmentation + historian-less site) → 5a IT source + CDC
+(Python→Debezium milestone) → 5b context
 (ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
-ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform onto UMH.
+ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform the forwarder/bridge/streaming
+leg onto **UMH Core** (charter §12 #16; Timescale + Grafana stay).
 
 **Reference-architecture review (2026-06-21):** the design was benchmarked layer-by-layer against a
 real industrial-products target architecture; all add/keep-out decisions and the **three
@@ -233,6 +241,8 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-Stack so far: Python + Pydantic v2, pandas, paho-mqtt, PySparkplug, Neo4j driver. No build tooling
+Stack so far: Python ≥3.12 + Pydantic v2, pandas, paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate**
+— PyPI status Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2, fallback = hand-rolled `spBv1.0`
+protobuf), Neo4j driver. **Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
+single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8 AGPLv3, …). No build tooling
 exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.
-</content>

@@ -1,5 +1,11 @@
 # Home Lab Notes for a Sparkplug B / UNS / SCADA Harmonization Project
 
+> **⚠️ Archived vision note (pre-decision).** Options discussed here as open choices are now
+> **DECIDED** in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13 — e.g. the broker topology is
+> **two-tier Mosquitto (edge) + EMQX (central)**, not either/or; the historian is **TimescaleDB**;
+> **two** sites run real protocols (OpenPLC/Modbus + OPC-UA). Read this file only for narrative
+> background and original rationale. The charter governs.
+
 These notes frame the home lab as a **multi-site manufacturing data harmonization and contextualization problem**.[cite:78][cite:89][cite:234] The objective is to simulate plant sites where similar operational realities are represented differently across the manufacturing space, then harmonize those disparate OT data representations into a common enterprise language through a Unified Namespace, while also contextualizing the data so it is meaningful to OT, IT, analytics, ERP, and graph-based reasoning systems.[cite:89][cite:162][cite:166][cite:168][cite:227][cite:233][cite:234]
 
 ## Problem framing

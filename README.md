@@ -40,7 +40,7 @@ business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (en
 
 **Storage by concern (no overlap):** time-series → **TimescaleDB** historian;
 relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS, the
-ODS co-located in the Timescale instance); analytical (OLAP) → **medallion lakehouse** (Bronze/Silver/
+ODS in its own IT-side Postgres — zone split, charter §14 N16); analytical (OLAP) → **medallion lakehouse** (Bronze/Silver/
 Gold via **Spark ETL**) + **DuckDB** over Parquet; relationships → Neo4j; enterprise records → ERPNext.
 Pipeline/infra observability via **Prometheus + Grafana**.
 
@@ -58,8 +58,8 @@ The domain is **data-driven, not dictated**, so realistic data is always availab
 - **Industrial IoT Dataset (Synthetic)** — rotating machines (pumps, compressors, motors)
 
 The enterprise is **Lagos Specialty Chemicals** (UNS root `lagos-chem`), operating **4 sites** —
-**Beaumont** (Allen-Bradley, real OpenPLC), **Geismar** (Siemens), **Rotterdam** (Ignition-style),
-**Corpus Christi** (CygNet) — each running the same units/machines but on a different SCADA lineage
+**Beaumont** (Allen-Bradley, real OpenPLC/Modbus), **Geismar** (Siemens, real OPC-UA via `asyncua`),
+**Rotterdam** (Ignition-style), **Corpus Christi** (CygNet) — each running the same units/machines but on a different SCADA lineage
 with deliberately divergent naming. Physical meaning is *assigned* at the mapping stage, anchored by
 the **three-stage name mapping table** — `friendly variable → site-specific PLC tag → Sparkplug
 metric` — which is the spine of the lab. The table doubles as a **governed data-product catalog**
@@ -77,8 +77,9 @@ The three architecture notes are **phases of one architecture**, not competing p
 
 - **Build & learn → hand-built + Python-centric.** Wire every component explicitly so each boundary
   is visible; Python is a first-class UNS participant, not just glue.
-- **Abstraction (later) → UMH-anchored.** Replace the hand-wired backbone with United Manufacturing
-  Hub Community once the internals are understood.
+- **Abstraction (later) → UMH-anchored.** Replace the hand-wired forwarders/bridges/streaming leg
+  with **UMH Core** (Apache-2.0; `benthos-umh` + embedded Redpanda) once the internals are understood
+  *(decided — charter §12 #16; TimescaleDB/Grafana stay hand-built)*.
 
 These styles are captured as **three full architecture diagrams** — hand-built/Python-centric ·
 UMH-anchored · cloud-native (floci→AWS) — in the Eraser `scada_harmonization` workspace. The design
@@ -93,21 +94,23 @@ real AWS) without invalidating the design.
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
-| [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope |
-| [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built |
-| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) |
-| [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric |
+| [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
+| [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
+| [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)* |
+| [`design/python_centric_uns_notes.md`](design/python_centric_uns_notes.md) | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | [`design/synthetic_data_generation_notes.md`](design/synthetic_data_generation_notes.md) | Data strategy & the 6-layer pipeline |
 
 ## Status
 
 Pre-implementation — design and charter complete, all infrastructure decisions resolved (broker,
-historian, PLC realism, sites/enterprise, Postgres deployment, CDC), and a full **reference-architecture
-review** done (charter §13: OPC-UA, medallion+Spark, observability, MLflow, alerting, the three
-implementation variants). Build not yet started; next is Phase 0 (repo skeleton + the three-stage
-mapping table). See the charter's build sequence (Phases 0–7).
+historian, PLC realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture
+review** (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35: Sparkplug
+namespace + forwarder session contract, time/quality/historian semantics, conduit inventory + broker
+auth/TLS/audit, lot-based production model, Plane-4 MLOps additions; pinned tool versions in §4.1).
+Build not yet started. Next: Diagram 1 teaching walkthrough → lock → **Phase 0** (repo skeleton +
+the three-stage mapping table); Diagrams 2–3 are drawn just-in-time. See the charter's build
+sequence (Phases 0–7, now with per-phase exit criteria, §8.1).
 
 ## License
 
 MIT
-</content>

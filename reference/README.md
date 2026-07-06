@@ -25,4 +25,3 @@ sales framing is **not** part of this project. Consult them only for the design 
   *examples* for the multi-site process/chemicals assets the home lab simulates.
 - EngiGraph's CV/VLM P&ID-extraction pipeline (symbol detection, OCR, VLM) — the home lab
   synthesizes graph topology directly, so only the ontology + graph + query layers are relevant.
-</content>

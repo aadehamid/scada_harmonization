@@ -1,5 +1,12 @@
 # Hand-Built Sparkplug B UNS Notes
 
+> **⚠️ Archived vision note (pre-decision).** Choices presented here as open options are now
+> **DECIDED** in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13: broker = **two-tier Mosquitto
+> (per-site edge) + EMQX ≥5.9 (central, single node)** — not "EMQX or Mosquitto"; historian =
+> **TimescaleDB Community** — not InfluxDB/QuestDB; PLC realism = **two real-protocol sites**
+> (OpenPLC/Modbus at Beaumont, OPC-UA at Geismar). Read only for background and rationale. The
+> charter governs.
+
 These notes describe a hand-built home-lab architecture for a Sparkplug B-centered Unified Namespace (UNS) using only open-source tools or free/community editions, with no dependency on United Manufacturing Hub as the backbone.[cite:3][cite:6][cite:21][cite:33][cite:68][cite:78][cite:185] The intent is to understand each architectural layer directly by assembling the components yourself, while still keeping the design realistic enough that paid or enterprise alternatives can later replace individual parts without invalidating the overall model.[cite:39][cite:45][cite:68][cite:80][cite:89]
 
 ## Purpose
@@ -358,4 +365,3 @@ That means the hand-built lab is not just educational; it is also a prototype ar
 The hand-built Sparkplug B UNS scenario is the right option when the goal is to assemble and understand the full industrial data architecture yourself: synthetic Level 0 reality, PLC-world source structures, Sparkplug B harmonization, explicit MQTT and historian choices, explicit OT and IT consumption paths, and a local cloud emulation layer through floci.[cite:21][cite:33][cite:68][cite:78][cite:89][cite:185]
 
 It is more work than a UMH-anchored design, but it gives deeper understanding of where each concern belongs and makes every integration surface visible.[cite:68][cite:71][cite:89] That makes it especially valuable for learning, for architecture experimentation, and for building a stack that can later swap individual components for paid or enterprise equivalents without losing the design principles established in the lab.[cite:39][cite:45][cite:68][cite:182][cite:185]
-DOCEOF && ls -l output/hand_built_sparkplug_uns_notes.md

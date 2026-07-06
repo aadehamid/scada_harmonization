@@ -34,8 +34,8 @@ UNS root: **`lagos-chem`** · ISA-95 enterprise level: **Lagos Specialty Chemica
 | Era | Event | Site | Control heritage | Why it looks the way it does |
 |-----|-------|------|------------------|------------------------------|
 | 1990s | Founding + first West African operations | *(HQ, not a lab site)* | — | Solvents/coatings origins; the corporate data culture |
-| ~2005 | First US Gulf Coast plant (oldest asset) | **Beaumont, TX** | **Allen-Bradley** PLCs | Legacy **brownfield**; cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; terse status codes. In the lab this is the **one real OpenPLC** site (Modbus TCP) — the genuine "memory address → meaning" lesson. |
-| ~2012 | Acquired a competitor's plant, originally built by a European licensor/EPC | **Geismar, LA** | **Siemens** S7 | Despite being on the US coast, it was engineered to European standards: Siemens addressing (`DB10.DBD4`, `MW100`) and **metric** units (m³/h, kPa, °C). Verbose status strings. |
+| ~2005 | First US Gulf Coast plant (oldest asset) | **Beaumont, TX** | **Allen-Bradley** PLCs | Legacy **brownfield**; cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; terse status codes. In the lab this is one of **two real-protocol sites** — a real **OpenPLC** runtime (Modbus TCP) — the genuine "memory address → meaning" lesson. |
+| ~2012 | Acquired a competitor's plant, originally built by a European licensor/EPC | **Geismar, LA** | **Siemens** S7 | Despite being on the US coast, it was engineered to European standards: Siemens addressing (`DB10.DBD4`, `MW100`) and **metric** units (m³/h, kPa, °C). Verbose status strings. In the lab: the **second real-protocol site** — a real **OPC-UA server** (`asyncua`), per charter §13 L1.1. |
 | ~2018 | Greenfield European expansion | **Rotterdam, NL** | Modern **Ignition / MQTT** stack | Newest, cleanest build: verbose semi-semantic nested names, metric units, its own status vocabulary. Looks "almost harmonized" already — but on its *own* terms. |
 | ~2022 | Acquired a midstream/feedstock terminal to secure raw-material supply (backward integration) | **Corpus Christi, TX** | **CygNet** (oil-&-gas heritage) | Different industry entirely. Compound flat tags that **encode the hierarchy in the name** (`CC_NORTH_U12_FIC101`); mixed units. The "we bought an O&G asset and inherited its SCADA" story. |
 
@@ -63,7 +63,7 @@ product the whole enterprise can trust — while sites keep local autonomy (the 
 | Tag style | AB register (`N7:20`) | Siemens address (`DB10.DBD4`) | verbose semantic | compound hierarchy-encoding |
 | Units | imperial | metric | metric | mixed |
 | Status codes | terse | verbose | own vocabulary | O&G-style |
-| PLC in lab | **real OpenPLC** | Python-modeled | Python-modeled | Python-modeled |
+| PLC in lab | **real OpenPLC** (Modbus TCP) | **real OPC-UA** (`asyncua`) | Python-modeled | Python-modeled |
 
 This single roster deliberately spans **every harmonization dimension at once** — naming style, unit
 system, status vocabulary, addressing scheme, and real-vs-modeled control — so the lab proves the
@@ -85,4 +85,3 @@ hard cases, not the easy one.
 
 Get there and LSC unlocks enterprise analytics, predictive maintenance, yield gains, and trustworthy
 AI. That's the payoff the lab is built to demonstrate end to end.
-</content>
