@@ -1,0 +1,9 @@
+merged.
+
+Why is the IDMZ level (see text below) not located between OT and IT instead of it being located at the right end.It will make it more intuitive and easier to read . What do you think?
+
+Level 3.5 (all cross-zone traffic terminates here; conduits C1–C6, N21
+
+---
+
+can you correct this instead. fee free to create another copy is needed?

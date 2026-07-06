@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "2be8ddb84d35",
+  "session_id": "9321151b-0afb-4afc-96b9-b86dae822d05",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-06T21:29:45.880284Z",
+  "branch": "docs/eraser-layout-gotchas",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "AGENTS.md",
+    "HANDOFF.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8[1m]",
+  "turn_id": "c46a3bae2725",
+  "checkpoint_transcript_start": 862,
+  "transcript_lines_at_start": 862,
+  "token_usage": {
+    "input_tokens": 613,
+    "cache_creation_tokens": 131466,
+    "cache_read_tokens": 22492829,
+    "output_tokens": 69146,
+    "api_call_count": 34
+  },
+  "session_metrics": {
+    "turn_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-06T21:29:44.125686Z",
+    "agent_lines": 13,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 13,
+    "total_lines_changed": 13,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
