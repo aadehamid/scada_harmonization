@@ -40,7 +40,7 @@ business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (en
 
 **Storage by concern (no overlap):** time-series → **TimescaleDB** historian;
 relational/transactional (OLTP) → **PostgreSQL** (transactional source-of-record + derived ODS, the
-ODS co-located in the Timescale instance); analytical (OLAP) → **medallion lakehouse** (Bronze/Silver/
+ODS in its own IT-side Postgres — zone split, charter §14 N16); analytical (OLAP) → **medallion lakehouse** (Bronze/Silver/
 Gold via **Spark ETL**) + **DuckDB** over Parquet; relationships → Neo4j; enterprise records → ERPNext.
 Pipeline/infra observability via **Prometheus + Grafana**.
 

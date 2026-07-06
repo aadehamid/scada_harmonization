@@ -136,7 +136,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
 3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`)*
-4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command via the UNS (Sparkplug setpoint topic) → site edge → controller writeback (OpenPLC/OPC-UA) → actuators — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
+4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command delivered as a **Sparkplug DCMD** issued by the site-forwarder (as site host application) on the site broker (charter §14 N5) → controller writeback (clamped OpenPLC/OPC-UA) → actuators, confirmed by DDATA read-back (audited, §14 N24) — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
 
@@ -150,7 +150,8 @@ L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
   → L3 edge broker: Mosquitto per-site (local Sparkplug, divergent namespace)
   → L3 Python site-forwarder → central EMQX (cross-site conforming = harmonization)
   → L3 OT consumers: Ignition (SCADA), TimescaleDB historian (hypertables), Grafana
-  → L3 Postgres (OLTP): role A = separate source systems; role B = ODS in Timescale instance
+  → L3 Postgres (OLTP): role A = separate plant source systems (OT-side)
+  → L4 IT-side Postgres: role B = derived ODS (ods_core + erp_shadow; zone split §14 N16)
   → L3/4 Kafka → Parquet/object store → DuckDB ... analytics path (OLAP)
        ↑ Postgres role A → CDC (Python poll → Debezium) → Kafka → identity reconciliation → UNS/Neo4j
   → L4 floci ..................................... local AWS emulation (incl. RDS)
@@ -191,10 +192,13 @@ first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, 
 - **Scan rate matches process physics** — sample/RBE-deadband per metric by class (fast ~1s / supporting
   ~5s / environmental ~30s / state on-change); too-wide deadband hides slow drift (charter §13.7 P1).
 - **Defense-in-depth for closed-loop** — setpoint writeback is guarded by model safety-envelope + edge/PLC
-  limit-clamping + an independent safety check off the model path; graded HITL (L1 alert / L2 recommend /
-  L3 closed-loop); every recommendation carries explainability (SHAP/saliency) (charter §13.7 P2–P4).
+  limit-clamping + an independent safety check off the model path (a BPCS-level guard, NOT an SIS —
+  charter §14 N25); graded HITL (L0 shadow / L1 alert / L2 recommend / L3 closed-loop, with promotion
+  gates + auto-demotion, §14 N30); every recommendation carries explainability (SHAP/saliency) and a
+  validity TTL (§14 N32) (charter §13.7 P2–P4).
 - **SPC-first yield/quality detection** — adaptive control charts (EWMA/CUSUM/adaptive limits) with ML
-  tuning the chart, not generic "anomaly detection" (charter §13.7 P5).
+  tuning the chart, not generic "anomaly detection"; plus PCA-based multivariate T²/SPE with
+  contribution plots across the correlated TEP set (charter §13.7 P5, §14 N33).
 - **Equipment-type templates** — define an equipment class once (metrics/units/ranges/scan/limits),
   instantiate per asset binding only the site PLC tag; Bronze validates against `metric_registry`
   (schema-drift → dead-letter); UNS carries OT real-time only, business data joins downstream (§13.7 P6–P8).
