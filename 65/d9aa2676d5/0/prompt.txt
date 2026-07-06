@@ -1,0 +1,7 @@
+I merged PR #17. Before we review the diagram. Let us make sure this project either covers or can answer issues raised the attached.Basically does our set up allow us to touch and describe areas mentioed in the attached. We will also use this as a refrence materials in addition to others for an end to end wlak through once we complete diagram 1 review.  [Image #1] [Image #2] [Image #3] [Image #4] [Image #5] [Image #6] [Image #7]
+
+---
+
+Let us do 1 and 2.
+
+Before we record 3, If we want to walk through from physical process to enteprise and back does this decks provide the high level flow. if not we can add whatever is missing. The goal is not really to cover the slide. The goal is to make sure our set up is able to cover what was mentioedn in the deck and also when we do an end to end wlakthrough we are able to describe all the things mentioend in the deck and then some. It is okay if we make a cdeliberate decision in this project to omit tomse things. We can aknowledge that but still describe it end to ned to make sure I understand th eindustry best practice
