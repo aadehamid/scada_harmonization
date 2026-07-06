@@ -146,6 +146,13 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
   becomes the template for Diagrams 2 (UMH) & 3 (cloud-native).
 - **Eraser gotchas captured to memory:** AI `update_diagram` reverses arrow directions → use
   `manually_update_diagram`; all diagrams go in the "SCADA Harmonization" folder.
+  **Added 2026-07-06 (Diagram 1 v2 layout fix):** Eraser's auto-layout ranks nodes by connection
+  **operand order — the LEFT operand is placed further left, regardless of arrow direction**
+  (`A < B` draws the same arrow as `B > A` but pins A left). To force the Purdue geometry
+  OT | iDMZ | IT, every edge touching the iDMZ is declared with the leftward node as the left
+  operand (e.g. `TimescaleDB < EMQX` for subscribe-down, `EMQX < Model Serving` for C4). Also:
+  `export_diagram` **PNG fails on very large canvases — use JPEG**; reversed dotted arrows `A <-- B`
+  parse fine; labeled group-to-group edges (`OT Zone --> iDMZ`) work as zone-order annotations.
 
 ### This session (2026-06-29) — owner confirmed Diagram 1 walkthrough plan
 
