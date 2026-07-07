@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-07
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -216,9 +216,13 @@ hold.**
 - **This session (2026-07-06), four PRs:** **#17** best-practice review adoption (charter §14
   N1–N35, §4.1 pinned stack, plan restructure) → **MERGED**. **#18** order-to-cash + no-WMS +
   `design/E2E_WALKTHROUGH.md` → **MERGED**. **#19** Diagram 1 v2 + conduit C6 + L6.4 sourcing rule +
-  MinIO pin → **MERGED**. **#20** Eraser layout gotchas + this session wrap → **OPEN, owner to
-  merge** (then delete the branch). Diagram 1 v2 (layout-corrected, owner-approved) lives in Eraser:
+  MinIO pin → **MERGED**. **#20** Eraser layout gotchas + this session wrap → **MERGED** (`33c9866`).
+  Diagram 1 v2 (layout-corrected, owner-approved) lives in Eraser:
   https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
+- **PR #21** — end-to-end walkthrough opener: §0 three-lens primer (ISA-95 · Purdue · IEC 62443)
+  written into `design/E2E_WALKTHROUGH.md` → **MERGED** (`1f2db7c`).
+- **Branch cleanup (2026-07-07):** all merged `docs/*` PR branches deleted from the remote; stale
+  local remote-tracking refs pruned. Only `main` + `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -399,7 +403,9 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-The next concrete action — **in a fresh session** — is the **end-to-end walkthrough** (§3;
-`design/E2E_WALKTHROUGH.md` three threads + deck + web research, against Diagram 1 v2). Completing it
-locks Diagram 1; **then Phase 0 starts**. No open blocking decisions (§12 #16 resolved → UMH Core).
-PRs #17–#19 merged; **PR #20** (Eraser gotchas + this session wrap) awaits the owner's merge.
+The next concrete action is to **execute the end-to-end walkthrough** (§3;
+`design/E2E_WALKTHROUGH.md` three threads + deck + web research, against Diagram 1 v2). The walkthrough
+**opener is already written** — §0 three-lens primer (ISA-95 · Purdue · IEC 62443), PR #21 merged — but
+the **block-by-block teaching pass (blocks A–L) has not run yet** (`design/LEARNING_LOG.md` Concepts
+section is still seeded-empty). Completing that pass locks Diagram 1; **then Phase 0 starts**. No open
+blocking decisions (§12 #16 resolved → UMH Core). PRs #17–#21 all merged; merged branches cleaned up.
