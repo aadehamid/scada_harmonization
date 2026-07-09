@@ -90,8 +90,8 @@ target/
 profile_default/
 ipython_config.py
 
-# pyenv
-.python-version
+# pyenv — NOTE: .python-version is deliberately NOT ignored; it is uv's committed
+# interpreter pin (charter: "uv-pinned Python version")
 
 # pipenv
 Pipfile.lock
@@ -174,3 +174,9 @@ PROBLEM_STATEMEMENT.md
 
 # Local-only design reference/sample inputs (SAMPLE_ prefix = do not commit; mine for patterns only)
 design/SAMPLE_*
+
+# Data payloads (benchmark downloads + regenerable replay caches) — structure is tracked
+# via READMEs, contents never committed
+data/**
+!data/**/
+!data/**/README.md
