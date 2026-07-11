@@ -11,7 +11,58 @@ One `##` section per component/theme; glossary at the bottom, alphabetized, plai
 
 ## Concepts (per component)
 
-*(seeded empty — filled during the Diagram 1 walkthrough and each build phase)*
+### E2E walkthrough §0.1 — ISA-95 / IEC 62264 (the function & data lens; the lab's spine)
+
+*Captured 2026-07-11 during the Diagram 1 v2 walkthrough opener (E2E_WALKTHROUGH.md §0.1).*
+
+**What it is / isn't.** ISA-95 (US) = IEC 62264 (international twin, identical content) is the
+**enterprise–control-system integration standard**: a *functional and data* model for how business
+systems and plant-floor systems exchange information. **It is NOT a network architecture and NOT a
+security standard** — that is the single most common misconception. Networks = Purdue; security =
+IEC 62443. ISA-95 only says *what functions exist and what data flows between them.*
+
+**Two hierarchies:**
+1. **Functional hierarchy (Levels 0–4)** — L0 physical process · L1 sensing/actuation · L2 supervisory
+   control · **L3 Manufacturing Operations Management (MOM)** — MES/LIMS/CMMS/Quality · L4 business
+   planning (ERP). *Level 3 is the hinge*: business tempo above (orders, months, money), process tempo
+   below (ms, sensors, physics). Every hard integration problem lives at the L3↔L4 seam — which is
+   exactly where identity reconciliation bites (ERP order ID ≠ MES key).
+2. **Equipment hierarchy** — `Enterprise → Site → Area → Production Unit → Equipment`. This *is* the
+   lab's UNS topic path `lagos-chem/<site>/<area>/<production-unit>/…` (§14 N19) and the `asset_master`
+   shape. ISA-95 splits the bottom into **Production Unit** (continuous — the lab's branch) vs
+   **Line/Work Cell** (discrete) vs **Process Cell/Unit** (batch).
+
+**Part 2 object models** (the standardized nouns): **material** (definition vs lot → N14
+`material_definition`/`material_lot`), **equipment** (class vs instance → P6 templates; *"Centrifugal
+Pump"* = class, *"P-101 at Beaumont"* = instance — harmonization = every site's instances conform to
+shared classes), **personnel**, **process segments**.
+
+**L3↔L4 exchange pattern — "schedule down, performance up."** Orders/targets flow down, actuals/
+performance flow up, reconciled periodically. XML binding = **B2MML** (MESA's ready-made ISA-95 XML
+schemas; the model can also be JSON / OPC-UA information models). In the lab this pattern *is* the
+order-to-cash conduit **C6 down** + production confirmations up (§12 #18).
+
+**Where the lab aligns / diverges (web-checked):** industry increasingly says **"MOM"** for L3, not
+just "MES" (MES is the software, MOM is the ISA-95 function) — the lab's L3 breadth
+(MES+LIMS+CMMS+Quality) is the standards-correct MOM scope. "Schedule down/performance up with periodic
+reconciliation" is the documented real-world process/O&G pattern. **Deliberate divergence:** classic
+ISA-95 integration is point-to-point B2MML (ERP↔MES); the lab keeps the ISA-95 *object model + hierarchy*
+but routes telemetry through a **UNS** (broker-as-hub) instead — same nouns, modern plumbing. Adoption
+in the wild is uneven/partial, so "we modeled the equipment hierarchy end-to-end" is a genuine strength.
+
+**Sidebar — ISA-88 vs ISA-106:** because LSC is a *continuous* process, production is modeled as
+**lots** (ISA-106 continuous ops), not **batches** (ISA-88) → table is `production_lot`, not `batch`
+(§14 N13).
+
+**Teach-back:** *"ISA-95 is the function-and-data standard: a 5-level functional hierarchy (physical
+process → ERP) and a 5-tier equipment hierarchy (enterprise → equipment); my UNS topic path IS that
+equipment hierarchy. It says what runs where and what crosses the L3↔L4 seam (schedule down,
+performance up) — nothing about networks or security; those are Purdue and 62443."*
+
+**Sources:** [Siemens ISA-95 framework](https://www.siemens.com/en-us/technology/isa-95-framework-layers/) ·
+[Symestic — ISA-95 for MES/ERP](https://www.symestic.com/en-us/blog/mes/isa95) ·
+[Process Control Guide — ISA-95 enterprise integration](https://processcontrolguide.com/isa-95-enterprise-integration/) ·
+[ISA.org — ISA-95 standard](https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard).
 
 ## Gotchas
 
@@ -22,9 +73,15 @@ One `##` section per component/theme; glossary at the bottom, alphabetized, plai
 
 ## Glossary
 
+- **B2MML (Business To Manufacturing Markup Language)** — MESA's ready-made XML schema binding of the
+  ISA-95 object model (production schedules, work orders, performance, material definitions); the usual
+  wire format for L3↔L4 integration. The same model can also be JSON or an OPC-UA information model.
 - **CDC (change data capture)** — capturing inserts/updates/deletes from a database as an event
   stream; *log-based* CDC (Debezium reading the Postgres WAL) catches deletes and ordering that
   *poll-based* CDC misses.
+- **Equipment class vs instance (ISA-95 Part 2)** — a *class* is a reusable template (e.g. "Centrifugal
+  Pump" with a shared tag schema); an *instance* is a specific asset ("Pump P-101 at Beaumont").
+  Harmonization = every site's instances conform to shared classes (lab: P6 equipment templates).
 - **Historian** — the OT time-series database of record for telemetry (here: TimescaleDB
   hypertables); stores value + timestamp + quality per sample.
 - **Hypertable** — TimescaleDB's abstraction that auto-partitions a Postgres table by time into
@@ -32,17 +89,32 @@ One `##` section per component/theme; glossary at the bottom, alphabetized, plai
 - **iDMZ (industrial DMZ, "Level 3.5")** — the buffer zone between OT (Purdue Levels 0–3) and
   IT/enterprise (Levels 4–5); all cross-boundary traffic terminates there, and no IT-side system
   initiates connections into OT.
-- **ISA-95** — the enterprise–control-system integration standard; source of the
-  equipment hierarchy (enterprise → site → area → production unit → equipment) and the Level 0–4
-  functional model.
+- **ISA-88 / ISA-106** — process-modeling standards: ISA-88 (= IEC 61512) is *batch* control;
+  ISA-106 is *continuous* operations. LSC is continuous → production modeled as **lots** (ISA-106),
+  not **batches** (ISA-88); hence `production_lot`, not `batch` (§14 N13).
+- **ISA-95 (= IEC 62264)** — the enterprise–control-system integration standard: a *functional and
+  data* model (NOT a network or security standard). Gives the Level 0–4 **functional** hierarchy
+  (physical process → L3 MOM → L4 ERP) and the **equipment** hierarchy (enterprise → site → area →
+  production unit → equipment — the lab's UNS topic path). Defines Part 2 object models (material,
+  equipment, personnel, process segments) and the L3↔L4 "schedule down, performance up" exchange.
+- **IEC 62264** — the international designation of **ISA-95** (identical content); see ISA-95.
+- **MOM (Manufacturing Operations Management)** — the ISA-95 term for the **Level 3** *function*
+  (production, quality, maintenance, inventory operations). "MES" is a common software name for it;
+  MOM is the broader standards term. The lab's L3 = MES + LIMS + CMMS + Quality.
 - **NBIRTH / DBIRTH / NDATA / DDATA / NDEATH** — Sparkplug B message types: node/device birth
   certificates (declare all metrics + aliases), node/device data (changes only, by exception), and
   node death (via MQTT Last-Will). Consumers rebuild state from births — Sparkplug messages are
   *never* MQTT-retained.
 - **OLTP / OLAP** — transactional workloads (many small concurrent writes; Postgres) vs analytical
   workloads (large read-heavy scans; DuckDB/lakehouse). One engine per concern.
+- **Production unit** — the lowest tier of the ISA-95 equipment hierarchy on the *continuous-process*
+  branch (the discrete branch uses line/work cell; the batch branch uses process cell/unit). LSC's
+  reactors/columns are production units — the `<production-unit>` segment of the UNS topic path.
 - **Purdue model** — the classic OT network reference architecture (Levels 0–5) that the lab's
   OT / iDMZ / IT zoning follows (charter §13.8).
+- **Schedule down / performance up** — the ISA-95 L3↔L4 exchange pattern: schedules/orders/targets
+  flow *down* from ERP (L4) to operations (L3); actuals/performance flow *up*; reconciled periodically.
+  Lab: order-to-cash conduit C6 down + production confirmations up (§12 #18).
 - **RBE (report by exception)** — publishing only when a value changes beyond a deadband, instead
   of on every scan; saves bandwidth but makes the historian store irregular, change-only samples
   (queries must gap-fill).
