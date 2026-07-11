@@ -1,0 +1,42 @@
+before we do the walkthrough. A quick question for you. Can I have you do walk through with me here while another agents work on the next stage of the project is that doable?
+
+---
+
+What if I start a new agents (not sub agents) in a new terminal completely and have it work on the skeleton. will that work?
+
+---
+
+The separate agents will also be communicating with me following explain → align → build. That is fine. I can address its questions. Anything other concerns?
+
+---
+
+what prompt should I share with the parallel agents to get started?
+
+---
+
+I use uv for package . I do want to create the worktree myself so share the step by step command. What happens once the agent finishes its part. How do we get the work back to main and delete the worktree?
+
+---
+
+On the prompt.. can you update the prompt
+
+it is okay if the agent run commands. I dont have to run the command
+Also will this create all the necessary folders needed for the projects from folders for the different syntehtic data to code. It should follow folder structure best practices for a project like this. 
+I prefer UV as python package manager
+Do we need to suggest a package layout or let the agent comes up with the best one
+
+---
+
+Let us start the wlak through .. where do we start from. First show me where we will start from and how you will go about the teaching.
+
+---
+
+begin with ISA-95 now. Also share a prompt that I can use to do a parallel search with another totally different agent to get what it says. This agent will not be working in my project. It will just do a web search and teach the subject based on the prompt you will share
+
+---
+
+I want to be able to pick up from here when I start from a session on the web. Is there a way to continue from the web without losing my position here?
+
+---
+
+go ahead please.
