@@ -247,8 +247,33 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-Stack so far: Python ≥3.12 + Pydantic v2, pandas, paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate**
-— PyPI status Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2, fallback = hand-rolled `spBv1.0`
-protobuf), Neo4j driver. **Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
-single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8 AGPLv3, …). No build tooling
-exists yet (pre-implementation, Phase 0 pending). Update this section once `pyproject.toml` lands.
+**Current state (Phase 0 skeleton, landed 2026-07-07 — PR #22):** `pyproject.toml` exists, created
+with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed `.python-version`
+(uv's pin — do not gitignore it); `uv.lock` is committed. **Runtime dependencies are empty by
+design** — each one is added in the phase that needs it, with a one-line justification. The dev
+group holds **ruff** (lint + format; `E,W,F,I,UP,B`; 100 columns) and **pytest** (`testpaths =
+["tests"]`).
+
+Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .`
+
+**Repo layout (README-only placeholders — no code stubs, per YAGNI; each README states what lands
+there and in which phase):**
+
+```
+src/scada_harmonizer/
+  datagen/{ingestion,augmentation,plc_mapping,sparkplug,context_export,replay}   # the 6-layer pipeline
+  {harmonize,record,contextualize,apply}                                          # the four planes
+config/
+  mappings/                                 # the three-stage table spine — RESERVED, content gated on the walkthrough
+  sites/{beaumont,geismar,rotterdam,corpus_christi}
+docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
+data/{raw,cache}    # payloads gitignored, structure tracked via READMEs
+notebooks/ # Marimo learning surface, one per component (starts Phase 1)
+tests/     # currently one import smoke test
+```
+
+**Planned stack** (not yet added as dependencies): Pydantic v2, pandas, paho-mqtt ≥2.x,
+pysparkplug 0.6.x (**candidate** — PyPI status Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2,
+fallback = hand-rolled `spBv1.0` protobuf), Neo4j driver. **Tool versions/editions/licenses: charter
+§4.1 pinned stack** (EMQX ≥5.9 single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8
+AGPLv3, …).
