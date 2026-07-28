@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-07-07
+**Last updated:** 2026-07-27
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,14 +28,52 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-07-06)
+## 2. Current status (2026-07-27)
 
-**Phase: pre-implementation — Diagram 1 teaching walkthrough (next).** Design + charter complete;
-**all infrastructure decisions resolved**; **no source code yet.** Hand-built Eraser Diagram 1 is
-drawn, §13.7 patterns + §13.8 OT/IT zoning applied, owner approved its look (2026-06-23).
-**Resequenced (owner-confirmed 2026-07-06):** Diagram 1 walkthrough → lock → **Phase 0 immediately**;
-Diagrams 2 & 3 are drawn **just-in-time** later (charter §8 sequencing note; Diagram 2's target is
-decided — **UMH Core**, §12 #16).
+**Phase: Phase-0 skeleton landed; end-to-end teaching walkthrough IN PROGRESS (paused at §0.2).**
+Design + charter complete; **all infrastructure decisions resolved**. The **Phase 0 repo skeleton
+exists** (uv project + full directory structure, PR #22) but carries **no domain code yet** — the
+mapping-table spine is still gated on the walkthrough. Hand-built Eraser **Diagram 1 v2** is drawn,
+layout-corrected and owner-approved; it is the walkthrough + lock target. Diagrams 2 & 3 are drawn
+**just-in-time** later (charter §8 sequencing note; Diagram 2's target is decided — **UMH Core**,
+§12 #16).
+
+**Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
+**done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
+
+### This session (2026-07-27) — doc staleness sweep
+
+No design or build work; **synced the stale status docs** to reality after a ~2-week gap. `HANDOFF.md`
+still claimed "pre-implementation / no source code yet" and "Phase 0 deferred until Diagrams 1–3 are
+complete" — both false since PR #22. Corrected here, in `README.md` (§Status), in `AGENTS.md` (build
+tooling section, which explicitly asked to be updated once `pyproject.toml` landed), and with a
+one-line reality note in charter §8. `design/WALKTHROUGH_PROGRESS.md` was already current — untouched.
+
+### Sessions 2026-07-07 → 2026-07-11 — Phase 0 skeleton + walkthrough §0.1
+
+**Phase 0 foundation merged (PR #22, `937f40f`) — structure only, deliberately no code stubs.**
+- **Part A — Python skeleton:** `pyproject.toml` via `uv init --lib` (src layout), **Python pinned
+  3.13** (`.python-version` committed — it is uv's pin), `uv.lock` committed, **zero runtime
+  dependencies** (added per-phase with justification, per AGENTS.md). Dev group = **ruff** (E/W/F/I/
+  UP/B, 100 cols) + **pytest** (`testpaths = ["tests"]`). `tests/test_package_imports.py` is the
+  single smoke test; `notebooks/` reserved as the Marimo learning surface.
+- **Part B — full directory structure** mirroring the real project shape, README-only placeholders
+  (YAGNI; each README states what lands there and in which phase):
+  `src/scada_harmonizer/datagen/{ingestion,augmentation,plc_mapping,sparkplug,context_export,replay}`
+  (the 6-layer synthetic pipeline) + the four planes `{harmonize,record,contextualize,apply}`;
+  `config/mappings/` (**the three-stage table spine — folder reserved, CONTENT GATED on the
+  walkthrough**) + `config/sites/{beaumont,geismar,rotterdam,corpus_christi}` per charter §6;
+  `docker/` (compose lands service-by-service from Phase 2, profiles per §8.2); `data/{raw,cache}`
+  (payloads gitignored, structure tracked via READMEs).
+- ⚠️ **Phase 0 is NOT done.** Its exit criterion (charter §8.1) is the **mapping-table YAML validating
+  via Pydantic with the §14 columns** (scaling N17, quality N10, `source_cadence` N8,
+  `interpolation_type` N11, UNECE units N18), one measurement across all 4 sites. None of that exists.
+
+**Walkthrough checkpoint (`7b6b468`, direct to `main`).** §0.1 **ISA-95 / IEC 62264** taught and
+landed as durable notes in `design/LEARNING_LOG.md` (Concepts + glossary), and
+**`design/WALKTHROUGH_PROGRESS.md`** created as a resumable cursor so the walkthrough survives
+switching agents/surfaces. It also fixes the walkthrough ownership rule: the walkthrough session owns
+`HANDOFF.md` / `WALKTHROUGH_PROGRESS.md` / `LEARNING_LOG.md`; a parallel Phase-0 agent must not edit them.
 
 ### This session (2026-07-06) — IT/OT best-practice review adopted (charter §14 + §4.1)
 
@@ -167,17 +205,19 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
 Owner reviewed repo scope and **confirmed sequencing:** (1) Diagram 1 end-to-end teaching walkthrough
 with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Phase 0. Detailed agenda in §3.
 
-⏭ **Roadmap (ordered — resequenced 2026-07-06):**
+⏭ **Roadmap (ordered — resequenced 2026-07-06; status refreshed 2026-07-27):**
 - (0) ~~Review `design/SAMPLE_*`~~ — **DONE (2026-06-23)** (charter §13.7 patterns adopted).
-- (a) **NEXT SESSION — the END-TO-END WALKTHROUGH** (owner confirmed 2026-07-06; supersedes/absorbs
-  the Diagram-1 teaching walkthrough). Three threads per `design/E2E_WALKTHROUGH.md` (A order ·
-  B telemetry up · C decision/control back) + the deck (`reference/enterprise_it_ot_deck/`) + web
-  research, walked block-by-block against **Diagram 1 v2** using the §3 per-component cadence; the
-  §14 gap checklist is *verification only* (already applied to v2). **Completing the walkthrough
-  locks Diagram 1.** See §3.
+- (a) **IN PROGRESS — the END-TO-END WALKTHROUGH** (supersedes/absorbs the Diagram-1 teaching
+  walkthrough). Three threads per `design/E2E_WALKTHROUGH.md` (A order · B telemetry up ·
+  C decision/control back) + the deck (`reference/enterprise_it_ot_deck/`) + web research, walked
+  block-by-block against **Diagram 1 v2** using the §3 per-component cadence; the §14 gap checklist
+  is *verification only* (already applied to v2). **§0.1 ISA-95 done → resume at §0.2 Purdue**
+  (`design/WALKTHROUGH_PROGRESS.md` is the cursor). **Completing the walkthrough locks Diagram 1.**
+  See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
-- (c) **After the walkthrough (= Diagram 1 locked) → Phase 0** (repo skeleton + the three-stage
-  mapping table **with the §14 columns**). Diagrams 2 & 3 no longer gate Phase 0.
+- (c) **Phase 0 — PARTIALLY DONE.** Repo skeleton **landed early** (PR #22, out of sequence but
+  harmless — it is diagram-independent). What remains is the part the walkthrough actually gates:
+  the **three-stage mapping table with the §14 columns**. Diagrams 2 & 3 do not gate it.
 - (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
   · Diagram 3 (cloud-native → floci, before Phase 6).
 
@@ -221,8 +261,14 @@ hold.**
   https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
 - **PR #21** — end-to-end walkthrough opener: §0 three-lens primer (ISA-95 · Purdue · IEC 62443)
   written into `design/E2E_WALKTHROUGH.md` → **MERGED** (`1f2db7c`).
+- **PR #22** — Phase 0 foundation: uv skeleton + full directory structure → **MERGED** 2026-07-08
+  (`352ae2b`, commit `937f40f`); branch `feat/phase-0-foundation` deleted.
+- **`7b6b468`** (2026-07-11) — walkthrough checkpoint (§0.1 ISA-95 notes + `WALKTHROUGH_PROGRESS.md`),
+  committed **directly to `main`** as owner-sanctioned small-doc housekeeping (no PR).
 - **Branch cleanup (2026-07-07):** all merged `docs/*` PR branches deleted from the remote; stale
   local remote-tracking refs pruned. Only `main` + `entire/*` checkpoint refs remain.
+- **As of 2026-07-27:** working tree clean, `main` up to date, **0 open PRs, 0 open issues**, no
+  feature branches outstanding.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -242,14 +288,20 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ---
 
-## 3. What's next — Diagram 1 teaching walkthrough (then Diagrams 2–3, then Phase 0)
+## 3. What's next — finish the walkthrough, then the mapping-table spine
 
-### ⭐ IMMEDIATE NEXT ACTION — NEW SESSION: the end-to-end walkthrough
+### ⭐ IMMEDIATE NEXT ACTION — RESUME the end-to-end walkthrough at §0.2 (Purdue)
 
-**Suggested kickoff prompt for the new session:** *"Start the end-to-end walkthrough — begin with
-the three-lens primer — ISA-95, Purdue, IEC 62443 (`design/E2E_WALKTHROUGH.md` §0, owner-requested), then follow the
-threads (B from the physics up, then C back down, then A), block-by-block against Diagram 1 v2, with
-the §3 teaching cadence and web research per block."*
+> **The live cursor is `design/WALKTHROUGH_PROGRESS.md`, not this section.** It tracks per-step
+> status and carries the canonical resume prompt. Read it first; this section is the rationale.
+
+**Kickoff prompt to resume (any surface):** *"Read `design/E2E_WALKTHROUGH.md` (the script),
+`design/WALKTHROUGH_PROGRESS.md` (the cursor), and `design/LEARNING_LOG.md` (notes so far). We are
+running the Diagram 1 v2 end-to-end teaching walkthrough. §0.1 ISA-95 is done. Continue from §0.2 —
+the Purdue model — using the five-beat cadence (problem tie-in → mechanism → web research with cited
+sources → gap check against Diagram 1 v2 → one-line teach-back), pausing for my questions between
+steps, and logging glossary terms to `design/LEARNING_LOG.md`. After Purdue, do §0.3 IEC 62443, then
+Threads B → C → A."*
 
 **End-to-end teaching walkthrough of Eraser Diagram 1 v2 (Hand-built / Python-centric).** Owner goal:
 understand and be able to **explain the full data and integration flow** — each component's role, why it
@@ -315,19 +367,27 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
 
 ---
 
-### Phase 0 (after diagrams — turn design into code)
+### Phase 0 — partially complete (skeleton landed; the spine is still gated)
 
-**State:** deferred until Diagrams 1–3 are complete. Branch `feat/phase-0-foundation` may exist from
-earlier discussion (doc/decision commits only; **no code yet**).
+**State (2026-07-27): 2 of 3 pieces done.** The `feat/phase-0-foundation` branch shipped as PR #22
+and is deleted; the skeleton is on `main`.
 
-When Phase 0 starts, re-explain from scratch (learning-first), align, then build:
+- ✅ **1. Python project skeleton** — `pyproject.toml` via **`uv init --lib`** (src layout), Python
+  **3.13** pinned, `uv.lock` committed, no runtime deps yet; ruff + pytest in the dev group;
+  `src/scada_harmonizer/` (datagen 6 layers + four planes), `config/`, `docker/`, `data/`,
+  `notebooks/`, `tests/` — all README-only placeholders, no code stubs.
+- ⬜ **2. Three-stage mapping table as config (THE SPINE)** — **NOT started; deliberately gated on
+  the walkthrough.** `config/mappings/` is a reserved empty folder. YAML + Pydantic validation, one
+  measurement across all 4 sites, **including the §14 columns** (N17 `raw_min`/`raw_max`/`eu_min`/
+  `eu_max` + `scale_linear`; N10 quality; N8 `source_cadence`; N11 `interpolation_type`; N18 UNECE
+  unit codes). This is charter §8.1's Phase-0 exit criterion.
+- 🟡 **3. `design/LEARNING_LOG.md`** — seeded and growing (§0.1 ISA-95 concepts + glossary landed
+  2026-07-11); continues to fill as the walkthrough proceeds.
 
-- **What Phase 0 is:** foundation/scaffolding — *not* Marimo notebook work (Marimo starts Phase 1). Three pieces:
-  1. **Python project skeleton** — `pyproject.toml` via **`uv`** + `src/scada_harmonizer/` + `notebooks/` + `tests/`.
-  2. **Three-stage mapping table as config (THE SPINE)** — YAML + Pydantic validation; one measurement across all 4 sites.
-  3. **Seed `design/LEARNING_LOG.md`** — learning log + glossary.
-- **Alignment questions:** Phase 0 scope OK? YAML vs TOML/JSON? Deep concept walk-through first or straight to skeleton?
-- **Then build** per cadence: explain → align → build → run & observe → prune.
+**When resuming piece 2:** re-explain from scratch (learning-first), align, then build per cadence —
+explain → align → build piece by piece → run & observe → prune. Open alignment question kept from the
+original plan: **YAML vs TOML/JSON** for the mapping table (YAML is the assumed default).
+Marimo notebook work still starts at **Phase 1**, not here.
 
 ### Tooling decided this session
 - **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
@@ -403,9 +463,12 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-The next concrete action is to **execute the end-to-end walkthrough** (§3;
-`design/E2E_WALKTHROUGH.md` three threads + deck + web research, against Diagram 1 v2). The walkthrough
-**opener is already written** — §0 three-lens primer (ISA-95 · Purdue · IEC 62443), PR #21 merged — but
-the **block-by-block teaching pass (blocks A–L) has not run yet** (`design/LEARNING_LOG.md` Concepts
-section is still seeded-empty). Completing that pass locks Diagram 1; **then Phase 0 starts**. No open
-blocking decisions (§12 #16 resolved → UMH Core). PRs #17–#21 all merged; merged branches cleaned up.
+The next concrete action is to **resume the end-to-end walkthrough at §0.2 (Purdue)** — cursor in
+`design/WALKTHROUGH_PROGRESS.md`, script in `design/E2E_WALKTHROUGH.md`, notes into
+`design/LEARNING_LOG.md`. Remaining: §0.2 Purdue → §0.3 IEC 62443 → Thread B (telemetry up) →
+Thread C (control down) → Thread A (order) → cross-cutting + consciously-omitted systems. Completing
+that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
+
+No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#22 all merged;
+all merged branches cleaned up; 0 open PRs/issues as of 2026-07-27.

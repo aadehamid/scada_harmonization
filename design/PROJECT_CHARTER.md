@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-27 (decisions unchanged since 2026-07-06; §8 gained a Phase-0 reality note)
 
 ---
 
@@ -557,6 +557,14 @@ spanning OT + IT + ET).
 are drawn **just-in-time** (Diagram 2 — target decided: UMH Core, §12 #16 — before the "Later"
 re-platform; Diagram 3 before the Phase 6 floci work) — neither informs Phase 0, which is
 diagram-independent.
+
+**Reality note (2026-07-27):** Phase 0 was **split in practice**. Its *skeleton* half — uv project
+(Python 3.13, ruff + pytest, no runtime deps) + the full README-only directory structure — landed
+early, **before** the Diagram 1 lock (PR #22, 2026-07-07); this is harmless because the skeleton is
+diagram-independent. Its *substantive* half — the **three-stage mapping table** (`config/mappings/`,
+still an empty reserved folder) — **remains gated on the Diagram 1 walkthrough**, since the
+walkthrough is what validates the §14 columns the table must carry. §8.1's Phase-0 exit criterion is
+therefore **not met**: Phase 0 is open until that table validates.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 

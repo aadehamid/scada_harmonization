@@ -102,14 +102,24 @@ real AWS) without invalidating the design.
 
 ## Status
 
-Pre-implementation — design and charter complete, all infrastructure decisions resolved (broker,
-historian, PLC realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture
-review** (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35: Sparkplug
-namespace + forwarder session contract, time/quality/historian semantics, conduit inventory + broker
+*Updated 2026-07-27.*
+
+**Design and charter are complete** — all infrastructure decisions resolved (broker, historian, PLC
+realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
+(charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35: Sparkplug namespace +
+forwarder session contract, time/quality/historian semantics, conduit inventory + broker
 auth/TLS/audit, lot-based production model, Plane-4 MLOps additions; pinned tool versions in §4.1).
-Build not yet started. Next: Diagram 1 teaching walkthrough → lock → **Phase 0** (repo skeleton +
-the three-stage mapping table); Diagrams 2–3 are drawn just-in-time. See the charter's build
-sequence (Phases 0–7, now with per-phase exit criteria, §8.1).
+
+**Phase 0 is partially built.** The repo skeleton is in place — a `uv` project (Python 3.13, ruff +
+pytest, no runtime dependencies yet) and the full directory structure under `src/scada_harmonizer/`,
+`config/`, `docker/`, `data/`, `notebooks/`, `tests/`. These are **README-only placeholders**: no
+domain code exists yet.
+
+**Currently in progress:** the end-to-end teaching walkthrough of Diagram 1 v2 — the ISA-95 primer is
+done, the Purdue lens is next (cursor: `design/WALKTHROUGH_PROGRESS.md`). Finishing it locks Diagram 1
+and unblocks the rest of Phase 0: the **three-stage mapping table as validated config**, which is the
+project's spine and its Phase-0 exit criterion. Diagrams 2–3 are drawn just-in-time. See the charter's
+build sequence (Phases 0–7, with per-phase exit criteria, §8.1).
 
 ## License
 
