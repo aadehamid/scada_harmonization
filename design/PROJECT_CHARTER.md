@@ -567,7 +567,7 @@ gated on the Diagram 1 walkthrough**, since the walkthrough is what validates th
 table must carry. §8.1's Phase-0 exit criterion is therefore **not met**: Phase 0 is open until that
 table validates.
 
-Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column.
+Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 
