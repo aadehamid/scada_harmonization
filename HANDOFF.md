@@ -60,6 +60,11 @@ no mapping table, no walkthrough progress.** Fixes:
 **Follow-up (same day):** PR #24 merged (`8646a62`); branch `cursor/docs-hygiene-e236` deleted
 local + remote. This file's git-state block still said #24 was outstanding — fixed here.
 
+### This session (2026-08-17): Phase 1 L0 contract
+
+Phase 1 L0 contract landed at `design/PHASE1_L0_CONTRACT.md`. Spec holes closed.
+Implementation not started. Walkthrough cursor unchanged.
+
 ### This session (2026-08-17): Phase 1 exit lock
 
 Phase 1 exit is replay-only (deterministic sequence + N8 clock). It no longer includes P1 classification or mapping-table `source_cadence`. The L0 cache stores the friendly L0 name. `source_column` is side metadata. Physical meaning waits for the mapping table. Lots, work-order, and material IDs stay Phase 5. Docs-only PR #26.
@@ -294,8 +299,10 @@ hold.**
   **MERGED** 2026-07-28 (`215b9e4`).
 - **PR #24** — docs hygiene (LICENSE + CI + contradiction sweep) → **MERGED** 2026-08-17
   (`8646a62`); branch `cursor/docs-hygiene-e236` deleted local + remote.
-- **As of 2026-08-17 (post-#24):** `main` at `8646a62`, **0 open PRs**, no feature branches
-  outstanding (`entire/*` checkpoint refs remain).
+- **PR #26** Phase 1 exit is replay-only: **MERGED** (`f7bab02`).
+- **As of 2026-08-17:** `main` at `f7bab02`. Phase 1 L0 contract PR is open on
+  `cursor/phase1-l0-contract-d73f` (docs only; implementation not started).
+  `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -501,5 +508,5 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#24 merged;
-all merged branches cleaned up; 0 open PRs/issues as of 2026-08-17 (post-#24).
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#26 merged.
+Phase 1 L0 contract PR is open (docs only).
