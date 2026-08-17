@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-08-17 (decisions unchanged since 2026-07-06; §3 heading + §8 sequencing/Phase-3 wording aligned to N16 and the landed skeleton)
+**Last updated:** 2026-08-17 (Phase 1 exit lock: replay-only; decisions otherwise unchanged since 2026-07-06)
 
 ---
 
@@ -567,12 +567,14 @@ gated on the Diagram 1 walkthrough**, since the walkthrough is what validates th
 table must carry. §8.1's Phase-0 exit criterion is therefore **not met**: Phase 0 is open until that
 table validates.
 
+Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column.
+
 ### 8.1 Exit criteria (definition of done, per phase)
 
 | Phase | Done when |
 |-------|-----------|
 | **0** | Mapping-table YAML validates via Pydantic **including the §14 columns** (scaling N17, quality N10, `source_cadence` N8, `interpolation_type` N11, UNECE units N18); one measurement defined across all 4 sites; `LEARNING_LOG.md` growing |
-| **1** | Replay is deterministic (same seed → identical sequence); simulated clock + speed factor + rebasing work (§14 N8); every metric classed per P1 with `source_cadence` recorded |
+| **1** | Deterministic replay (same seed → identical sequence); §14 N8 clock (simulated clock, speed factor, rebasing). L0 cache stores the friendly name (`source_column` is side metadata). Physical meaning and mapping-table `source_cadence` stay on Phase 0. |
 | **2** | `mosquitto_sub` shows NBIRTH/DBIRTH/NDATA matching the mapping table; Sparkplug library verified against spec behaviors incl. Templates (§4.1, §14 N7); Mosquitto authn + ACL enforced (a mis-scoped publish is rejected — §14 N22) |
 | **3** | Telemetry lands in the hypertable **idempotently** (double-replay proves no duplicates, §14 N9); Grafana reads continuous-aggregate rollups (§14 N11); alerting node implements the ISA-18.2 state machine and a TEP fault demonstrates a flood + shelving (§14 N20); Prometheus scraping the OT zone |
 | **4a** | **The same physical event replayed through ≥2 sites yields identical canonical UNS output** (pytest cross-source equivalence suite); an unmapped tag lands in `dead_letter`, not silence; a late subscriber sees retained enterprise-UNS state instantly (§14 N2 demo) |

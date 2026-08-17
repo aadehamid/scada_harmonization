@@ -60,6 +60,10 @@ no mapping table, no walkthrough progress.** Fixes:
 **Follow-up (same day):** PR #24 merged (`8646a62`); branch `cursor/docs-hygiene-e236` deleted
 local + remote. This file's git-state block still said #24 was outstanding — fixed here.
 
+### This session (2026-08-17): Phase 1 exit lock
+
+Phase 1 exit is replay-only (deterministic sequence + N8 clock). It no longer includes P1 classification or mapping-table `source_cadence`. The L0 cache stores the friendly L0 name. `source_column` is side metadata. Physical meaning waits for the mapping table. Lots, work-order, and material IDs stay Phase 5. Docs-only PR #26.
+
 ### This session (2026-07-27) — doc staleness sweep
 
 No design or build work; **synced the stale status docs** to reality after a ~2-week gap. `HANDOFF.md`
