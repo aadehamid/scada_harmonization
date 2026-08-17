@@ -57,6 +57,9 @@ no mapping table, no walkthrough progress.** Fixes:
 - README claimed MIT with no `LICENSE` file; added one. Thin CI (`ruff` + pytest smoke).
 - Document maps (README, charter §11, this file) now list the walkthrough cursor + learning log.
 
+**Follow-up (same day):** PR #24 merged (`8646a62`); branch `cursor/docs-hygiene-e236` deleted
+local + remote. This file's git-state block still said #24 was outstanding — fixed here.
+
 ### This session (2026-07-27) — doc staleness sweep
 
 No design or build work; **synced the stale status docs** to reality after a ~2-week gap. `HANDOFF.md`
@@ -285,10 +288,10 @@ hold.**
   local remote-tracking refs pruned. Only `main` + `entire/*` checkpoint refs remain.
 - **PR #23** — docs: sync stale status docs (Phase 0 skeleton landed, walkthrough at §0.2) →
   **MERGED** 2026-07-28 (`215b9e4`).
-- **This session (2026-08-17):** **PR #24** (`cursor/docs-hygiene-e236`) — LICENSE + CI +
-  contradiction sweep. Owner merges.
-- **As of 2026-08-17:** `main` at `215b9e4` (PR #23). Hygiene work is **PR #24**, not on `main`
-  until merged.
+- **PR #24** — docs hygiene (LICENSE + CI + contradiction sweep) → **MERGED** 2026-08-17
+  (`8646a62`); branch `cursor/docs-hygiene-e236` deleted local + remote.
+- **As of 2026-08-17 (post-#24):** `main` at `8646a62`, **0 open PRs**, no feature branches
+  outstanding (`entire/*` checkpoint refs remain).
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -494,5 +497,5 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#23 merged;
-**PR #24** (this session) is the outstanding one until the owner merges it.
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#24 merged;
+all merged branches cleaned up; 0 open PRs/issues as of 2026-08-17 (post-#24).
