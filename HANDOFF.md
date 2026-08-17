@@ -285,10 +285,10 @@ hold.**
   local remote-tracking refs pruned. Only `main` + `entire/*` checkpoint refs remain.
 - **PR #23** — docs: sync stale status docs (Phase 0 skeleton landed, walkthrough at §0.2) →
   **MERGED** 2026-07-28 (`215b9e4`).
-- **This session (2026-08-17):** docs-hygiene PR on `cursor/docs-hygiene-e236` (LICENSE + CI +
-  contradiction sweep). Owner merges.
-- **As of 2026-08-17:** `main` at `215b9e4` (PR #23). Hygiene work is on the branch above, not
-  on `main` until merged.
+- **This session (2026-08-17):** **PR #24** (`cursor/docs-hygiene-e236`) — LICENSE + CI +
+  contradiction sweep. Owner merges.
+- **As of 2026-08-17:** `main` at `215b9e4` (PR #23). Hygiene work is **PR #24**, not on `main`
+  until merged.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -495,4 +495,4 @@ that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
 **YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#23 merged;
-docs-hygiene PR (this session) is the outstanding one until the owner merges it.
+**PR #24** (this session) is the outstanding one until the owner merges it.
