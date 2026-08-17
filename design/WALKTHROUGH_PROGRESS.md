@@ -21,7 +21,7 @@ teaching notes land.
 | Thread A | Order thread (ERPNext SO → MRP → WO → lot → ship → invoice) | ⬜ pending |
 | — | Cross-cutting narratives + "consciously omitted" systems | ⬜ pending |
 
-**Completing all of the above locks Diagram 1 → unblocks Phase 0.**
+**Completing all of the above locks Diagram 1 → unblocks the mapping-table spine (the rest of Phase 0).** The uv skeleton already landed (PR #22); it does not wait on this pass.
 
 **Diagram under walkthrough (v2, the lock target):**
 https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas

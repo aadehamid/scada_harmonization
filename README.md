@@ -26,7 +26,7 @@ this mess (same reality, different names per site), then proves it can be confor
 **governed as a reusable data product**, and enriched into connected context. The problem mirrors
 real process/CPG transformation discovery (anonymized industry pains); see charter §2.
 
-## The three planes
+## The four planes
 
 Sources span the classic **IT / OT / ET** divide: OT (SCADA/PLC tags), IT (on-prem
 business-transactional data in PostgreSQL — MES/LIMS/CMMS/quality), and ET (engineering topology).
@@ -94,6 +94,9 @@ real AWS) without invalidating the design.
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
+| [`design/E2E_WALKTHROUGH.md`](design/E2E_WALKTHROUGH.md) | End-to-end teaching walkthrough script (Threads A/B/C) |
+| [`design/WALKTHROUGH_PROGRESS.md`](design/WALKTHROUGH_PROGRESS.md) | Live walkthrough cursor — resume here |
+| [`design/LEARNING_LOG.md`](design/LEARNING_LOG.md) | Durable concepts + glossary |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
 | [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)* |
@@ -123,4 +126,4 @@ build sequence (Phases 0–7, with per-phase exit criteria, §8.1).
 
 ## License
 
-MIT
+[MIT](LICENSE)
