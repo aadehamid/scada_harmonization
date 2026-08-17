@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-07-27
+**Last updated:** 2026-08-17
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,7 +28,7 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-07-27)
+## 2. Current status (2026-08-17)
 
 **Phase: Phase-0 skeleton landed; end-to-end teaching walkthrough IN PROGRESS (paused at §0.2).**
 Design + charter complete; **all infrastructure decisions resolved**. The **Phase 0 repo skeleton
@@ -40,6 +40,22 @@ layout-corrected and owner-approved; it is the walkthrough + lock target. Diagra
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
 **done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
+
+### This session (2026-08-17) — docs hygiene (no design change)
+
+Owner asked for a full-repo review, then to land the changes that make sense. **No domain code,
+no mapping table, no walkthrough progress.** Fixes:
+
+- `AGENTS.md` still said "pre-implementation / no source code yet" (the 2026-07-27 sweep missed it).
+- Heading **"The three planes"** → **"The four planes"** (charter §3, README, AGENTS) — four
+  architecture planes; "three source domains" and "three feature planes" are different things.
+- Charter §8 Phase 3 still parked `ods_core` in the Timescale instance — contradicts §14 N16.
+- Charter §8 sequencing still said "Phase 0 begins after Diagram 1 is locked" — skeleton already
+  landed; only the mapping table is gated.
+- `DOMAIN.md` + living `synthetic_data_generation_notes.md` still said ISA-88 **batches**; N13 is
+  lots. Synthetic notes also stripped leftover `[cite:N]` scrap and marked PySparkplug as candidate.
+- README claimed MIT with no `LICENSE` file; added one. Thin CI (`ruff` + pytest smoke).
+- Document maps (README, charter §11, this file) now list the walkthrough cursor + learning log.
 
 ### This session (2026-07-27) — doc staleness sweep
 
@@ -267,8 +283,12 @@ hold.**
   committed **directly to `main`** as owner-sanctioned small-doc housekeeping (no PR).
 - **Branch cleanup (2026-07-07):** all merged `docs/*` PR branches deleted from the remote; stale
   local remote-tracking refs pruned. Only `main` + `entire/*` checkpoint refs remain.
-- **As of 2026-07-27:** working tree clean, `main` up to date, **0 open PRs, 0 open issues**, no
-  feature branches outstanding.
+- **PR #23** — docs: sync stale status docs (Phase 0 skeleton landed, walkthrough at §0.2) →
+  **MERGED** 2026-07-28 (`215b9e4`).
+- **This session (2026-08-17):** docs-hygiene PR on `cursor/docs-hygiene-e236` (LICENSE + CI +
+  contradiction sweep). Owner merges.
+- **As of 2026-08-17:** `main` at `215b9e4` (PR #23). Hygiene work is on the branch above, not
+  on `main` until merged.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -362,8 +382,9 @@ https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnB
   decision.
 - Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
 
-**Walkthrough complete → Diagram 1 locked → Phase 0 starts** (resequenced 2026-07-06); Diagrams
-2 & 3 are drawn just-in-time later (Diagram 2 = UMH Core, decided §12 #16; Diagram 3 before Phase 6).
+**Walkthrough complete → Diagram 1 locked → mapping-table spine (rest of Phase 0).** The uv
+skeleton already landed (PR #22). Diagrams 2 & 3 are drawn just-in-time later (Diagram 2 = UMH
+Core, decided §12 #16; Diagram 3 before Phase 6).
 
 ---
 
@@ -452,9 +473,12 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 |------|-----------|
 | `design/PROJECT_CHARTER.md` | **Authoritative project definition** (read this first after this file) |
 | `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the 4 sites diverge) |
+| `design/E2E_WALKTHROUGH.md` | End-to-end teaching walkthrough script |
+| `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — resume here |
+| `design/LEARNING_LOG.md` | Durable concepts + glossary |
 | `AGENTS.md` | Agent working guide — constraints, data flow, domain, build sequence |
 | `README.md` | Human-facing summary |
-| `design/uns_home_lab_notes.md` | Vision & scope |
+| `design/uns_home_lab_notes.md` | Vision & scope *(archived)* |
 | `design/{hand_built,umh_anchored,python_centric}_*_notes.md` | Architecture options (build phase vs. abstraction phase) |
 | `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer synthetic pipeline |
 | `reference/README.md` | Index of the local-only reference material (ISHE, EngiGraph) |
@@ -470,5 +494,5 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#22 all merged;
-all merged branches cleaned up; 0 open PRs/issues as of 2026-07-27.
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#23 merged;
+docs-hygiene PR (this session) is the outstanding one until the owner merges it.

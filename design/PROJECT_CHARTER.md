@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-07-27 (decisions unchanged since 2026-07-06; §8 gained a Phase-0 reality note)
+**Last updated:** 2026-08-17 (decisions unchanged since 2026-07-06; §3 heading + §8 sequencing/Phase-3 wording aligned to N16 and the landed skeleton)
 
 ---
 
@@ -105,7 +105,7 @@ These map onto the lab without changing the thesis — they sharpen *why* it mat
 
 ---
 
-## 3. The three planes
+## 3. The four planes
 
 ```
   SOURCES        OT: SCADA/PLC tags   IT: Postgres OLTP   ET: asset topology
@@ -526,7 +526,7 @@ around them is **discarded**.
 | **0** | Skeleton | Repo layout, `pyproject.toml`, the 3-stage mapping table as config, one asset |
 | **1** | Level 0 replay | Ingestion + augmentation over TEP / Industrial IoT, replay in time order |
 | **2** | PLC disguise + Sparkplug (edge) | **Python-modeled** cryptic tags → mapping + Sparkplug publisher → site **Mosquitto**; verify NBIRTH/DBIRTH/NDATA locally |
-| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; (optional) stand up `ods_core` ODS (role B) in the same instance for current-state mirror; **real-time alerting node** (UNS → rules → alerts, §13 L2.1); introduce **Prometheus + Grafana** observability (§13 L7.1) |
+| **3** | OT consume | **TimescaleDB** historian (hypertables) + Grafana; optionally Ignition Maker as SCADA consumer; **real-time alerting node** (UNS → rules → alerts, §13 L2.1); introduce **Prometheus + Grafana** observability (§13 L7.1). Role-B `ods_core` is **IT-side Postgres** (§14 N16) — not this phase. |
 | **4a** | Harmonization proof — the thesis (all-Python, low integration risk) | Clone the asset template to **≥2 Python-modeled sites** with *different* site tags; **Python site-forwarders** (Sparkplug session contract §14 N3; Primary-Host STATE §14 N4) conform each site → central **EMQX** enterprise UNS + retained ISA-95 republish (§14 N1); broker authn/ACLs (§14 N22) + TLS on forwarder→EMQX (§14 N23); **cross-source equivalence test suite green** |
 | **4b** | Real protocols + full roster | Swap in the **real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug, publishing **raw counts** scaled via §14 N17) and the **real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1) behind the already-proven forwarder seam; add sites 3–4 |
 | **4c** | Resilience & zoning | **Store-and-forward** buffer + outage drill (§13 L1.2, §14 N12); **Docker-network IT/OT segmentation** with zone labels + conduit inventory (§13 L1.3, §14 N21); one **historian-less site** (§13 L1.4); deliberate clock-skew site exercise (§14 N9) |
@@ -553,18 +553,19 @@ spanning OT + IT + ET).
   ordered changes + initial snapshot `op:r`) beats poll-based (misses hard deletes and intra-interval
   changes).
 
-**Sequencing (2026-07-06):** Phase 0 begins **immediately after Diagram 1 is locked**. Diagrams 2–3
-are drawn **just-in-time** (Diagram 2 — target decided: UMH Core, §12 #16 — before the "Later"
-re-platform; Diagram 3 before the Phase 6 floci work) — neither informs Phase 0, which is
-diagram-independent.
+**Sequencing (amended 2026-08-17):** Phase 0 *skeleton* (uv project + directory structure) is
+diagram-independent and already landed (PR #22). The *substantive* Phase 0 exit — the three-stage
+mapping table — **remains gated on the Diagram 1 walkthrough lock**. Diagrams 2–3 are drawn
+**just-in-time** (Diagram 2 — target decided: UMH Core, §12 #16 — before the "Later" re-platform;
+Diagram 3 before the Phase 6 floci work) — neither informs the mapping table.
 
-**Reality note (2026-07-27):** Phase 0 was **split in practice**. Its *skeleton* half — uv project
-(Python 3.13, ruff + pytest, no runtime deps) + the full README-only directory structure — landed
-early, **before** the Diagram 1 lock (PR #22, 2026-07-07); this is harmless because the skeleton is
-diagram-independent. Its *substantive* half — the **three-stage mapping table** (`config/mappings/`,
-still an empty reserved folder) — **remains gated on the Diagram 1 walkthrough**, since the
-walkthrough is what validates the §14 columns the table must carry. §8.1's Phase-0 exit criterion is
-therefore **not met**: Phase 0 is open until that table validates.
+**Reality note (2026-07-27, still current):** Phase 0 was **split in practice**. Its *skeleton* half
+— uv project (Python 3.13, ruff + pytest, no runtime deps) + the full README-only directory
+structure — landed early, **before** the Diagram 1 lock (PR #22, 2026-07-07). Its *substantive* half
+— the **three-stage mapping table** (`config/mappings/`, still an empty reserved folder) — **remains
+gated on the Diagram 1 walkthrough**, since the walkthrough is what validates the §14 columns the
+table must carry. §8.1's Phase-0 exit criterion is therefore **not met**: Phase 0 is open until that
+table validates.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 
@@ -587,7 +588,7 @@ therefore **not met**: Phase 0 is open until that table validates.
 | Risk | Signal | Mitigation |
 |------|--------|------------|
 | **Single-host RAM exhaustion** — the full Phase-6 stack (EMQX + Kafka + Connect + Spark + Neo4j + ERPNext + Timescale + 2× Postgres + Ignition + MLflow + Redis + floci + 4 site stacks) is realistically **16–24 GB+** of containers | compose up fails; swapping | **docker compose profiles per phase** (`ot-core` / `streaming` / `analytics` / `enterprise` / `ml`) so only the active phase's services run; per-service `mem_limit`; stated host assumption (32 GB comfortable; 16 GB = strict profiles) |
-| **Diagram/analysis perfectionism** delaying running code | days pass with no runnable artifact | Diagram 1 walkthrough timeboxed; Phase 0 starts at Diagram-1 lock (sequencing note above); Diagrams 2–3 just-in-time |
+| **Diagram/analysis perfectionism** delaying running code | days pass with no runnable artifact | Diagram 1 walkthrough timeboxed; mapping-table spine gated on Diagram-1 lock (sequencing note above); Diagrams 2–3 just-in-time |
 | **Scope breadth** (~25 technologies, 8 phases, solo learner) | a phase drags far past estimate | §8.1 exit criteria as gates; YAGNI (AGENTS.md); 4a/4b/4c split front-loads the thesis, defers integration risk |
 | **Library immaturity** (pysparkplug Pre-Alpha; floci young) | Phase 2/6 blockers | fallbacks pre-recorded in §4.1 (hand-rolled `spBv1.0` protobuf; LocalStack + DuckDB) |
 | **License / product drift** (EMQX BSL, UMH Core pivot, Redis relicensing) | upgrade surprises | versions/editions pinned in §4.1; re-verify at each phase start; §12 #16 |
@@ -649,6 +650,7 @@ beyond ERPNext community.
 | `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
 | `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
 | `design/E2E_WALKTHROUGH.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
+| `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — per-step status + resume prompt (not a design source) |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
 | `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |

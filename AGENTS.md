@@ -14,8 +14,9 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is currently in a **pre-implementation state** (design/charter complete, no source code
-yet).
+The project is in **Phase 0, partially built**: the uv skeleton and README-only directory
+structure landed (PR #22); **no domain code yet**. The mapping-table spine is gated on the
+Diagram 1 walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`).
 
 ## Picking up the work
 
@@ -137,7 +138,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 > charter (§7); the business/market framing is discarded. See `reference/README.md`. Do not treat
 > them as current scope.
 
-## The three planes
+## The four planes
 
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).

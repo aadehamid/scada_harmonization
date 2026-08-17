@@ -77,7 +77,7 @@ hard cases, not the easy one.
    one name" — and **govern** it as a reusable data product (owners, definitions, lineage).
 2. **Record** curated operational events into enterprise systems (ERPNext) and reconcile them with the
    plant's transactional systems (MES/LIMS/CMMS/quality).
-3. **Contextualize** everything into a **knowledge graph** (Neo4j) — assets, tags, events, batches,
+3. **Contextualize** everything into a **knowledge graph** (Neo4j) — assets, tags, events, lots,
    work orders, lab results, engineering topology — enabling cross-domain reasoning and a GraphRAG
    copilot.
 4. **Apply** the foundation — traditional ML (flagship: **yield improvement / production-leakage**,
