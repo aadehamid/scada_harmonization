@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-# Skeleton CI — ruff + ty + the import smoke test. Grows when domain tests land.
-=======
 # Golden-slice CI — ruff + ty + pytest. No network, no full-dataset jobs.
->>>>>>> e18ca9b (fix: make Phase 1 L0 code ty-clean and run ty in CI)
 name: ci
 
 on:
@@ -22,12 +18,7 @@ jobs:
         run: uv sync --group dev
       - name: Ruff
         run: uv run ruff check .
-<<<<<<< HEAD
       - name: ty
         run: uv run ty check
-=======
-      - name: Ty
-        run: uv run ty check src tests
->>>>>>> e18ca9b (fix: make Phase 1 L0 code ty-clean and run ty in CI)
       - name: Pytest
         run: uv run pytest
