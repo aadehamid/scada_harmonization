@@ -3,6 +3,9 @@
 Legal home for the Phase 1 golden slice. `data/**` is gitignored except READMEs, so
 committed JSONL cannot live there.
 
-No fixture JSONL in this PR. Synthetic data generation lands those later.
+- `golden_l0_slice.jsonl` — 2 TEP samples × 2 columns, canonical L0 JSONL
+  (`design/PHASE1_L0_CONTRACT.md`). CI hashes these records, not raw downloads.
+- `tiny_tep.csv` — the matching wide TEP input (offline; not a dataset download).
 
-Hash is SHA-256 of canonical JSONL as defined in `design/PHASE1_L0_CONTRACT.md`.
+Hash is SHA-256 of the UTF-8 golden file. Pinned as `GOLDEN_SHA256` in
+`tests/datagen/factories.py`.

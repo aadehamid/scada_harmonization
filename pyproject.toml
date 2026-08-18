@@ -7,10 +7,11 @@ authors = [
     { name = "Hamid Adesokan", email = "aadehamid@gmail.com" }
 ]
 requires-python = ">=3.13"
-# pandas: ingestion melts wide TEP to long L0 rows; augmentation/replay operate
-# on tabular L0 frames.
+# pandas: already on main (PR #28). Ingestion melts wide TEP; augment/replay use L0 rows.
+# pydantic: L0 record validation at the datagen boundary (not mapping-table models).
 dependencies = [
     "pandas>=3.0.5",
+    "pydantic>=2",
 ]
 
 [build-system]

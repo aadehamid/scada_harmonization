@@ -1,4 +1,4 @@
-# Skeleton CI — ruff + ty + the import smoke test. Grows when domain tests land.
+# Golden-slice CI — ruff + ty + pytest. No network, no full-dataset jobs.
 name: ci
 
 on:

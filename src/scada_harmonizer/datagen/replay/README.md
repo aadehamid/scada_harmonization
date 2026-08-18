@@ -1,6 +1,6 @@
 # replay (pipeline layer 6, Phase 1)
 
-Orchestrates replay: time-ordered emission, simulated clock with rebasing (charter §14 N8),
-speed factor, pause/resume, backfill vs live mode. Deterministic: same seed → identical
-sequence (Phase 1 exit criterion). Replay identity, N8 rebase, speed/pause, and
-backfill-vs-live are defined in `design/PHASE1_L0_CONTRACT.md`. No code until Phase 1.
+Time-ordered emission of L0 rows. Identity is
+`(sim_time_utc_ms, friendly_name, value, quality)`. Simulated clock with N8 rebase,
+speed factor, pause/resume, backfill vs live. Mixing TEP and IIoT on one stream
+fails. See `design/PHASE1_L0_CONTRACT.md`.
