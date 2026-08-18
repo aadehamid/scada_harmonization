@@ -7,10 +7,10 @@ authors = [
     { name = "Hamid Adesokan", email = "aadehamid@gmail.com" }
 ]
 requires-python = ">=3.13"
-# pandas: already on main (PR #28). Ingestion melts wide TEP; augment/replay use L0 rows.
+# polars: wide→long TEP melt and tabular L0 frames (Hamid lock — replaces pandas).
 # pydantic: L0 record validation at the datagen boundary (not mapping-table models).
 dependencies = [
-    "pandas>=3.0.5",
+    "polars>=1.43.2",
     "pydantic>=2",
 ]
 
