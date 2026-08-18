@@ -1,0 +1,4 @@
+{"ts_utc": "1970-01-01T00:00:00Z", "friendly_name": "xmeas_1", "source_column": "xmeas_1", "source_dataset": "tep", "value": 0.25, "quality": "Good", "quality_reason": null}
+{"ts_utc": "1970-01-01T00:00:00Z", "friendly_name": "xmeas_2", "source_column": "xmeas_2", "source_dataset": "tep", "value": 3664.0, "quality": "Good", "quality_reason": null}
+{"ts_utc": "1970-01-01T00:03:00Z", "friendly_name": "xmeas_1", "source_column": "xmeas_1", "source_dataset": "tep", "value": 0.26, "quality": "Good", "quality_reason": null}
+{"ts_utc": "1970-01-01T00:03:00Z", "friendly_name": "xmeas_2", "source_column": "xmeas_2", "source_dataset": "tep", "value": 3665.0, "quality": "Good", "quality_reason": null}
