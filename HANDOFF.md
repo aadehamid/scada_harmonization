@@ -51,9 +51,10 @@ Polars frame at native 1 s UTC, ingested as `SourceDataset.IIOT`. Machine
 identity is stream metadata, not an L0 PV (`METADATA_COLUMNS`). Extras ride
 that 1 s grid. Golden slice 2×20 s×3 PVs. TEP 180 s and Kaggle-snapshot tests
 stay green. Charter N8 text and Phase 0 `source_cadence` untouched. Walkthrough
-cursor untouched. Do not stack on PR #32. Follow-up: behavior-preserving
-simplify on the same branch (dead extra-machine path, DRY melt skip / cadence
-helper, slimmer E2E). Golden SHA unchanged.
+cursor untouched. Do not stack on PR #32. Follow-up: P1 fix — ingest qualifies
+`friendly_name` as `{machine_id}/{pv}` so two machines at the same tick do not
+collapse. Raw same-name cadence is 1 s. Machine-stream golden regenerated;
+TEP golden SHA unchanged.
 
 ### This session (2026-08-18): Hamid lock — pandas → Polars
 

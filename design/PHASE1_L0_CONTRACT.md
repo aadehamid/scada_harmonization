@@ -22,7 +22,7 @@ Tennessee Eastman Process (TEP) is a 3-minute sample index, not UTC. Sim-time is
 
 ## Melt
 
-Melt means wide table to long rows. TEP arrives wide. Ingestion melts to long L0 rows: one output row per (sample, column). `n_long = n_samples * n_value_columns`. Identity columns (`machine_id` / `Machine_ID`, `machine_type`, TEP `faultNumber` / `simulationRun`) are stream metadata, not L0 PVs.
+Melt means wide table to long rows. TEP arrives wide. Ingestion melts to long L0 rows: one output row per (sample, column). `n_long = n_samples * n_value_columns`. Identity columns (`machine_id` / `Machine_ID`, `machine_type`, TEP `faultNumber` / `simulationRun`) are stream metadata, not L0 PVs. When `machine_id` is present, `friendly_name` is `{machine_id}/{pv}` and `source_column` stays the PV.
 
 ## Serialization and fixtures
 
@@ -46,7 +46,7 @@ Do not mix TEP and IIoT on one stream.
 - Replay: same seed → identical identity list
 - Speed factor, pause/resume, and rebase do not change the identity list or sim-time deltas
 - Backfill vs live: same identity list; backfill is not live
-- Machine stream: generate → ingest as `iiot` → cache → augment → replay; unique same-name deltas are 1s; machine identity is not an L0 PV; same seed → identical frame and extras; mixed TEP+stream raises MixedCadenceError; machine-stream golden SHA-256 is stable. Kaggle snapshot and TEP 180s tests stay green.
+- Machine stream: generate → ingest as `iiot` → cache → augment → replay; two machines at the same tick have distinct `{machine_id}/{pv}` names; raw same-name deltas are 1s; machine identity is not an L0 PV; same seed → identical frame and extras; mixed TEP+stream raises MixedCadenceError; machine-stream golden SHA-256 is stable. Kaggle snapshot and TEP 180s tests stay green.
 
 ## Sources
 

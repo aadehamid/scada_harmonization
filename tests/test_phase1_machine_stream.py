@@ -7,6 +7,7 @@ Kaggle stays a snapshot. TEP stays 180 s. No network, no full dataset.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 
 import polars as pl
@@ -14,6 +15,7 @@ import pytest
 
 from scada_harmonizer.datagen.augmentation import DEFAULT_EXTRAS, ExtraKind, augment
 from scada_harmonizer.datagen.generation import (
+    DEFAULT_MACHINES,
     DEFAULT_N_MACHINES,
     DEFAULT_N_SECONDS,
     MACHINE_STREAM_PERIOD_S,
@@ -45,8 +47,8 @@ from tests.datagen.factories import (
     IDENTITY_COLUMN_NAMES,
     MACHINE_STREAM_GOLDEN_SHA256,
     MACHINE_STREAM_GOLDEN_SLICE,
+    assert_same_name_cadence_seconds,
     assert_tep_cadence_180s,
-    assert_unique_same_name_cadence_seconds,
     tiny_tep_wide,
 )
 
@@ -85,7 +87,7 @@ def test_machine_stream_generate_ingest_cache_augment_replay(tmp_path: Path) -> 
     assert {row.source_dataset for row in natives} == {SourceDataset.IIOT}
     assert all(row.quality is Quality.GOOD for row in natives)
     assert _identity_names(natives) == set()
-    assert_unique_same_name_cadence_seconds(natives, 1.0)
+    assert_same_name_cadence_seconds(natives, 1.0)
     assert len(natives) == n_native
 
     csv_path = tmp_path / "machine_stream.csv"
@@ -104,7 +106,7 @@ def test_machine_stream_generate_ingest_cache_augment_replay(tmp_path: Path) -> 
 
     augmented = augment(natives, seed=DEFAULT_SEED)
     _assert_schema(augmented)
-    assert_unique_same_name_cadence_seconds(augmented, 1.0)
+    assert_same_name_cadence_seconds(augmented, 1.0)
     native_after = [row for row in augmented if row.friendly_name in native_names]
     assert write_l0_jsonl(native_after, tmp_path / "natives_after.jsonl") == native_hash
     assert all(before is not after for before, after in zip(natives, native_after, strict=True))
@@ -166,11 +168,30 @@ def test_machine_stream_seed_determinism() -> None:
     )
 
 
+def test_two_machines_same_tick_have_distinct_friendly_names() -> None:
+    natives = ingest_iiot(generate_machine_stream(seed=DEFAULT_SEED))
+    machine_ids = {spec.machine_id for spec in DEFAULT_MACHINES[:DEFAULT_N_MACHINES]}
+    expected = {f"{mid}/{pv}" for mid in machine_ids for pv in MACHINE_STREAM_PVS}
+    assert {row.friendly_name for row in natives} == expected
+    assert {row.source_column for row in natives} == set(MACHINE_STREAM_PVS)
+    assert all(row.source_column != row.friendly_name for row in natives)
+    assert _identity_names(natives) == set()
+
+    by_ts: dict[object, list[str]] = {}
+    for row in natives:
+        by_ts.setdefault(row.ts_utc, []).append(row.friendly_name)
+    for names in by_ts.values():
+        assert len(names) == len(set(names))
+        assert {name.split("/", 1)[0] for name in names} == machine_ids
+    assert_same_name_cadence_seconds(natives, 1.0)
+
+
 def test_machine_identity_is_not_an_l0_pv() -> None:
     natives = ingest_iiot(generate_machine_stream(seed=DEFAULT_SEED))
     assert _identity_names(natives) == set()
-    assert {row.friendly_name for row in natives} == set(MACHINE_STREAM_PVS)
     assert {row.source_column for row in natives} == set(MACHINE_STREAM_PVS)
+    assert all("/" in row.friendly_name for row in natives)
+    assert all(row.friendly_name.split("/", 1)[1] == row.source_column for row in natives)
 
 
 def test_numeric_machine_id_is_not_melted() -> None:
@@ -185,7 +206,8 @@ def test_numeric_machine_id_is_not_melted() -> None:
         )
     )
     assert _identity_names(records) == set()
-    assert {row.friendly_name for row in records} == {"vibration_rms"}
+    assert {row.friendly_name for row in records} == {"101/vibration_rms"}
+    assert {row.source_column for row in records} == {"vibration_rms"}
     assert len(records) == 2
 
 
@@ -219,3 +241,45 @@ def test_machine_stream_golden_sha256_is_stable(tmp_path: Path) -> None:
     )
     assert sha256_file(GOLDEN_SLICE) == GOLDEN_SHA256
     assert_tep_cadence_180s(ingest_tep(tiny_tep_wide()))
+
+
+def test_machine_stream_n_machines_is_capped() -> None:
+    with pytest.raises(ValueError, match="n_machines"):
+        generate_machine_stream(n_machines=0)
+    with pytest.raises(ValueError, match="n_machines"):
+        generate_machine_stream(n_machines=len(DEFAULT_MACHINES) + 1)
+
+
+def test_machine_stream_naive_start_is_rejected() -> None:
+    with pytest.raises(ValueError, match="timezone-aware UTC"):
+        generate_machine_stream(start=datetime(2026, 1, 1))
+
+
+def test_machine_stream_two_process_same_raw_and_seed_same_cache_hash(tmp_path: Path) -> None:
+    import hashlib
+    import subprocess
+    import sys
+
+    raw = write_machine_stream_csv(generate_machine_stream(seed=DEFAULT_SEED), tmp_path / "raw.csv")
+    cache_a = tmp_path / "a" / "cache.jsonl"
+    cache_b = tmp_path / "b" / "cache.jsonl"
+    script = (
+        "from pathlib import Path\n"
+        "from scada_harmonizer.datagen.pipeline import materialize_cache\n"
+        "from scada_harmonizer.datagen.records import SourceDataset\n"
+        "print(materialize_cache(Path({raw!r}), Path({cache!r}), "
+        "source_dataset=SourceDataset.IIOT, seed=42))\n"
+    )
+    hashes: list[str] = []
+    for cache in (cache_a, cache_b):
+        cache.parent.mkdir(parents=True)
+        result = subprocess.run(
+            [sys.executable, "-c", script.format(raw=str(raw), cache=str(cache))],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        hashes.append(result.stdout.strip())
+    assert hashes[0]
+    assert hashes[0] == hashes[1]
+    assert hashes[0] == hashlib.sha256(cache_a.read_bytes()).hexdigest()

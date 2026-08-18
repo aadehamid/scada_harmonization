@@ -78,7 +78,11 @@ def generate_machine_stream(
     n_seconds: int = DEFAULT_N_SECONDS,
     start: datetime | None = None,
 ) -> pl.DataFrame:
-    """Wide IIoT frame at native 1 s UTC. Same seed → identical frame."""
+    """Wide IIoT frame at native 1 s UTC. Same seed → identical frame.
+
+    ``n_machines`` is 1..``len(DEFAULT_MACHINES)`` (currently 2). ``start``
+    must be timezone-aware UTC.
+    """
     if n_seconds < 2:
         raise ValueError("n_seconds must be >= 2 so cadence deltas exist")
     origin = DEFAULT_START if start is None else parse_utc_z(start)

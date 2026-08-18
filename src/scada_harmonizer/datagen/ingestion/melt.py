@@ -3,7 +3,9 @@
 TEP arrives wide. ``n_long = n_samples * n_value_columns``. Each TEP sample
 ``i`` gets sim-time ``1970-01-01T00:00:00Z + i * 180s``. IIoT uses a native
 UTC column when present. Identity columns (``machine_id``, TEP
-``faultNumber`` / ``simulationRun``) are metadata, not PVs.
+``faultNumber`` / ``simulationRun``) are metadata, not PVs. When
+``machine_id`` / ``Machine_ID`` is present, ``friendly_name`` is
+``{machine_id}/{pv}``; ``source_column`` stays the PV.
 """
 
 from __future__ import annotations
@@ -29,6 +31,8 @@ METADATA_COLUMNS = frozenset(
         "simulationRun",
     }
 )
+# Lookup order when qualifying friendly_name as "{machine_id}/{pv}".
+MACHINE_ID_COLUMNS = ("machine_id", "Machine_ID")
 
 
 def _is_value_dtype(dtype: pl.DataType) -> bool:
@@ -86,6 +90,20 @@ def _as_python_value(value: object) -> bool | int | float:
     raise TypeError(f"cannot coerce {type(number).__name__} to an L0 value")
 
 
+def _row_machine_id(row: dict[str, object]) -> str | None:
+    """Stream metadata only. Used to qualify friendly_name, never as a PV."""
+    for name in MACHINE_ID_COLUMNS:
+        if name not in row:
+            continue
+        value = _unwrap_scalar(row[name])
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return None
+
+
 def _melt(
     frame: pl.DataFrame,
     *,
@@ -100,13 +118,15 @@ def _melt(
     value_columns = _value_columns(frame)
     records: list[L0Record] = []
     for ts, row in zip(timestamps, frame.iter_rows(named=True), strict=True):
+        machine_id = _row_machine_id(row)
         for column in value_columns:
             raw = row[column]
             value = _as_float(raw) if coerce_float else _as_python_value(raw)
+            friendly = f"{machine_id}/{column}" if machine_id is not None else column
             records.append(
                 L0Record(
                     ts_utc=ts,
-                    friendly_name=column,
+                    friendly_name=friendly,
                     source_column=column,
                     source_dataset=source_dataset,
                     value=value,

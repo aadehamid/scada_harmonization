@@ -97,7 +97,7 @@ Physical meaning waits for the mapping table. `friendly_name` is what the cache 
 
 ## Tests (golden-slice only)
 
-`uv run pytest` is 30 passed, golden-slice only. No `data/raw` or `data/cache` in CI.
+`uv run pytest` is 34 passed, golden-slice only. No `data/raw` or `data/cache` in CI.
 
 Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject, generated 1 s machine stream (identity metadata, seed pin, extras on the 1 s grid).
 
