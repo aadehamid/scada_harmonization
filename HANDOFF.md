@@ -310,9 +310,10 @@ hold.**
   (`8646a62`); branch `cursor/docs-hygiene-e236` deleted local + remote.
 - **PR #26** Phase 1 exit is replay-only: **MERGED** (`f7bab02`).
 - **PR #27** Phase 1 L0 contract: **MERGED** (`90cf3d7`).
-- **As of 2026-08-18:** `main` at `90cf3d7`. Wiring PR (pandas + Phase 1 package
-  inits + ty) is on `cursor/pandas-wiring-ty-f25b`. `entire/*` checkpoint refs
-  remain.
+- **PR #28** wiring (pandas + Phase 1 package inits + ty): **open** on
+  `cursor/pandas-wiring-ty-f25b`.
+- **As of 2026-08-18:** `main` at `90cf3d7`. Wiring PR is #28. `entire/*`
+  checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -518,4 +519,4 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#27 merged. Wiring PR (pandas + Phase 1 package inits + ty) is open.
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#27 merged. Wiring PR #28 (pandas + Phase 1 package inits + ty) is open.
