@@ -25,7 +25,6 @@ from scada_harmonizer.datagen.ingestion import (
     sha256_file,
     write_l0_jsonl,
 )
-from scada_harmonizer.datagen.pipeline import materialize_cache
 from scada_harmonizer.datagen.records import (
     CANONICAL_FIELDS,
     DEFAULT_SEED,
@@ -106,12 +105,14 @@ def test_l0_required_fields_present_and_ordered() -> None:
 
 def test_l0_quality_always_present() -> None:
     with pytest.raises(ValidationError):
-        L0Record(  # type: ignore[call-arg]
-            ts_utc=datetime(1970, 1, 1, tzinfo=UTC),
-            friendly_name="xmeas_1",
-            source_column="xmeas_1",
-            source_dataset=SourceDataset.TEP,
-            value=0.25,
+        L0Record.model_validate(
+            {
+                "ts_utc": datetime(1970, 1, 1, tzinfo=UTC),
+                "friendly_name": "xmeas_1",
+                "source_column": "xmeas_1",
+                "source_dataset": SourceDataset.TEP,
+                "value": 0.25,
+            }
         )
     records = ingest_tep(tiny_tep_wide())
     assert records

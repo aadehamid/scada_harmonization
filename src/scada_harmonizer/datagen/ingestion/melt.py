@@ -41,25 +41,40 @@ def _sample_index(frame: pd.DataFrame) -> list[int]:
     return list(range(len(frame)))
 
 
+def _unwrap_scalar(value: object) -> object:
+    """Pull a Python scalar out of a numpy/pandas cell."""
+    item = getattr(value, "item", None)
+    if callable(item):
+        return item()
+    return value
+
+
 def _as_float(value: object) -> float:
     """TEP is analog process data — store natives as float, not int."""
-    if pd.isna(value):
+    number = _unwrap_scalar(value)
+    if number is None:
         raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
-    return float(value)  # type: ignore[arg-type]
+    if isinstance(number, bool) or not isinstance(number, int | float):
+        raise TypeError(f"cannot coerce {type(number).__name__} to float")
+    as_float = float(number)
+    if as_float != as_float:
+        raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
+    return as_float
 
 
 def _as_python_value(value: object) -> bool | int | float:
-    if pd.isna(value):
+    number = _unwrap_scalar(value)
+    if number is None:
         raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
-    if isinstance(value, bool):
-        return value
-    if hasattr(value, "item"):
-        value = value.item()
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, int) and not isinstance(value, bool):
-        return int(value)
-    return float(value)  # type: ignore[arg-type]
+    if isinstance(number, bool):
+        return number
+    if isinstance(number, int):
+        return int(number)
+    if isinstance(number, float):
+        if number != number:
+            raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
+        return float(number)
+    raise TypeError(f"cannot coerce {type(number).__name__} to an L0 value")
 
 
 def _melt(
