@@ -4,6 +4,11 @@
 > items live in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md): production is **lot-based**
 > (ISA-106, not ISA-88 batches — §14 N13); **PySparkplug is a candidate**, not a decided
 > dependency (§4.1); mapping-table columns include the §14 set. The charter governs.
+>
+> **Phase 1 (2026-08-18):** L0 generators are on `main` (PRs #28/#29). Land, persist, and
+> disk facts: [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md). Contract:
+> [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle file is
+> snapshot-per-machine, not a 1-second time series (see below).
 
 These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.
 
@@ -55,16 +60,15 @@ The recommended baseline is to use one machine-oriented dataset and one process-
 
 **Link:** [Industrial IoT Dataset (Synthetic)](https://www.kaggle.com/datasets/canozensoy/industrial-iot-dataset-synthetic)
 
-This dataset is synthetic, but it is designed around industrial predictive-maintenance style signals and is useful for machine-centered equipment data. It is a strong fit for compressors, motors, pumps, conveyors, or packaging assets where the most important variables are things like temperature, vibration, run time, load, and failure tendency.
+This dataset is synthetic, designed around industrial predictive-maintenance style signals, and useful for machine-centered equipment data. **Correction (2026-08-18):** the published file (`factory_sensor_simulator_2040.csv`) is **one snapshot per machine** (about 500,000 rows, 22 columns). It is **not** a 1-second historian export and must not be replayed as a 1 Hz stream. The L0 contract's `epoch + i * 1s` rule is a melt fallback for a wide table that lacks a time column, not a description of this file. Charter §14 N8 still names IIoT as the intended fast-class carrier; this file does not carry that class. Python extras and a later machine stream cover the gap. N8 itself is not rewritten here.
 
 Good uses in the lab include:
 
-- Creating one or more machine families with repeated sensor patterns.
-- Demonstrating historian trends and degradation before failure.
-- Training ML models for failure prediction or anomaly scoring.
-- Showing multiple lines or sites by replaying the same structure with different offsets, rates, naming conventions, and fault schedules.
+- Creating one or more machine families with repeated sensor patterns (as snapshots, then cloned).
+- Training ML models for failure prediction or anomaly scoring on per-machine features.
+- Showing multiple lines or sites by binding the same snapshot schema to different site tags later.
 
-This dataset is not a literal plant historian export, but it behaves closely enough to support realistic UNS, ERP, graph, and analytics demonstrations when replayed in time order and augmented with missingness, contextual identifiers, and enterprise-relevant events.
+This dataset is not a literal plant historian export. TEP remains the time-ordered process layer. Do not mix TEP and IIoT on one Phase 1 stream.
 
 ### 2) Tennessee Eastman Process (TEP)
 
@@ -131,7 +135,7 @@ The most practical default is **timeseries-generator + custom Python** rather th
 
 ### Step 1: Load benchmark data as the base process layer
 
-The Industrial IoT dataset should serve as the machine/equipment base layer, while TEP should serve as the continuous process base layer. In practice, this means loading both into Python with pandas, normalizing column names, aligning timestamps, and selecting the slices that represent the kinds of assets you want to model.
+TEP is the continuous process base layer (time-ordered, 3-minute samples). The Kaggle IIoT file is a **per-machine snapshot** layer, not a second time series to align. Load both with pandas; do not pretend the IIoT rows are 1 s samples and do not mix the two on one Phase 1 stream.
 
 A useful pattern is:
 

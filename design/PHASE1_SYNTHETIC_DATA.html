@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 1 synthetic data record</title>
+  <style>
+    :root {
+      --bg: #12110f;
+      --paper: #1c1a17;
+      --ink: #ece7dc;
+      --muted: #b7b0a3;
+      --rule: #3a342c;
+      --accent: #c45a2a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+    body {
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+      line-height: 1.55;
+    }
+    .hero {
+      position: relative;
+      min-height: 58vh;
+      background: #0c0b0a center/cover no-repeat url("assets/hero-plant.png");
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, var(--bg) 0%, transparent 42%);
+    }
+    main {
+      max-width: 42rem;
+      margin: -4rem auto 4rem;
+      padding: 0 1.25rem 3rem;
+      position: relative;
+    }
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.4rem;
+    }
+    .lede { color: var(--muted); margin: 0 0 1.6rem; }
+    h2 {
+      font-size: 1.2rem;
+      margin: 2.1rem 0 0.7rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--rule);
+    }
+    p, li { color: var(--ink); }
+    a { color: #e8c4a8; }
+    figure { margin: 1.4rem 0; }
+    figure img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); }
+    figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 0.45rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+      margin: 0.8rem 0 1.2rem;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.4rem 0.45rem 0.4rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    th { color: var(--muted); font-weight: 600; }
+    code, pre {
+      font-family: "IBM Plex Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+    }
+    pre {
+      background: var(--paper);
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      border: 1px solid var(--rule);
+    }
+    ol, ul { padding-left: 1.2rem; }
+    .meta { color: var(--muted); font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="hero" role="img" aria-label="Chemical plant at dawn"></div>
+  <main>
+    <p class="meta">Lagos Specialty Chemicals · Phase 1 record · 18 August 2026</p>
+    <h1>Phase 1 synthetic data record</h1>
+    <p class="lede">
+      Generators are on <code>main</code>. The full L0 cache was written, then deleted.
+      Contract:
+      <a href="PHASE1_L0_CONTRACT.md">PHASE1_L0_CONTRACT.md</a>.
+      Markdown twin:
+      <a href="PHASE1_SYNTHETIC_DATA.md">PHASE1_SYNTHETIC_DATA.md</a>.
+    </p>
+
+    <p>
+      This page is the durable record of what Phase 1 actually did. It is not the L0 contract
+      and it is not a dump of the session log. The contract still governs the record shape.
+      This note records the land, the disk facts, and the persist rules Hamid set.
+    </p>
+    <p>
+      Phase 1 is replay-only. It does not assign physical meaning. It does not write Sparkplug.
+      It does not open the mapping table.
+    </p>
+
+    <h2>What landed</h2>
+    <p>Two PRs closed the code path on 18 August 2026, Central Time.</p>
+    <table>
+      <thead>
+        <tr><th>PR</th><th>Merge</th><th>SHA</th><th>What it is</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://github.com/aadehamid/scada_harmonization/pull/28">#28</a></td>
+          <td>12:34 AM CT</td>
+          <td><code>8564fed</code></td>
+          <td>pandas as the first runtime dependency, empty Phase 1 package inits, ty in the dev group and CI</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/aadehamid/scada_harmonization/pull/29">#29</a></td>
+          <td>12:56 AM CT</td>
+          <td><code>3039710</code></td>
+          <td>L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      The merge commit for #29 is <code>3039710</code>. The last commit on that branch is
+      <code>8b83fa6</code>. Runtime dependencies on <code>main</code> are now pandas and pydantic.
+      CI stays golden-slice only. No full-dataset CI. No network in CI.
+    </p>
+
+    <h2>Persist rules (Hamid)</h2>
+    <p>Hamid owns keep versus delete. Agents do not invent a retention policy.</p>
+    <ol>
+      <li><strong>Keep raw.</strong> Benchmark downloads stay in <code>data/raw/</code> (gitignored). Measured size after Phase 1: <strong>1.35 GiB</strong>.</li>
+      <li><strong>Cache is regenerable.</strong> A full L0 JSONL in <code>data/cache/</code> is a derived product of raw plus seed. It is safe to delete. Hamid deleted the one that was written.</li>
+      <li><strong>Do not persist Full Faulty Testing as L0.</strong> That split was never written. At 200 B/rec it would have been about <strong>96 GiB</strong>.</li>
+      <li><strong>Commit the golden slice, not the plant.</strong> <code>tests/fixtures/datagen/golden_l0_slice.jsonl</code> is the identity pin. <code>data/**</code> payloads stay gitignored.</li>
+    </ol>
+    <p>Those four rules are why a 54.63 GiB file existed for one day and then did not.</p>
+
+    <h2>Disk facts (18 August 2026)</h2>
+    <table>
+      <thead>
+        <tr><th>Artifact</th><th>Fate</th><th>Size / count</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>L0 cache JSONL</td><td>Written, then deleted the same day</td><td><strong>330,920,000</strong> rows, <strong>54.63 GiB</strong></td></tr>
+        <tr><td>Full Faulty Testing L0</td><td>Never written</td><td>~96 GiB at 200 B/rec</td></tr>
+        <tr><td>Raw downloads</td><td>Kept</td><td><strong>1.35 GiB</strong></td></tr>
+        <tr><td>Golden slice</td><td>Committed</td><td>4 rows, 700 bytes</td></tr>
+      </tbody>
+    </table>
+    <p>SHA-256 of the committed golden file:</p>
+    <pre>f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516</pre>
+    <p>Pinned as <code>GOLDEN_SHA256</code> in <code>tests/datagen/factories.py</code>. The hash is of canonical UTF-8 JSONL, not of a raw download.</p>
+
+    <h2>TEP (the process layer)</h2>
+    <p>
+      Source: Rieth et al., Harvard Dataverse,
+      <a href="https://doi.org/10.7910/DVN/6C3JR1">doi:10.7910/DVN/6C3JR1</a>.
+      Wide tables. Three metadata columns (<code>faultNumber</code>, <code>simulationRun</code>,
+      <code>sample</code>) plus 52 process variables. Native cadence is a 3-minute sample index, not UTC.
+      Ingestion assigns sim-time <code>1970-01-01T00:00:00Z + i * 180s</code>. Phase 1 does not interpolate TEP to 1 s.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Split</th><th>Wide shape (published)</th><th>L0 written?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>FaultFree Training</td><td>500 runs × 500 samples = 250,000</td><td>Part of the 330,920,000-row cache</td></tr>
+        <tr><td>FaultFree Testing</td><td>500 runs × 960 samples = 480,000</td><td>Part of the 330,920,000-row cache</td></tr>
+        <tr><td>Faulty Training</td><td>20 faults × 500 runs × 500 samples = 10,000,000</td><td>Part of the 330,920,000-row cache</td></tr>
+        <tr><td>Faulty Testing</td><td>20 faults × 500 runs × 960 samples = 19,200,000</td><td><strong>No.</strong> Hamid skipped it.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Melt is <code>n_long = n_samples * n_value_columns</code>. Clean natives are quality Good.
+      Seed 42 is run metadata, not a column. NAB is skipped for Phase 1 exit.
+    </p>
+
+    <h2>IIoT (snapshot per machine, not 1 s)</h2>
+    <figure>
+      <img src="assets/instruments.png" alt="Analog gauges and a strip-chart recorder">
+      <figcaption>The IIoT file is a snapshot per machine, not a strip-chart time series.</figcaption>
+    </figure>
+    <p>
+      Source:
+      <a href="https://www.kaggle.com/datasets/canozensoy/industrial-iot-dataset-synthetic">Industrial IoT Dataset (Synthetic)</a>
+      (<code>factory_sensor_simulator_2040.csv</code>).
+    </p>
+    <p>
+      The file is <strong>one snapshot per machine</strong>: about 500,000 rows, 22 columns.
+      It is not a historian export and it is not a 1-second time series. Earlier notes treated it
+      as a replayable 1 Hz stream. That reading is wrong. This record corrects it.
+    </p>
+    <p>
+      The L0 contract still says: if an IIoT table has a UTC column, use it; otherwise fall back
+      to <code>1970-01-01T00:00:00Z + i * 1s</code>. That fallback is a melt rule for a wide table
+      that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names
+      IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class.
+      Python extras and a later machine stream have to do that work. This file does not rewrite N8.
+    </p>
+    <p>Phase 1 must not mix TEP and IIoT on one stream.</p>
+
+    <h2>What the generators do</h2>
+    <figure>
+      <img src="assets/pipe-turn.png" alt="Orange industrial pipe elbow">
+      <figcaption>Phase 1 stops at L0. The PLC-world turn is Phase 2.</figcaption>
+    </figure>
+    <p>Code lives under <code>src/scada_harmonizer/datagen/</code>.</p>
+    <ul>
+      <li><strong>Ingest.</strong> Wide CSV to long <code>L0Record</code> rows. TEP natives are float. IIoT natives keep bool/int/float. Null/NaN is rejected; gaps are quality codes.</li>
+      <li><strong>Augment.</strong> Seeded OT extras (<code>xv_feed</code>, <code>machine_state</code>, <code>cycle_count</code>, <code>ctrl_mode</code>, <code>comm_gap</code>, <code>noise_spike</code>, <code>stuck_pv</code>). Same seed, same extras. Natives are copied, then extras append. Lots, work orders, and material IDs stay Phase 5.</li>
+      <li><strong>Replay.</strong> Identity is <code>(sim_time_utc_ms, friendly_name, value, quality)</code>. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live.</li>
+    </ul>
+    <p>
+      Physical meaning waits for the mapping table. <code>friendly_name</code> is what the cache stores.
+      <code>source_column</code> is side metadata.
+    </p>
+
+    <h2>Tests (21, all golden-slice)</h2>
+    <p>
+      <code>uv run pytest</code> is 21 passed. No <code>data/raw</code> or <code>data/cache</code> in CI.
+      Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count,
+      golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and
+      no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill
+      versus live, naive rebase reject.
+    </p>
+
+    <h2>What this does not close</h2>
+    <p>
+      Phase 0 is still open. The mapping-table spine is still gated on the Diagram 1 walkthrough
+      (<code>design/WALKTHROUGH_PROGRESS.md</code>). Charter §8.1 Phase 0 is unchanged.
+    </p>
+    <p>
+      Phase 1 exit is replay-only (deterministic sequence plus the N8 clock). The mapping table's
+      <code>source_cadence</code> column stays on Phase 0. This record does not rewrite N8.
+      Phase 2 has not started.
+    </p>
+  </main>
+</body>
+</html>
