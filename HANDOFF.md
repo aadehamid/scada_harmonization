@@ -321,8 +321,8 @@ hold.**
   12:34 AM CT (`8564fed`); branch `cursor/pandas-wiring-ty-f25b` deleted.
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
-- **As of 2026-08-18:** `main` at `3039710`. This docs PR records Phase 1 and
-  refreshes stale status. `entire/*` checkpoint refs remain.
+- **As of 2026-08-18:** `main` at `3039710`. Docs PR **#30** (this branch) records
+  Phase 1 and refreshes stale status. `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -534,3 +534,4 @@ that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
 **YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#29 merged.
 Phase 1 generators are on `main`. The mapping table is still the Phase 0 remainder.
+Docs PR #30 is open for the Phase 1 record + status refresh. Owner merges.
