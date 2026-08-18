@@ -1,6 +1,7 @@
 """Seeded OT extras — valves, states, counters, modes, plus controlled messiness.
 
 Same seed → same extras. TEP/IIoT native rows are copied (not aliased) unchanged.
+Mixed TEP+IIoT raises MixedCadenceError.
 Lots, work-order, and material IDs stay Phase 5.
 """
 
@@ -19,6 +20,7 @@ from scada_harmonizer.datagen.records import (
     Quality,
     SourceDataset,
 )
+from scada_harmonizer.datagen.replay.identity import assert_single_dataset
 
 
 class ExtraKind(StrEnum):
@@ -140,7 +142,7 @@ def augment(
     natives = [row.model_copy() for row in records]
     if not natives:
         return []
-    dataset = natives[0].source_dataset
+    dataset = assert_single_dataset(natives)
     timestamps = sorted({row.ts_utc for row in natives})
     rng = random.Random(seed)
     extra_rows: list[L0Record] = []

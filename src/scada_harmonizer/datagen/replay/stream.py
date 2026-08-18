@@ -7,6 +7,7 @@ never waits on the wall clock.
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Iterator, Sequence
 from datetime import UTC, datetime, timedelta
@@ -21,8 +22,6 @@ from scada_harmonizer.datagen.replay.identity import (
     sort_records,
     to_identity,
 )
-
-PAUSE_POLL_S = 0.01
 
 
 class WallClock(Protocol):
@@ -46,7 +45,11 @@ class ReplayEvent(NamedTuple):
 
 
 class ReplayStream:
-    """Time-ordered emitter for one dataset. Construction fails on mixed cadence."""
+    """Time-ordered emitter for one dataset. Construction fails on mixed cadence.
+
+    Live ``pause()`` blocks ``emit()`` on a ``threading.Event``. Call ``resume()``
+    from another thread — same-thread resume while ``emit()`` is waiting deadlocks.
+    """
 
     def __init__(
         self,
@@ -58,7 +61,8 @@ class ReplayStream:
         self._records = sort_records(records)
         self.settings = settings or ReplaySettings()
         self._clock = clock or SystemWallClock()
-        self._paused = False
+        self._run = threading.Event()
+        self._run.set()
 
     @property
     def mode(self) -> ReplayMode:
@@ -69,10 +73,10 @@ class ReplayStream:
         return self.settings.mode is ReplayMode.LIVE
 
     def pause(self) -> None:
-        self._paused = True
+        self._run.clear()
 
     def resume(self) -> None:
-        self._paused = False
+        self._run.set()
 
     def identity_list(self) -> list[ReplayIdentity]:
         return [to_identity(row) for row in self._records]
@@ -93,8 +97,7 @@ class ReplayStream:
         origin = self.settings.rebase_origin or self._clock.now()
         speed = self.settings.speed_factor
         for record in self._records:
-            while self._paused:
-                self._clock.sleep(PAUSE_POLL_S)
+            self._run.wait()
             sim_delta_s = (record.ts_utc - first_sim).total_seconds() / speed
             wall = origin + timedelta(seconds=sim_delta_s)
             delay = (wall - self._clock.now()).total_seconds()
