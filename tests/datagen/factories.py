@@ -16,6 +16,29 @@ GOLDEN_SLICE = FIXTURES / "golden_l0_slice.jsonl"
 TINY_TEP_CSV = FIXTURES / "tiny_tep.csv"
 # SHA-256 of golden_l0_slice.jsonl (canonical JSONL bytes).
 GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516"
+MACHINE_STREAM_GOLDEN_SLICE = FIXTURES / "golden_machine_stream_l0_slice.jsonl"
+# SHA-256 of golden_machine_stream_l0_slice.jsonl (natives only, seed 42).
+MACHINE_STREAM_GOLDEN_SHA256 = (
+    "0000000000000000000000000000000000000000000000000000000000000000"
+)
+IDENTITY_COLUMN_NAMES = frozenset(
+    {
+        "machine_id",
+        "Machine_ID",
+        "machine_type",
+        "faultNumber",
+        "simulationRun",
+    }
+)
+FORBIDDEN_BUSINESS_NAMES = {
+    "lot",
+    "lot_id",
+    "work_order",
+    "wo_id",
+    "workorder",
+    "material",
+    "material_id",
+}
 
 
 def tiny_tep_wide() -> pl.DataFrame:
@@ -83,3 +106,22 @@ def assert_same_name_cadence_seconds(rows: Sequence[L0Record], expected_seconds:
 def assert_tep_cadence_180s(rows: Sequence[L0Record]) -> None:
     """Consecutive same-name sim-time deltas are 180s (TEP contract)."""
     assert_same_name_cadence_seconds(rows, 180.0)
+
+
+def assert_unique_same_name_cadence_seconds(
+    rows: Sequence[L0Record], expected_seconds: float
+) -> None:
+    """Unique timestamps per name step at ``expected_seconds``.
+
+    A multi-machine IIoT stream shares one UTC grid, so raw consecutive
+    same-name rows can share a timestamp. Cadence is the unique-ts step.
+    """
+    by_name: dict[str, set[datetime]] = defaultdict(set)
+    for row in rows:
+        by_name[row.friendly_name].add(row.ts_utc)
+    assert by_name
+    for times in by_name.values():
+        ordered = sorted(times)
+        deltas = [(b - a).total_seconds() for a, b in zip(ordered, ordered[1:], strict=False)]
+        assert deltas
+        assert all(delta == expected_seconds for delta in deltas)
