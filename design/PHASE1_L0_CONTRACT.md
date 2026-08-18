@@ -18,11 +18,11 @@ Seed is run metadata, not a per-row field. Default seed is 42. Physical meaning 
 
 ## Time
 
-Tennessee Eastman Process (TEP) is a 3-minute sample index, not UTC. Sim-time is the simulated clock, not wall-clock. Pre-rebase sim-time for sample `i` is `1970-01-01T00:00:00Z + i * 180s`. Industrial Internet of Things (IIoT) uses native UTC timestamps when present; otherwise `1970-01-01T00:00:00Z + i * 1s`. N8 rebase adds a single offset at replay start so the first event meets wall-clock-now. Cadence tests use sim-time deltas (TEP 180s). Do not interpolate TEP to 1s.
+Tennessee Eastman Process (TEP) is a 3-minute sample index, not UTC. Sim-time is the simulated clock, not wall-clock. Pre-rebase sim-time for sample `i` is `1970-01-01T00:00:00Z + i * 180s`. Industrial Internet of Things (IIoT) uses native UTC timestamps when present; otherwise `1970-01-01T00:00:00Z + i * 1s`. The ~1 s fast class is a seeded generated machine stream ingested as `iiot` (native UTC). The Kaggle IIoT file remains a snapshot and is not a 1 Hz historian. N8 rebase adds a single offset at replay start so the first event meets wall-clock-now. Cadence tests use sim-time deltas (TEP 180s; machine stream 1s). Do not interpolate TEP to 1s.
 
 ## Melt
 
-Melt means wide table to long rows. TEP arrives wide. Ingestion melts to long L0 rows: one output row per (sample, column). `n_long = n_samples * n_value_columns`.
+Melt means wide table to long rows. TEP arrives wide. Ingestion melts to long L0 rows: one output row per (sample, column). `n_long = n_samples * n_value_columns`. Identity columns (`machine_id` / `Machine_ID`, `machine_type`, TEP `faultNumber` / `simulationRun`) are stream metadata, not L0 PVs. When `machine_id` is present, `friendly_name` is `{machine_id}/{pv}` and `source_column` stays the PV.
 
 ## Serialization and fixtures
 
@@ -46,6 +46,7 @@ Do not mix TEP and IIoT on one stream.
 - Replay: same seed → identical identity list
 - Speed factor, pause/resume, and rebase do not change the identity list or sim-time deltas
 - Backfill vs live: same identity list; backfill is not live
+- Machine stream: generate → ingest as `iiot` → cache → augment → replay; two machines at the same tick have distinct `{machine_id}/{pv}` names; raw same-name deltas are 1s; machine identity is not an L0 PV; same seed → identical frame and extras; mixed TEP+stream raises MixedCadenceError; machine-stream golden SHA-256 is stable. Kaggle snapshot and TEP 180s tests stay green.
 
 ## Sources
 

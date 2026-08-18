@@ -9,6 +9,7 @@ from pathlib import Path
 
 import polars as pl
 
+from scada_harmonizer.datagen.ingestion.melt import METADATA_COLUMNS
 from scada_harmonizer.datagen.records import L0Record
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "datagen"
@@ -16,6 +17,19 @@ GOLDEN_SLICE = FIXTURES / "golden_l0_slice.jsonl"
 TINY_TEP_CSV = FIXTURES / "tiny_tep.csv"
 # SHA-256 of golden_l0_slice.jsonl (canonical JSONL bytes).
 GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516"
+MACHINE_STREAM_GOLDEN_SLICE = FIXTURES / "golden_machine_stream_l0_slice.jsonl"
+# SHA-256 of golden_machine_stream_l0_slice.jsonl (natives only, seed 42).
+MACHINE_STREAM_GOLDEN_SHA256 = "84b9f0885a8efc3c28c488beebefd47d2d9d6b5fd93dc6f7f681b5b2e52159f0"
+IDENTITY_COLUMN_NAMES = METADATA_COLUMNS
+FORBIDDEN_BUSINESS_NAMES = {
+    "lot",
+    "lot_id",
+    "work_order",
+    "wo_id",
+    "workorder",
+    "material",
+    "material_id",
+}
 
 
 def tiny_tep_wide() -> pl.DataFrame:

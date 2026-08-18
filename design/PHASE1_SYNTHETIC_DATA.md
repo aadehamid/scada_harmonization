@@ -78,7 +78,7 @@ Source: [Industrial IoT Dataset (Synthetic)](https://www.kaggle.com/datasets/can
 
 The file is **one snapshot per machine**: about 500,000 rows, 22 columns. It is not a historian export and it is not a 1-second time series. Earlier notes treated it as a replayable 1 Hz stream. That reading is wrong. This record corrects it.
 
-The L0 contract still says: if an IIoT table has a UTC column, use it; otherwise fall back to `1970-01-01T00:00:00Z + i * 1s`. That fallback is a melt rule for a wide table that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class. Python extras and a later machine stream have to do that work. This file does not rewrite N8.
+The L0 contract still says: if an IIoT table has a UTC column, use it; otherwise fall back to `1970-01-01T00:00:00Z + i * 1s`. That fallback is a melt rule for a wide table that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class. The 1 s class is now a seeded generated machine stream (`generate_machine_stream`), ingested as `SourceDataset.IIOT`. Kaggle remains a snapshot. Python extras ride that 1 s host grid. This file does not rewrite N8.
 
 Phase 1 must not mix TEP and IIoT on one stream.
 
@@ -88,17 +88,18 @@ Phase 1 must not mix TEP and IIoT on one stream.
 
 Code lives under `src/scada_harmonizer/datagen/`.
 
-- **Ingest.** Wide CSV to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Null/NaN is rejected; gaps are quality codes.
+- **Generate.** Seeded 1 s rotating-equipment stream (`datagen/generation/`) — native UTC, string `machine_id` as metadata, a handful of fast PVs. Ingested as `iiot`.
+- **Ingest.** Wide CSV to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Identity columns are not melted. When `machine_id` is present, `friendly_name` is `{machine_id}/{pv}` and `source_column` stays the PV. Null/NaN is rejected; gaps are quality codes.
 - **Augment.** Seeded OT extras (`xv_feed`, `machine_state`, `cycle_count`, `ctrl_mode`, `comm_gap`, `noise_spike`, `stuck_pv`). Same seed, same extras. Natives are copied, then extras append. Quality on extras: Good, plus Bad/gap, Uncertain/spike, Stale/flatline. Lots, work orders, and material IDs stay Phase 5.
 - **Replay.** Identity is `(sim_time_utc_ms, friendly_name, value, quality)`. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live. Live pause blocks `emit()` until a cross-thread resume.
 
 Physical meaning waits for the mapping table. `friendly_name` is what the cache stores. `source_column` is side metadata.
 
-## Tests (21, all golden-slice)
+## Tests (golden-slice only)
 
-`uv run pytest` is 21 passed. No `data/raw` or `data/cache` in CI.
+`uv run pytest` is 34 passed, golden-slice only. No `data/raw` or `data/cache` in CI.
 
-Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject.
+Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject, generated 1 s machine stream (identity metadata, seed pin, extras on the 1 s grid).
 
 ## What this does not close
 
