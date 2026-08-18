@@ -1,7 +1,8 @@
 """Simulated replay clock: rebase, speed factor, pause/resume, backfill vs live.
 
 N8 rebase is a single wall-clock offset at replay start. Backfill writes
-historical sim timestamps and never waits on the wall clock.
+historical sim timestamps (wall_time == record.ts_utc, speed ignored) and
+never waits on the wall clock.
 """
 
 from __future__ import annotations
@@ -20,6 +21,8 @@ from scada_harmonizer.datagen.replay.identity import (
     sort_records,
     to_identity,
 )
+
+PAUSE_POLL_S = 0.01
 
 
 class WallClock(Protocol):
@@ -79,22 +82,27 @@ class ReplayStream:
             return
         first_sim = self._records[0].ts_utc
         if self.settings.mode is ReplayMode.BACKFILL:
-            origin = first_sim
-        else:
-            origin = self.settings.rebase_origin or self._clock.now()
+            for record in self._records:
+                yield ReplayEvent(
+                    identity=to_identity(record),
+                    record=record,
+                    wall_time=record.ts_utc,
+                    is_live=False,
+                )
+            return
+        origin = self.settings.rebase_origin or self._clock.now()
         speed = self.settings.speed_factor
         for record in self._records:
-            while self._paused and self.is_live:
-                self._clock.sleep(0.0)
+            while self._paused:
+                self._clock.sleep(PAUSE_POLL_S)
             sim_delta_s = (record.ts_utc - first_sim).total_seconds() / speed
             wall = origin + timedelta(seconds=sim_delta_s)
-            if self.is_live:
-                delay = (wall - self._clock.now()).total_seconds()
-                if delay > 0:
-                    self._clock.sleep(delay)
+            delay = (wall - self._clock.now()).total_seconds()
+            if delay > 0:
+                self._clock.sleep(delay)
             yield ReplayEvent(
                 identity=to_identity(record),
                 record=record,
                 wall_time=wall,
-                is_live=self.is_live,
+                is_live=True,
             )

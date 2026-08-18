@@ -120,9 +120,9 @@ def test_l0_record_is_frozen() -> None:
         quality_reason=None,
     )
     with pytest.raises(ValidationError):
-        rec.value = 9.99  # type: ignore[misc]
+        type(rec).__setattr__(rec, "value", 9.99)
     with pytest.raises(ValidationError):
-        rec.quality = Quality.BAD  # type: ignore[misc]
+        type(rec).__setattr__(rec, "quality", Quality.BAD)
 
 
 def test_l0_quality_always_present() -> None:
@@ -297,9 +297,7 @@ def test_speed_pause_resume_rebase_do_not_change_identity_or_sim_deltas() -> Non
     fast_clock = FakeWallClock(origin)
     fast_stream = ReplayStream(
         records,
-        settings=ReplaySettings(
-            mode=ReplayMode.LIVE, speed_factor=10.0, rebase_origin=origin
-        ),
+        settings=ReplaySettings(mode=ReplayMode.LIVE, speed_factor=10.0, rebase_origin=origin),
         clock=fast_clock,
     )
     fast_events = list(fast_stream.emit())
@@ -309,7 +307,9 @@ def test_speed_pause_resume_rebase_do_not_change_identity_or_sim_deltas() -> Non
     fast_walls = [
         event.wall_time for event in fast_events if event.identity.friendly_name == "xmeas_1"
     ]
-    wall_deltas = [(b - a).total_seconds() for a, b in zip(fast_walls, fast_walls[1:], strict=False)]
+    wall_deltas = [
+        (b - a).total_seconds() for a, b in zip(fast_walls, fast_walls[1:], strict=False)
+    ]
     assert wall_deltas == [18.0, 18.0]
 
     rebase_origin = datetime(2026, 1, 1, tzinfo=UTC)

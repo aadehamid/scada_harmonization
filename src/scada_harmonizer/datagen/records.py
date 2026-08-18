@@ -65,7 +65,7 @@ def parse_utc_z(value: datetime | str) -> datetime:
 class L0Record(BaseModel):
     """Long-form L0 row. Field declaration order is the canonical JSONL order."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     ts_utc: datetime
     friendly_name: str

@@ -13,7 +13,7 @@ from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from scada_harmonizer.datagen.records import DEFAULT_SEED, L0Record, Quality, SourceDataset
+from scada_harmonizer.datagen.records import L0Record, Quality, SourceDataset
 
 
 class MixedCadenceError(ValueError):
@@ -37,7 +37,6 @@ class ReplaySettings(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    seed: int = DEFAULT_SEED
     speed_factor: float = 1.0
     rebase_origin: datetime | None = None
     mode: ReplayMode = ReplayMode.LIVE

@@ -7,4 +7,5 @@ committed JSONL cannot live there.
   (`design/PHASE1_L0_CONTRACT.md`). CI hashes these records, not raw downloads.
 - `tiny_tep.csv` — the matching wide TEP input (offline; not a dataset download).
 
-Hash is SHA-256 of the UTF-8 golden file. Pinned in `tests/test_phase1_l0_contract.py`.
+Hash is SHA-256 of the UTF-8 golden file. Pinned as `GOLDEN_SHA256` in
+`tests/datagen/factories.py`.

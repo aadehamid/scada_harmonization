@@ -1,6 +1,6 @@
 """Seeded OT extras — valves, states, counters, modes, plus controlled messiness.
 
-Same seed → same extras. TEP/IIoT native rows are copied through unchanged.
+Same seed → same extras. TEP/IIoT native rows are copied (not aliased) unchanged.
 Lots, work-order, and material IDs stay Phase 5.
 """
 
@@ -135,9 +135,9 @@ def augment(
     seed: int = DEFAULT_SEED,
     extras: Sequence[ExtraSpec] | None = None,
 ) -> list[L0Record]:
-    """Append extras. Native rows are returned first, in the same order."""
+    """Append extras. Native rows are copied first, in the same order."""
     specs = list(DEFAULT_EXTRAS if extras is None else extras)
-    natives = list(records)
+    natives = [row.model_copy() for row in records]
     if not natives:
         return []
     dataset = natives[0].source_dataset
