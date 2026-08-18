@@ -1,4 +1,4 @@
-# Skeleton CI — ruff + the import smoke test. Grows when domain tests land.
+# Skeleton CI — ruff + ty + the import smoke test. Grows when domain tests land.
 name: ci
 
 on:
@@ -18,5 +18,7 @@ jobs:
         run: uv sync --group dev
       - name: Ruff
         run: uv run ruff check .
+      - name: ty
+        run: uv run ty check
       - name: Pytest
         run: uv run pytest
