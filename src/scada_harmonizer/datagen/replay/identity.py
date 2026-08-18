@@ -13,7 +13,7 @@ from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from scada_harmonizer.datagen.records import L0Record, Quality, SourceDataset
+from scada_harmonizer.datagen.records import L0Record, Quality, SourceDataset, parse_utc_z
 
 
 class MixedCadenceError(ValueError):
@@ -47,6 +47,13 @@ class ReplaySettings(BaseModel):
         if value <= 0:
             raise ValueError("speed_factor must be > 0")
         return value
+
+    @field_validator("rebase_origin", mode="before")
+    @classmethod
+    def _aware_utc_origin(cls, value: datetime | str | None) -> datetime | None:
+        if value is None:
+            return None
+        return parse_utc_z(value)
 
 
 def assert_single_dataset(records: Sequence[L0Record]) -> SourceDataset:
