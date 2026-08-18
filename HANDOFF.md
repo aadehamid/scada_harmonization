@@ -43,6 +43,16 @@ it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** l
 **Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets). Do not copy that
 write-up into this file.
 
+### This session (2026-08-18): N8 1 s machine stream (PR #33)
+
+Charter §14 N8 fast class was a hole: Kaggle IIoT is a snapshot, TEP is 180 s,
+extras inherited the host grid. Added `generate_machine_stream` — seeded wide
+Polars frame at native 1 s UTC, ingested as `SourceDataset.IIOT`. Machine
+identity is stream metadata, not an L0 PV (`METADATA_COLUMNS`). Extras ride
+that 1 s grid. Golden slice 2×20 s×3 PVs. TEP 180 s and Kaggle-snapshot tests
+stay green. Charter N8 text and Phase 0 `source_cadence` untouched. Walkthrough
+cursor untouched. Do not stack on PR #32.
+
 ### This session (2026-08-18): Hamid lock — pandas → Polars
 
 Polars is the runtime for every tabular job we would have used pandas for. pandas
@@ -328,8 +338,12 @@ hold.**
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
 - **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
-- **As of 2026-08-18:** `main` at `47883c7`. Polars swap PR **#31** is open on
-  `cursor/pandas-to-polars-8a59`. `entire/*` checkpoint refs remain.
+- **PR #31** pandas → Polars: **MERGED** (`7da1621`).
+- **PR #32** docs draft (R2 warehouse / datasheet): **open**, separate branch —
+  do not stack Phase 1 generator work on it.
+- **PR #33** 1 s machine stream (N8 fast class): **open** on
+  `cursor/phase1-1s-machine-stream-7d33`. `main` at `7da1621`.
+  `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
