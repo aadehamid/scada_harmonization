@@ -569,6 +569,8 @@ table validates.
 
 Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
 
+**Reality note (2026-08-18):** Phase 1 L0 code is on `main` (PR #28 `8564fed` pandas/ty wiring; PR #29 `3039710` generators). Runtime deps are pandas + pydantic. A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. The 2026-07-27 Phase 0 split note above remains current: the mapping table is still gated.
+
 ### 8.1 Exit criteria (definition of done, per phase)
 
 | Phase | Done when |
@@ -651,6 +653,8 @@ beyond ERPNext community.
 | `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
 | `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
 | `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
+| `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity (authoritative for ingest/augment/replay) |
+| `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin + assets) |
 | `design/E2E_WALKTHROUGH.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
 | `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — per-step status + resume prompt (not a design source) |
 | `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |

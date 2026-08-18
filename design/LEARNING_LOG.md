@@ -64,10 +64,34 @@ performance up) — nothing about networks or security; those are Purdue and 624
 [Process Control Guide — ISA-95 enterprise integration](https://processcontrolguide.com/isa-95-enterprise-integration/) ·
 [ISA.org — ISA-95 standard](https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard).
 
+### Phase 1 L0 — melt, cache, persist (2026-08-18)
+
+*Captured after PRs #28 (`8564fed`) and #29 (`3039710`). Full write-up:
+`design/PHASE1_SYNTHETIC_DATA.md`. Contract: `design/PHASE1_L0_CONTRACT.md`.*
+
+**What landed.** pandas melts wide TEP to long L0 rows. pydantic freezes the L0
+boundary. Replay identity is `(sim_time_utc_ms, friendly_name, value, quality)`.
+21 golden-slice tests. No network in CI.
+
+**Persist (Hamid).** Keep raw (1.35 GiB). Cache is regenerable: 330,920,000 rows /
+54.63 GiB was written then deleted the same day. Full Faulty Testing was never
+written (~96 GiB at 200 B/rec). Golden SHA-256
+`f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516`.
+
+**IIoT correction.** The Kaggle file is snapshot-per-machine (~500k × 22), not a
+1 s historian stream. The contract's `epoch + i * 1s` path is a melt fallback.
+N8 is not rewritten.
+
+**Teach-back:** *"Phase 1 stores long L0 rows and can replay them deterministically.
+Hamid keeps the raw downloads and deletes the derived cache. The mapping table
+still assigns meaning."*
+
 ## Gotchas
 
 - **Eraser MCP:** the AI edit path (`update_diagram`) tends to reverse connection arrow
   directions — use `manually_update_diagram` (verbatim DSL) when direction matters.
+- **IIoT Kaggle file is not 1 Hz.** Snapshot per machine. Do not replay it as TEP's
+  fast-class twin. Do not mix TEP and IIoT on one stream.
 
 ---
 
@@ -82,6 +106,9 @@ performance up) — nothing about networks or security; those are Purdue and 624
 - **Equipment class vs instance (ISA-95 Part 2)** — a *class* is a reusable template (e.g. "Centrifugal
   Pump" with a shared tag schema); an *instance* is a specific asset ("Pump P-101 at Beaumont").
   Harmonization = every site's instances conform to shared classes (lab: P6 equipment templates).
+- **Golden slice** — the tiny committed L0 JSONL under `tests/fixtures/datagen/` whose
+  SHA-256 pins replay identity in CI. Not a raw download. Phase 1 pin:
+  `f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516`.
 - **Historian** — the OT time-series database of record for telemetry (here: TimescaleDB
   hypertables); stores value + timestamp + quality per sample.
 - **Hypertable** — TimescaleDB's abstraction that auto-partitions a Postgres table by time into
@@ -89,6 +116,9 @@ performance up) — nothing about networks or security; those are Purdue and 624
 - **iDMZ (industrial DMZ, "Level 3.5")** — the buffer zone between OT (Purdue Levels 0–3) and
   IT/enterprise (Levels 4–5); all cross-boundary traffic terminates there, and no IT-side system
   initiates connections into OT.
+- **IEC 62264** — the international designation of **ISA-95** (identical content); see ISA-95.
+- **IIoT snapshot (this lab's Kaggle file)** — one row per machine, not a 1-second
+  time series. `factory_sensor_simulator_2040.csv`, ~500,000 × 22. Distinct from TEP.
 - **ISA-88 / ISA-106** — process-modeling standards: ISA-88 (= IEC 61512) is *batch* control;
   ISA-106 is *continuous* operations. LSC is continuous → production modeled as **lots** (ISA-106),
   not **batches** (ISA-88); hence `production_lot`, not `batch` (§14 N13).
@@ -97,7 +127,11 @@ performance up) — nothing about networks or security; those are Purdue and 624
   (physical process → L3 MOM → L4 ERP) and the **equipment** hierarchy (enterprise → site → area →
   production unit → equipment — the lab's UNS topic path). Defines Part 2 object models (material,
   equipment, personnel, process segments) and the L3↔L4 "schedule down, performance up" exchange.
-- **IEC 62264** — the international designation of **ISA-95** (identical content); see ISA-95.
+- **L0 record** — long-form Phase 1 measurement row: `ts_utc`, `friendly_name`,
+  `source_column`, `source_dataset`, `value`, `quality`, `quality_reason`. Seed is
+  run metadata (default 42), not a column.
+- **Melt** — wide table to long rows. One output row per (sample, value column).
+  `n_long = n_samples * n_value_columns`.
 - **MOM (Manufacturing Operations Management)** — the ISA-95 term for the **Level 3** *function*
   (production, quality, maintenance, inventory operations). "MES" is a common software name for it;
   MOM is the broader standards term. The lab's L3 = MES + LIMS + CMMS + Quality.
@@ -112,12 +146,14 @@ performance up) — nothing about networks or security; those are Purdue and 624
   reactors/columns are production units — the `<production-unit>` segment of the UNS topic path.
 - **Purdue model** — the classic OT network reference architecture (Levels 0–5) that the lab's
   OT / iDMZ / IT zoning follows (charter §13.8).
-- **Schedule down / performance up** — the ISA-95 L3↔L4 exchange pattern: schedules/orders/targets
-  flow *down* from ERP (L4) to operations (L3); actuals/performance flow *up*; reconciled periodically.
-  Lab: order-to-cash conduit C6 down + production confirmations up (§12 #18).
 - **RBE (report by exception)** — publishing only when a value changes beyond a deadband, instead
   of on every scan; saves bandwidth but makes the historian store irregular, change-only samples
   (queries must gap-fill).
+- **Schedule down / performance up** — the ISA-95 L3↔L4 exchange pattern: schedules/orders/targets
+  flow *down* from ERP (L4) to operations (L3); actuals/performance flow *up*; reconciled periodically.
+  Lab: order-to-cash conduit C6 down + production confirmations up (§12 #18).
+- **Sim-time** — the simulated clock on an L0 row, not wall-clock. TEP sample `i` is
+  `1970-01-01T00:00:00Z + i * 180s`. Speed/pause/rebase change wall spacing only.
 - **Sparkplug B** — an MQTT topic + protobuf payload specification (ISO/IEC 20237:2023) adding
   birth/death lifecycle, metric aliases, datatypes, and command semantics (NCMD/DCMD) on top of
   plain MQTT.

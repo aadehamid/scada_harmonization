@@ -97,6 +97,8 @@ real AWS) without invalidating the design.
 | [`design/E2E_WALKTHROUGH.md`](design/E2E_WALKTHROUGH.md) | End-to-end teaching walkthrough script (Threads A/B/C) |
 | [`design/WALKTHROUGH_PROGRESS.md`](design/WALKTHROUGH_PROGRESS.md) | Live walkthrough cursor — resume here |
 | [`design/LEARNING_LOG.md`](design/LEARNING_LOG.md) | Durable concepts + glossary |
+| [`design/PHASE1_L0_CONTRACT.md`](design/PHASE1_L0_CONTRACT.md) | Phase 1 L0 record + replay identity |
+| [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md) | Phase 1 land / persist / disk record |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
 | [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)* |
@@ -105,24 +107,20 @@ real AWS) without invalidating the design.
 
 ## Status
 
-*Updated 2026-07-27.*
+*Updated 2026-08-18.*
 
 **Design and charter are complete** — all infrastructure decisions resolved (broker, historian, PLC
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
-(charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35: Sparkplug namespace +
-forwarder session contract, time/quality/historian semantics, conduit inventory + broker
-auth/TLS/audit, lot-based production model, Plane-4 MLOps additions; pinned tool versions in §4.1).
+(charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 0 is partially built.** The repo skeleton is in place — a `uv` project (Python 3.13, ruff +
-pytest, no runtime dependencies yet) and the full directory structure under `src/scada_harmonizer/`,
-`config/`, `docker/`, `data/`, `notebooks/`, `tests/`. These are **README-only placeholders**: no
-domain code exists yet.
+**Phase 1 L0 is on `main`** (PRs #28 + #29). pandas + pydantic are the runtime deps. 21 golden-slice
+tests. The full L0 cache was written and then deleted the same day; raw downloads stay. Record:
+[`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
 
-**Currently in progress:** the end-to-end teaching walkthrough of Diagram 1 v2 — the ISA-95 primer is
-done, the Purdue lens is next (cursor: `design/WALKTHROUGH_PROGRESS.md`). Finishing it locks Diagram 1
-and unblocks the rest of Phase 0: the **three-stage mapping table as validated config**, which is the
-project's spine and its Phase-0 exit criterion. Diagrams 2–3 are drawn just-in-time. See the charter's
-build sequence (Phases 0–7, with per-phase exit criteria, §8.1).
+**Phase 0 is still open.** The uv skeleton landed in PR #22; the **three-stage mapping table** is
+still gated on the Diagram 1 walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`). ISA-95 primer
+done; Purdue is next. Diagrams 2–3 are drawn just-in-time. See the charter's build sequence
+(Phases 0–7, per-phase exit criteria, §8.1).
 
 ## License
 

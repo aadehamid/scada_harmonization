@@ -14,9 +14,9 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 0, partially built**: the uv skeleton and README-only directory
-structure landed (PR #22); **no domain code yet**. The mapping-table spine is gated on the
-Diagram 1 walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`).
+The project is in **Phase 1 L0 on `main` (PRs #28/#29, 2026-08-18)**; Phase 0 is still
+open because the mapping-table spine is gated on the Diagram 1 walkthrough (cursor:
+`design/WALKTHROUGH_PROGRESS.md`). Phase 1 record: `design/PHASE1_SYNTHETIC_DATA.md`.
 
 ## Picking up the work
 
@@ -126,6 +126,8 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 ## Key documentation (all in `design/`)
 
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
+- `PHASE1_L0_CONTRACT.md` — Phase 1 L0 record + replay identity
+- `PHASE1_SYNTHETIC_DATA.md` — Phase 1 land / persist / disk record (HTML twin)
 - `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
 - `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
 - `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
@@ -248,33 +250,32 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 0 skeleton, landed 2026-07-07 — PR #22):** `pyproject.toml` exists, created
-with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed `.python-version`
-(uv's pin — do not gitignore it); `uv.lock` is committed. **Runtime dependencies are empty by
-design** — each one is added in the phase that needs it, with a one-line justification. The dev
-group holds **ruff** (lint + format; `E,W,F,I,UP,B`; 100 columns) and **pytest** (`testpaths =
-["tests"]`).
+**Current state (Phase 1 L0 on `main`, 2026-08-18 — PRs #28 + #29):** `pyproject.toml` exists,
+created with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed
+`.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed. Runtime deps are
+**pandas** (wide→long melt) and **pydantic** (L0 boundary). Each further dependency is added in
+the phase that needs it, with a one-line justification. The dev group holds **ruff** (lint +
+format; `E,W,F,I,UP,B`; 100 columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
 
-Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .`
+Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run ty check`
 
-**Repo layout (README-only placeholders — no code stubs, per YAGNI; each README states what lands
-there and in which phase):**
+**Repo layout** (later layers still README-only, per YAGNI):
 
 ```
 src/scada_harmonizer/
-  datagen/{ingestion,augmentation,plc_mapping,sparkplug,context_export,replay}   # the 6-layer pipeline
-  {harmonize,record,contextualize,apply}                                          # the four planes
+  datagen/{ingestion,augmentation,replay}   # Phase 1 code on main
+  datagen/{plc_mapping,sparkplug,context_export}  # later phases
+  {harmonize,record,contextualize,apply}    # the four planes
 config/
   mappings/                                 # the three-stage table spine — RESERVED, content gated on the walkthrough
   sites/{beaumont,geismar,rotterdam,corpus_christi}
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
-data/{raw,cache}    # payloads gitignored, structure tracked via READMEs
-notebooks/ # Marimo learning surface, one per component (starts Phase 1)
-tests/     # currently one import smoke test
+data/{raw,cache}    # payloads gitignored; Hamid persist rules in the READMEs + PHASE1_SYNTHETIC_DATA.md
+notebooks/ # Marimo learning surface, one per component
+tests/     # 21 golden-slice tests (no network, no full cache)
 ```
 
-**Planned stack** (not yet added as dependencies): Pydantic v2, pandas, paho-mqtt ≥2.x,
-pysparkplug 0.6.x (**candidate** — PyPI status Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2,
-fallback = hand-rolled `spBv1.0` protobuf), Neo4j driver. **Tool versions/editions/licenses: charter
-§4.1 pinned stack** (EMQX ≥5.9 single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8
-AGPLv3, …).
+**Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
+Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2, fallback = hand-rolled `spBv1.0` protobuf),
+Neo4j driver. **Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
+single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8 AGPLv3, …).
