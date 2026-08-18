@@ -328,7 +328,7 @@ hold.**
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
 - **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
-- **As of 2026-08-18:** `main` at `47883c7`. Polars swap PR is open on
+- **As of 2026-08-18:** `main` at `47883c7`. Polars swap PR **#31** is open on
   `cursor/pandas-to-polars-8a59`. `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
