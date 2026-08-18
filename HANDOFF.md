@@ -553,5 +553,5 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#30 merged.
-Phase 1 generators are on `main`. Tabular runtime is Polars. The mapping table is still the Phase 0 remainder.
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#31 merged.
+PR #33 (1 s machine stream) is open. Tabular runtime is Polars. The mapping table is still the Phase 0 remainder.
