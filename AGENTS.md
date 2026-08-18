@@ -171,7 +171,7 @@ L0 synthetic (TEP process + IIoT machines  +  relational MES/LIMS/CMMS tables)
 **Storage by concern (no overlap):** time-series→**TimescaleDB**; relational/transactional (OLTP)→Postgres;
 analytical (OLAP)→DuckDB; relationships→Neo4j; enterprise→ERPNext (its own MariaDB).
 
-All custom logic is **Python** (Paho MQTT, PySparkplug, pandas, Pydantic, Neo4j driver). Python is a
+All custom logic is **Python** (Paho MQTT, PySparkplug, Polars, Pydantic, Neo4j driver). Python is a
 first-class UNS participant (virtual sensors, Sparkplug publishers, enrichment, inference), not glue.
 
 ## Critical design constraints
@@ -253,7 +253,7 @@ adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline ne
 **Current state (Phase 1 L0 on `main`, 2026-08-18 — PRs #28 + #29):** `pyproject.toml` exists,
 created with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed
 `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed. Runtime deps are
-**pandas** (wide→long melt) and **pydantic** (L0 boundary). Each further dependency is added in
+**polars** (wide→long melt and tabular L0 frames) and **pydantic** (L0 boundary). Each further dependency is added in
 the phase that needs it, with a one-line justification. The dev group holds **ruff** (lint +
 format; `E,W,F,I,UP,B`; 100 columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
 

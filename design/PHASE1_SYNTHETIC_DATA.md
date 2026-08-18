@@ -21,7 +21,7 @@ Two PRs closed the code path on 18 August 2026, Central Time.
 
 The merge commit for #29 is `3039710`. The last commit on that branch is `8b83fa6`.
 
-Runtime dependencies on `main` are now pandas and pydantic. Pydantic validates the L0 boundary. Pandas melts wide TEP (and IIoT tables that look wide) into long L0 rows.
+Runtime dependencies on `main` were pandas and pydantic at land; Hamid later locked Polars as the tabular runtime (pandas removed). Pydantic validates the L0 boundary. Polars melts wide TEP (and IIoT tables that look wide) into long L0 rows.
 
 CI stays golden-slice only. No full-dataset CI. No network in CI.
 

@@ -43,6 +43,11 @@ it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** l
 **Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets). Do not copy that
 write-up into this file.
 
+### This session (2026-08-18): Hamid lock — pandas → Polars
+
+Polars is the runtime for every tabular job we would have used pandas for. pandas
+removed from runtime deps. Golden SHA unchanged. Walkthrough cursor untouched.
+
 ### This session (2026-08-18): Phase 1 write-up + status refresh (docs only)
 
 Hamid asked for the Phase 1 synthetic-data record and a refresh of stale status docs after
@@ -52,7 +57,8 @@ Kaggle file is snapshot-per-machine, not 1 s. Walkthrough cursor untouched.
 
 ### This session (2026-08-18): pandas, Phase 1 package wiring, ty
 
-Wiring PR **#28 merged** (`8564fed`, 12:34 AM CT). pandas is the first runtime dependency:
+Wiring PR **#28 merged** (`8564fed`, 12:34 AM CT). pandas was the first runtime dependency
+(superseded: Polars is now the tabular runtime):
 ingestion melts wide TEP to long L0 rows; augmentation/replay operate on tabular L0 frames.
 `scada_harmonizer.datagen` plus ingestion/augmentation/replay are importable packages.
 ty is in the dev group and CI (`uv run ty check` after ruff). Generators followed in PR #29.
@@ -321,8 +327,9 @@ hold.**
   12:34 AM CT (`8564fed`); branch `cursor/pandas-wiring-ty-f25b` deleted.
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
-- **As of 2026-08-18:** `main` at `3039710`. Docs PR **#30** (this branch) records
-  Phase 1 and refreshes stale status. `entire/*` checkpoint refs remain.
+- **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
+- **As of 2026-08-18:** `main` at `47883c7`. Polars swap PR is open on
+  `cursor/pandas-to-polars-8a59`. `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -428,7 +435,7 @@ Core, decided §12 #16; Diagram 3 before Phase 6).
 and is deleted; the skeleton is on `main`.
 
 - ✅ **1. Python project skeleton** — `pyproject.toml` via **`uv init --lib`** (src layout), Python
-  **3.13** pinned, `uv.lock` committed; runtime deps now **pandas + pydantic** (PRs #28/#29);
+  **3.13** pinned, `uv.lock` committed; runtime deps now **polars + pydantic**;
   ruff + pytest + ty in the dev group;
   `src/scada_harmonizer/` (datagen 6 layers + four planes), `config/`, `docker/`, `data/`,
   `notebooks/`, `tests/`. Phase 1 code is in `datagen/{ingestion,augmentation,replay}`;
@@ -532,6 +539,5 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#29 merged.
-Phase 1 generators are on `main`. The mapping table is still the Phase 0 remainder.
-Docs PR #30 is open for the Phase 1 record + status refresh. Owner merges.
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#30 merged.
+Phase 1 generators are on `main`. Tabular runtime is Polars. The mapping table is still the Phase 0 remainder.

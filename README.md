@@ -113,7 +113,7 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (PRs #28 + #29). pandas + pydantic are the runtime deps. 21 golden-slice
+**Phase 1 L0 is on `main`** (PRs #28 + #29). polars + pydantic are the runtime deps. 21 golden-slice
 tests. The full L0 cache was written and then deleted the same day; raw downloads stay. Record:
 [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
 
