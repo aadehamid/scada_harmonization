@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-17
+**Last updated:** 2026-08-18
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,7 +28,7 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-08-17)
+## 2. Current status (2026-08-18)
 
 **Phase: Phase-0 skeleton landed; end-to-end teaching walkthrough IN PROGRESS (paused at §0.2).**
 Design + charter complete; **all infrastructure decisions resolved**. The **Phase 0 repo skeleton
@@ -40,6 +40,15 @@ layout-corrected and owner-approved; it is the walkthrough + lock target. Diagra
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
 **done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
+
+### This session (2026-08-18): pandas, Phase 1 package wiring, ty
+
+Wiring PR landed (not merged). pandas is the first runtime dependency: ingestion
+melts wide TEP to long L0 rows; augmentation/replay operate on tabular L0 frames.
+`scada_harmonizer.datagen` plus ingestion/augmentation/replay are importable
+packages (empty `__init__.py`, no generator stubs). ty is in the dev group and
+CI (`uv run ty check` after ruff). Walkthrough cursor unchanged. Phase 1
+generators, L0 frame types, and golden-slice tests stay with SDG.
 
 ### This session (2026-08-17) — docs hygiene (no design change)
 
@@ -300,9 +309,10 @@ hold.**
 - **PR #24** — docs hygiene (LICENSE + CI + contradiction sweep) → **MERGED** 2026-08-17
   (`8646a62`); branch `cursor/docs-hygiene-e236` deleted local + remote.
 - **PR #26** Phase 1 exit is replay-only: **MERGED** (`f7bab02`).
-- **As of 2026-08-17:** `main` at `f7bab02`. PR #27 (Phase 1 L0 contract) is open
-  on `cursor/phase1-l0-contract-d73f` (docs only; implementation not started).
-  `entire/*` checkpoint refs remain.
+- **PR #27** Phase 1 L0 contract: **MERGED** (`90cf3d7`).
+- **As of 2026-08-18:** `main` at `90cf3d7`. Wiring PR (pandas + Phase 1 package
+  inits + ty) is on `cursor/pandas-wiring-ty-f25b`. `entire/*` checkpoint refs
+  remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -508,5 +518,4 @@ Thread C (control down) → Thread A (order) → cross-cutting + consciously-omi
 that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest of Phase 0).
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#26 merged.
-PR #27 (Phase 1 L0 contract) is open (docs only).
+**YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#27 merged. Wiring PR (pandas + Phase 1 package inits + ty) is open.
