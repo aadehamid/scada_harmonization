@@ -32,6 +32,34 @@ conflicts with the charter, the charter wins.
 
 **Phase: Phase 1 L0 is on `main` at `7da1621`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
 Mapping table is unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+
+**Hamid lock (2026-08-18, via Chief Architect).** Pack the Diagram 1 v2 L0 cuts as a written
+note in this file. Do not copy or edit the original Eraser file `MgnB91QGOhX8xWiKeaAK`.
+Do not build a second full cloud-architecture canvas now. The original stays the
+walkthrough lock target (cursor still §0.2 Purdue). A copy gets the L0 seat/caption
+fixes only after the walkthrough is ready to lock. Continue synthetic data generation.
+Next piece is the N8 hole, not a drawing. Fast class: seeded extras plus a later
+machine stream. Not the landed Kaggle IIoT file as a 1 s process stream. Not
+interpolated TEP. Still no mapping YAML, no Sparkplug, no second plant. P&ID waits
+until L0 identity is stable so it ties to the same Phase 1 TEP/IIoT keys. N8 is
+not rewritten.
+
+**Packed Diagram 1 v2 L0 cuts (Thread B, L0 to PLC). Packed, not drawn. For a later copy only.**
+
+Musts:
+1. Split IIoT off the TEP Replay → Sensors → PLC path. Snapshot-per-machine. Do not mix streams.
+2. Scan classes are P1 / mapping `source_cadence`, not L0 warehouse. Drop "slower scan classes"
+   from TEP and "~1s fast class" from IIoT. N8 fast class = extras + later machine stream.
+   Do not rewrite N8.
+3. Replay metadata seat (not Sensors): TEP `faultNumber` / `simulationRun` / split; IIoT
+   `Machine_ID` / `Machine_Type`.
+4. L0 join key: `(source_dataset, source_column)` → `metric_registry`. Poller raw-counts is
+   L1 disguise.
+
+Shoulds: R2 `lagos-chem-l0` as Replay upstream (wide Parquet, melt-on-read), distinct from
+L4 MinIO; TEP splits are partitions not boxes; "4 sites re-skin" is TEP-only; Sensors
+caption so vibration/power are not TEP PVs; HITL "L0 Shadow" (N30) vs Purdue L0.
+
 Design + charter complete; **all infrastructure decisions resolved**. Phase 1 ingestion /
 augmentation / replay landed (PRs #28 + #29). Polars is the tabular runtime (#31). The
 mapping-table spine is still unwritten and does not wait on the Diagram 1 walkthrough.
@@ -44,6 +72,13 @@ it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** l
 
 **Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets).
 **Datasheet:** `design/PHASE1_DATASHEET.md`. Do not copy that write-up into this file.
+
+### This session (2026-08-18): Hamid lock via Chief Architect (docs only)
+
+Hamid locked the order: pack Diagram 1 v2 L0 cuts here; do not touch Eraser
+`MgnB91QGOhX8xWiKeaAK`; no second architecture canvas; next work is the N8
+fast-class hole (seeded extras + later machine stream). Walkthrough cursor
+untouched. N8 untouched. One-line pointer in `design/LEARNING_LOG.md`.
 
 ### This session (2026-08-18): R2 persist and #31 merged
 
@@ -364,37 +399,27 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ---
 
-## 3. What's next: four open streams (none is a gate)
+## 3. What's next
 
-The walkthrough is **not** the immediate next action and **not** a gate on Phase 0 or Phase 1.
-Four streams can move independently.
+Hamid lock (2026-08-18, via Chief Architect). The walkthrough is not the next action.
 
-### Stream A. Mapping-table spine (does not wait on Diagram 1)
+1. **N8 fast-class hole (do this).** Seeded extras plus a later machine stream (synthetic
+   data generation). Not the landed Kaggle IIoT file as a 1 s process stream. Not
+   interpolated TEP. Do not rewrite N8.
+2. **Mapping-table spine.** Still unwritten. Does not wait on Diagram 1 lock.
+   `config/mappings/` is reserved. YAML + Pydantic, one measurement across all 4 sites,
+   including the §14 columns. Open alignment question: YAML vs TOML/JSON.
+3. **Walkthrough remains a parallel path at §0.2.** Cursor: `design/WALKTHROUGH_PROGRESS.md`.
+   Original Eraser `MgnB91QGOhX8xWiKeaAK` stays the lock target. Packed L0 cuts live in
+   §2 of this file, not drawn.
 
-Phase 0 skeleton is on `main` (PR #22). The three-stage mapping table is still unwritten.
-`config/mappings/` is a reserved empty folder. YAML + Pydantic validation, one measurement
-across all 4 sites, including the §14 columns (N17 `raw_min`/`raw_max`/`eu_min`/`eu_max` +
-`scale_linear`; N10 quality; N8 `source_cadence`; N11 `interpolation_type`; N18 UNECE unit
-codes). That is charter §8.1's Phase-0 exit criterion. It does not wait on Diagram 1.
+**Still gated / not now:** mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug,
+second plant, P&ID, Eraser copy.
 
-When this stream starts: re-explain from scratch (learning-first), align, then build per
-cadence. Open alignment question: **YAML vs TOML/JSON** (YAML is the assumed default).
+Warehouse reminder (not the next piece): R2 `lagos-chem-l0`, wide Parquet, melt-on-read.
+Details in `design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`.
 
-### Stream B. R2 melt-on-read
-
-Warehouse is wide Parquet on R2 `lagos-chem-l0`. Polars melts on read. Full natives are not
-in git and not on Hamid's Mac. CI stays the golden slice (4 lines). Details live in
-`design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`. Do not copy those
-write-ups here.
-
-### Stream C. Walkthrough, parallel, cursor at §0.2
-
-The live cursor is `design/WALKTHROUGH_PROGRESS.md`. Script: `design/E2E_WALKTHROUGH.md`.
-Notes: `design/LEARNING_LOG.md`. §0.1 ISA-95 is done. Resume at §0.2 Purdue when that
-session runs. Completing the pass still locks Diagram 1 as the template for Diagrams 2 & 3.
-It does not unblock or block the mapping table.
-
-**Kickoff prompt (when that session runs):** *"Read `design/E2E_WALKTHROUGH.md` (the script),
+**Walkthrough kickoff (when that parallel session runs):** *"Read `design/E2E_WALKTHROUGH.md` (the script),
 `design/WALKTHROUGH_PROGRESS.md` (the cursor), and `design/LEARNING_LOG.md` (notes so far). We are
 running the Diagram 1 v2 end-to-end teaching walkthrough. §0.1 ISA-95 is done. Continue from §0.2,
 the Purdue model, using the five-beat cadence (problem tie-in, mechanism, web research with cited
@@ -404,13 +429,6 @@ Threads B, then C, then A."*
 
 **Diagram URL (v2, 2026-07-06, the walkthrough + lock target):**
 https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
-
-Cadence, block order, and the §14 gap checklist stay in `design/E2E_WALKTHROUGH.md`.
-
-### Stream D. Later P&ID / ERP related to this L0
-
-P&ID / ET topology and ERPNext work that consume this L0 stay later (Phase 5b and the
-contextualize plane). They read the harmonized side, not raw names. They do not rewrite N8.
 
 ### Tooling decided this session
 - **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
@@ -492,10 +510,11 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-Four open streams, none of them a gate on the others: the mapping-table spine (does not wait
-on Diagram 1), R2 melt-on-read, the walkthrough at §0.2, and later P&ID/ERP work related to
-this L0.
+Next piece is the N8 fast-class hole (seeded extras + later machine stream). Mapping-table
+spine is unwritten and does not wait on Diagram 1. Walkthrough stays parallel at §0.2.
+Not now: mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug, second plant, P&ID,
+Eraser copy.
 
 No open blocking decisions (§12 #16 resolved: UMH Core). The one deferred non-blocking question is
 **YAML vs TOML/JSON** for the mapping table, answerable when the spine starts. PRs #28 through #31
-merged. `main` is `7da1621`. Tabular runtime is Polars. Warehouse is R2.
+merged. `main` is `7da1621`. Tabular runtime is Polars. Warehouse is R2. This docs PR is #32.

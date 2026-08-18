@@ -90,6 +90,8 @@ melt fallback. N8 is not rewritten.
 Polars. Hamid persists raw and warehouse on R2. Local disks are scratch. The
 mapping table still assigns meaning."*
 
+**Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. Next SDG is the N8 fast-class hole (seeded extras + later machine stream). N8 is not rewritten.
+
 ## Gotchas
 
 - **Eraser MCP:** the AI edit path (`update_diagram`) tends to reverse connection arrow
