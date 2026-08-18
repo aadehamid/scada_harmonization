@@ -329,6 +329,26 @@ def test_speed_pause_resume_rebase_do_not_change_identity_or_sim_deltas() -> Non
     assert rebase_events[0].identity.sim_time_utc_ms == 0
 
 
+def test_naive_rebase_origin_is_rejected_and_live_walls_are_utc_aware() -> None:
+    with pytest.raises(ValidationError):
+        ReplaySettings(rebase_origin=datetime(2026, 1, 1))
+
+    records = ingest_tep(tiny_tep_wide())
+    origin = datetime(2026, 8, 18, 12, 0, tzinfo=UTC)
+    events = list(
+        ReplayStream(
+            records,
+            settings=ReplaySettings(mode=ReplayMode.LIVE, rebase_origin=origin),
+            clock=FakeWallClock(origin),
+        ).emit()
+    )
+    assert events
+    assert all(event.wall_time.tzinfo is not None for event in events)
+    assert all(event.wall_time.utcoffset() == timedelta(0) for event in events)
+    z_origin = ReplaySettings(rebase_origin="2026-01-01T00:00:00Z")
+    assert z_origin.rebase_origin == datetime(2026, 1, 1, tzinfo=UTC)
+
+
 def test_live_emit_while_paused_then_resume_keeps_identity() -> None:
     """emit() blocks while paused; resume() is cross-thread. Identity unchanged."""
     records = ingest_tep(tiny_tep_wide_n(n_samples=3, n_value_columns=2))
