@@ -343,6 +343,8 @@ hold.**
   branch `cursor/pandas-to-polars-8a59`.
 - **As of 2026-08-18:** `main` at `7da1621`. PRs **#28 through #31** merged.
   Warehouse is R2 `lagos-chem-l0`. `entire/*` checkpoint refs remain.
+- **This PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
+  **OPEN** on `cursor/docs-r2-warehouse-datasheet-3221`.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
