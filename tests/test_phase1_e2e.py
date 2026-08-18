@@ -122,7 +122,7 @@ def test_phase1_e2e_ingest_cache_augment_replay(tmp_path: Path) -> None:
     assert live.is_live is True
 
     iiot_csv = tmp_path / "tiny_iiot.csv"
-    tiny_iiot_wide().to_csv(iiot_csv, index=False)
+    tiny_iiot_wide().write_csv(iiot_csv)
     iiot = ingest_iiot_csv(iiot_csv)
     _assert_schema(iiot)
     with pytest.raises(MixedCadenceError):

@@ -164,7 +164,7 @@ foundation is built to feed both; details when we reach Phases 6–7.
 | **L4 — IT/cloud** | Cloud-shaped landing zone | floci (local AWS emulation: S3, Lambda, Kinesis, Glue, Athena, RDS, …) |
 | **Cross-cutting — enterprise** | SAP-like business records | ERPNext (runs on its own MariaDB — not the Postgres ODS) |
 | **Cross-cutting — knowledge** | Connected-context graph + reasoning | Neo4j + GraphRAG |
-| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (paho-mqtt ≥2.x, pysparkplug 0.6.x *candidate — see §4.1*, pandas, Pydantic v2, Neo4j driver) |
+| **Cross-cutting — glue** | All custom logic | **Python** managed with **`uv`** (paho-mqtt ≥2.x, pysparkplug 0.6.x *candidate — see §4.1*, Polars, Pydantic v2, Neo4j driver) |
 | **Cross-cutting — observability** | Pipeline/infra monitoring | **Prometheus + Grafana** — container health, message rates, CDC lag, dead-letter counts, broker state (§13 L7.1) |
 
 ### Storage concern separation (no overlap)
@@ -569,7 +569,7 @@ table validates.
 
 Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
 
-**Reality note (2026-08-18):** Phase 1 L0 code is on `main` (PR #28 `8564fed` pandas/ty wiring; PR #29 `3039710` generators). Runtime deps are pandas + pydantic. A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. The 2026-07-27 Phase 0 split note above remains current: the mapping table is still gated.
+**Reality note (2026-08-18):** Phase 1 L0 code is on `main` (PR #28 `8564fed` pandas/ty wiring; PR #29 `3039710` generators). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. The 2026-07-27 Phase 0 split note above remains current: the mapping table is still gated.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 

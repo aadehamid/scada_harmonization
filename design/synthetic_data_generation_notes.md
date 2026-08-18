@@ -110,13 +110,13 @@ To preserve realism:
 
 | Library | Role | Link |
 |---------|------|------|
-| pandas | Load CSVs, align timestamps, merge benchmark and synthetic signals. | [pandas](https://pandas.pydata.org/) |
+| polars | Load CSVs, melt wide TEP to long L0 rows, tabular L0 frames. | [polars](https://pola.rs/) |
 | paho-mqtt | MQTT connectivity from Python. | [PyPI](https://pypi.org/project/paho-mqtt/) |
 | PySparkplug | Sparkplug B publishing from Python (*candidate* — charter §4.1). | [GitHub](https://github.com/matteosox/pysparkplug) |
 | DuckDB Python package | Fast analytical SQL over replayed datasets and Parquet. | [DuckDB](https://duckdb.org/) |
 | Neo4j Python driver | Optional graph-loading/query support for downstream context flows. | [PyPI](https://pypi.org/project/neo4j-driver/) |
 
-Pandas is the workhorse for dataset loading and transformation, even though it was not the focus of the earlier tool discussion. Paho MQTT is the standard open-source Python MQTT client and should be the default transport library for the project. PySparkplug is the *candidate* Python-native path for Sparkplug B publishing (Pre-Alpha — verify in Phase 2; fallback is hand-rolled `spBv1.0` protobuf over paho-mqtt, charter §4.1). The lab is Sparkplug-centric rather than plain JSON-over-MQTT.
+Polars is the workhorse for dataset loading and transformation (Hamid lock — replaces pandas for every tabular job). Paho MQTT is the standard open-source Python MQTT client and should be the default transport library for the project. PySparkplug is the *candidate* Python-native path for Sparkplug B publishing (Pre-Alpha — verify in Phase 2; fallback is hand-rolled `spBv1.0` protobuf over paho-mqtt, charter §4.1). The lab is Sparkplug-centric rather than plain JSON-over-MQTT.
 
 DuckDB is useful for local analytical preparation, while the Neo4j Python driver becomes useful when the synthetic data flow needs to emit contextual entities and relationships for downstream graph use cases. ERPNext does not change the core synthetic-data tooling directly, but it does increase the importance of generating meaningful business-facing events and identifiers such as work orders, lots, materials, and maintenance triggers.
 
@@ -125,7 +125,7 @@ DuckDB is useful for local analytical preparation, while the Neo4j Python driver
 | Library or approach | Role | Link |
 |---------------------|------|------|
 | timeseries-generator | Generate analog signals with trend, seasonality, and noise. | [Article and examples](https://blog.devgenius.io/customize-your-synthetic-time-series-data-by-timeseries-generator-9a6669e393bc) |
-| Custom Python state machines | Generate valve states, machine modes, and event-driven operational changes. | Use standard Python and pandas workflows. |
+| Custom Python state machines | Generate valve states, machine modes, and event-driven operational changes. | Use standard Python and Polars workflows. |
 | ML4ITS synthetic-data | Optional deep-learning-based synthetic time-series generation. | [GitHub](https://github.com/ML4ITS/synthetic-data) |
 | SynTiSeD | Optional research-oriented synthetic time-series generator. | [Paper](https://www.dfki.de/fileadmin/user_upload/import/13272_SynTiSeD_paper.pdf) |
 
@@ -135,7 +135,7 @@ The most practical default is **timeseries-generator + custom Python** rather th
 
 ### Step 1: Load benchmark data as the base process layer
 
-TEP is the continuous process base layer (time-ordered, 3-minute samples). The Kaggle IIoT file is a **per-machine snapshot** layer, not a second time series to align. Load both with pandas; do not pretend the IIoT rows are 1 s samples and do not mix the two on one Phase 1 stream.
+TEP is the continuous process base layer (time-ordered, 3-minute samples). The Kaggle IIoT file is a **per-machine snapshot** layer, not a second time series to align. Load both with Polars; do not pretend the IIoT rows are 1 s samples and do not mix the two on one Phase 1 stream.
 
 A useful pattern is:
 
