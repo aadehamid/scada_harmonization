@@ -5,8 +5,9 @@
 > (ISA-106, not ISA-88 batches — §14 N13); **PySparkplug is a candidate**, not a decided
 > dependency (§4.1); mapping-table columns include the §14 set. The charter governs.
 >
-> **Phase 1 (2026-08-18):** L0 generators are on `main` (PRs #28/#29). Land, persist, and
-> disk facts: [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md). Contract:
+> **Phase 1 (2026-08-18):** persist and disk facts are R2 wide Parquet on
+> `lagos-chem-l0`. See [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md)
+> and [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
 > [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle file is
 > snapshot-per-machine, not a 1-second time series (see below).
 

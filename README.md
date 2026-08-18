@@ -99,6 +99,7 @@ real AWS) without invalidating the design.
 | [`design/LEARNING_LOG.md`](design/LEARNING_LOG.md) | Durable concepts + glossary |
 | [`design/PHASE1_L0_CONTRACT.md`](design/PHASE1_L0_CONTRACT.md) | Phase 1 L0 record + replay identity |
 | [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md) | Phase 1 land / persist / disk record |
+| [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md) | Phase 1 local vs R2 datasheet |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
 | [`design/umh_anchored_sparkplug_uns_notes.md`](design/umh_anchored_sparkplug_uns_notes.md) | Architecture: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, charter §12 #16)* |
@@ -113,14 +114,15 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (PRs #28 + #29). polars + pydantic are the runtime deps. 21 golden-slice
-tests. The full L0 cache was written and then deleted the same day; raw downloads stay. Record:
+**Phase 1 L0 is on `main`** (PRs #28 through #31, `7da1621`). polars + pydantic are the runtime deps.
+Warehouse is wide Parquet on R2 `lagos-chem-l0`. 21 golden-slice tests. Record:
 [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
+Datasheet: [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md).
 
-**Phase 0 is still open.** The uv skeleton landed in PR #22; the **three-stage mapping table** is
-still gated on the Diagram 1 walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`). ISA-95 primer
-done; Purdue is next. Diagrams 2–3 are drawn just-in-time. See the charter's build sequence
-(Phases 0–7, per-phase exit criteria, §8.1).
+**Phase 0 is still open.** The uv skeleton landed in PR #22. The **three-stage mapping table** is
+unwritten. The Diagram 1 walkthrough is a parallel path, not a Phase 0 gate
+(cursor: `design/WALKTHROUGH_PROGRESS.md`). ISA-95 primer done; Purdue is next. Diagrams 2–3 are
+drawn just-in-time. See the charter's build sequence (Phases 0–7, per-phase exit criteria, §8.1).
 
 ## License
 

@@ -14,14 +14,16 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (PRs #28/#29, 2026-08-18)**; Phase 0 is still
-open because the mapping-table spine is gated on the Diagram 1 walkthrough (cursor:
-`design/WALKTHROUGH_PROGRESS.md`). Phase 1 record: `design/PHASE1_SYNTHETIC_DATA.md`.
+The project is in **Phase 1 L0 on `main` (PR #31, `7da1621`, 2026-08-18)**. Warehouse is
+wide Parquet on R2 `lagos-chem-l0`. Phase 0 is still open because the mapping-table spine
+is unwritten. The Diagram 1 walkthrough is a parallel path (cursor:
+`design/WALKTHROUGH_PROGRESS.md`), not a gate. Phase 1 record:
+`design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`.
 
 ## Picking up the work
 
 **New here? Read [`HANDOFF.md`](HANDOFF.md) first** — it captures current status (decisions resolved,
-open PRs, what's done vs. next), the working conventions, and the immediate next action. Then read the
+open PRs, what's done vs. next), the working conventions, and the open streams. Then read the
 charter below.
 
 ## Authoritative source of truth
@@ -128,6 +130,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
 - `PHASE1_L0_CONTRACT.md` — Phase 1 L0 record + replay identity
 - `PHASE1_SYNTHETIC_DATA.md` — Phase 1 land / persist / disk record (HTML twin)
+- `PHASE1_DATASHEET.md` — Phase 1 local vs R2 datasheet (HTML twin)
 - `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
 - `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
 - `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
@@ -250,7 +253,7 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-18 — PRs #28 + #29):** `pyproject.toml` exists,
+**Current state (Phase 1 L0 on `main`, 2026-08-18, PR #31):** `pyproject.toml` exists,
 created with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed
 `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed. Runtime deps are
 **polars** (wide→long melt and tabular L0 frames) and **pydantic** (L0 boundary). Each further dependency is added in
@@ -267,12 +270,12 @@ src/scada_harmonizer/
   datagen/{plc_mapping,sparkplug,context_export}  # later phases
   {harmonize,record,contextualize,apply}    # the four planes
 config/
-  mappings/                                 # the three-stage table spine — RESERVED, content gated on the walkthrough
+  mappings/                                 # three-stage table spine. RESERVED. Not blocked by the walkthrough
   sites/{beaumont,geismar,rotterdam,corpus_christi}
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
-data/{raw,cache}    # payloads gitignored; Hamid persist rules in the READMEs + PHASE1_SYNTHETIC_DATA.md
+data/{raw,cache}    # local scratch only. Not the durable warehouse (R2 lagos-chem-l0)
 notebooks/ # Marimo learning surface, one per component
-tests/     # 21 golden-slice tests (no network, no full cache)
+tests/     # 21 golden-slice tests (no network, no full warehouse)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
