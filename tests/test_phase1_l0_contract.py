@@ -40,6 +40,7 @@ from scada_harmonizer.datagen.replay import (
     identity_list,
 )
 from tests.datagen.factories import (
+    GOLDEN_SHA256,
     GOLDEN_SLICE,
     TINY_TEP_CSV,
     tiny_iiot_wide,
@@ -47,9 +48,6 @@ from tests.datagen.factories import (
     tiny_tep_wide_n,
     write_tiny_tep_csv,
 )
-
-# SHA-256 of tests/fixtures/datagen/golden_l0_slice.jsonl (canonical JSONL bytes).
-GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516"
 
 FORBIDDEN_BUSINESS_NAMES = {
     "lot",

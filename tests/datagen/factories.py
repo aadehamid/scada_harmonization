@@ -9,6 +9,8 @@ import pandas as pd
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "datagen"
 GOLDEN_SLICE = FIXTURES / "golden_l0_slice.jsonl"
 TINY_TEP_CSV = FIXTURES / "tiny_tep.csv"
+# SHA-256 of golden_l0_slice.jsonl (canonical JSONL bytes).
+GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516"
 
 
 def tiny_tep_wide() -> pd.DataFrame:
