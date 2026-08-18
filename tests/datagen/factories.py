@@ -18,9 +18,7 @@ TINY_TEP_CSV = FIXTURES / "tiny_tep.csv"
 GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516"
 MACHINE_STREAM_GOLDEN_SLICE = FIXTURES / "golden_machine_stream_l0_slice.jsonl"
 # SHA-256 of golden_machine_stream_l0_slice.jsonl (natives only, seed 42).
-MACHINE_STREAM_GOLDEN_SHA256 = (
-    "0000000000000000000000000000000000000000000000000000000000000000"
-)
+MACHINE_STREAM_GOLDEN_SHA256 = "89f88068e08fed3f8b93a6f029a0d575b86ed9ee2d9875457f811d998184e2f8"
 IDENTITY_COLUMN_NAMES = frozenset(
     {
         "machine_id",
