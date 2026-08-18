@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import subprocess
 import sys
-from collections import defaultdict
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -34,6 +34,7 @@ from scada_harmonizer.datagen.records import (
 )
 from scada_harmonizer.datagen.replay import (
     MixedCadenceError,
+    ReplayIdentity,
     ReplayMode,
     ReplaySettings,
     ReplayStream,
@@ -43,6 +44,7 @@ from tests.datagen.factories import (
     GOLDEN_SHA256,
     GOLDEN_SLICE,
     TINY_TEP_CSV,
+    assert_tep_cadence_180s,
     tiny_iiot_wide,
     tiny_tep_wide,
     tiny_tep_wide_n,
@@ -75,7 +77,7 @@ class FakeWallClock:
         self._now = self._now + timedelta(seconds=seconds)
 
 
-def _sim_deltas_ms(identities: list, friendly_name: str) -> list[int]:
+def _sim_deltas_ms(identities: Sequence[ReplayIdentity], friendly_name: str) -> list[int]:
     times = [row.sim_time_utc_ms for row in identities if row.friendly_name == friendly_name]
     return [b - a for a, b in zip(times, times[1:], strict=False)]
 
@@ -123,15 +125,7 @@ def test_l0_quality_always_present() -> None:
 
 def test_tep_cadence_same_name_deltas_are_180s() -> None:
     records = ingest_tep(tiny_tep_wide_n(n_samples=4, n_value_columns=3))
-    by_name: dict[str, list[datetime]] = defaultdict(list)
-    for row in records:
-        by_name[row.friendly_name].append(row.ts_utc)
-    assert by_name
-    for times in by_name.values():
-        times.sort()
-        deltas = [(b - a).total_seconds() for a, b in zip(times, times[1:], strict=False)]
-        assert deltas
-        assert all(delta == 180.0 for delta in deltas)
+    assert_tep_cadence_180s(records)
 
 
 def test_melt_wide_shape_maps_to_long_row_count() -> None:

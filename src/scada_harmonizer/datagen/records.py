@@ -42,11 +42,15 @@ class SourceDataset(StrEnum):
     IIOT = "iiot"
 
 
-def format_utc_z(dt: datetime) -> str:
-    """ISO-8601 with a ``Z`` suffix. Naive datetimes are rejected."""
+def _require_aware_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         raise ValueError("ts_utc must be timezone-aware UTC")
-    return dt.astimezone(UTC).isoformat().replace("+00:00", "Z")
+    return dt.astimezone(UTC)
+
+
+def format_utc_z(dt: datetime) -> str:
+    """ISO-8601 with a ``Z`` suffix. Naive datetimes are rejected."""
+    return _require_aware_utc(dt).isoformat().replace("+00:00", "Z")
 
 
 def parse_utc_z(value: datetime | str) -> datetime:
@@ -55,9 +59,7 @@ def parse_utc_z(value: datetime | str) -> datetime:
     else:
         text = value[:-1] + "+00:00" if value.endswith("Z") else value
         dt = datetime.fromisoformat(text)
-    if dt.tzinfo is None:
-        raise ValueError("ts_utc must be timezone-aware UTC")
-    return dt.astimezone(UTC)
+    return _require_aware_utc(dt)
 
 
 class L0Record(BaseModel):
@@ -95,21 +97,20 @@ def records_to_jsonl(records: Sequence[L0Record]) -> str:
     return "".join(json.dumps(row.to_canonical_dict()) + "\n" for row in records)
 
 
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def write_l0_jsonl(records: Sequence[L0Record], path: Path) -> str:
     """Write canonical JSONL and return the SHA-256 hex digest of the file."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = records_to_jsonl(records)
-    path.write_text(text, encoding="utf-8")
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    path.write_text(records_to_jsonl(records), encoding="utf-8")
+    return sha256_file(path)
 
 
 def read_l0_jsonl(path: Path) -> list[L0Record]:
-    records: list[L0Record] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            records.append(L0Record.model_validate_json(line))
-    return records
-
-
-def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return [
+        L0Record.model_validate_json(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]

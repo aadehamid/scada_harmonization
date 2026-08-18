@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+
+from scada_harmonizer.datagen.records import L0Record
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "datagen"
 GOLDEN_SLICE = FIXTURES / "golden_l0_slice.jsonl"
@@ -46,3 +51,16 @@ def tiny_iiot_wide() -> pd.DataFrame:
 def write_tiny_tep_csv(path: Path) -> Path:
     tiny_tep_wide().to_csv(path, index=False)
     return path
+
+
+def assert_tep_cadence_180s(rows: Sequence[L0Record]) -> None:
+    """Consecutive same-name sim-time deltas are 180s (contract)."""
+    by_name: dict[str, list[datetime]] = defaultdict(list)
+    for row in rows:
+        by_name[row.friendly_name].append(row.ts_utc)
+    assert by_name
+    for times in by_name.values():
+        times.sort()
+        deltas = [(b - a).total_seconds() for a, b in zip(times, times[1:], strict=False)]
+        assert deltas
+        assert all(delta == 180.0 for delta in deltas)

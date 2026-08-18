@@ -49,30 +49,28 @@ def _unwrap_scalar(value: object) -> object:
     return value
 
 
+def _reject_missing(number: object) -> object:
+    """Gaps are quality codes, not null cells."""
+    if number is None or (isinstance(number, float) and number != number):
+        raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
+    return number
+
+
 def _as_float(value: object) -> float:
     """TEP is analog process data — store natives as float, not int."""
-    number = _unwrap_scalar(value)
-    if number is None:
-        raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
+    number = _reject_missing(_unwrap_scalar(value))
     if isinstance(number, bool) or not isinstance(number, int | float):
         raise TypeError(f"cannot coerce {type(number).__name__} to float")
-    as_float = float(number)
-    if as_float != as_float:
-        raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
-    return as_float
+    return float(number)
 
 
 def _as_python_value(value: object) -> bool | int | float:
-    number = _unwrap_scalar(value)
-    if number is None:
-        raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
+    number = _reject_missing(_unwrap_scalar(value))
     if isinstance(number, bool):
         return number
     if isinstance(number, int):
         return int(number)
     if isinstance(number, float):
-        if number != number:
-            raise ValueError("L0 value cannot be null; encode gaps as quality, not NaN")
         return float(number)
     raise TypeError(f"cannot coerce {type(number).__name__} to an L0 value")
 
@@ -90,8 +88,7 @@ def _melt(
         raise ValueError("timestamp count must match sample count")
     value_columns = _value_columns(frame)
     records: list[L0Record] = []
-    for row_i in range(len(frame)):
-        ts = timestamps[row_i]
+    for ts, row_i in zip(timestamps, range(len(frame)), strict=True):
         row = frame.iloc[row_i]
         for column in value_columns:
             raw = row[column]

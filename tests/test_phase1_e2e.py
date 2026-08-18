@@ -7,7 +7,6 @@ Contract unit tests in test_phase1_l0_contract.py stay blocking.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -30,7 +29,13 @@ from scada_harmonizer.datagen.replay import (
     ReplayStream,
     identity_list,
 )
-from tests.datagen.factories import GOLDEN_SHA256, GOLDEN_SLICE, TINY_TEP_CSV, tiny_iiot_wide
+from tests.datagen.factories import (
+    GOLDEN_SHA256,
+    GOLDEN_SLICE,
+    TINY_TEP_CSV,
+    assert_tep_cadence_180s,
+    tiny_iiot_wide,
+)
 
 
 def _assert_schema(rows: list[L0Record]) -> None:
@@ -43,51 +48,37 @@ def _assert_schema(rows: list[L0Record]) -> None:
         assert row.quality is not None
 
 
-def _assert_tep_cadence_180s(rows: list[L0Record]) -> None:
-    by_name: dict[str, list[datetime]] = defaultdict(list)
-    for row in rows:
-        by_name[row.friendly_name].append(row.ts_utc)
-    assert by_name
-    for times in by_name.values():
-        times.sort()
-        deltas = [(b - a).total_seconds() for a, b in zip(times, times[1:], strict=False)]
-        assert deltas
-        assert all(delta == 180.0 for delta in deltas)
+def _materialize_tep(cache_path: Path, *, extras: bool) -> str:
+    return materialize_cache(
+        TINY_TEP_CSV,
+        cache_path,
+        source_dataset=SourceDataset.TEP,
+        seed=DEFAULT_SEED,
+        include_extras=extras,
+    )
 
 
 def test_phase1_e2e_ingest_cache_augment_replay(tmp_path: Path) -> None:
     cache = tmp_path / "cache" / "tep_natives.jsonl"
 
-    native_hash = materialize_cache(
-        TINY_TEP_CSV,
-        cache,
-        source_dataset=SourceDataset.TEP,
-        seed=DEFAULT_SEED,
-        include_extras=False,
-    )
+    native_hash = _materialize_tep(cache, extras=False)
     assert native_hash == GOLDEN_SHA256
     assert sha256_file(cache) == GOLDEN_SHA256
     assert sha256_file(GOLDEN_SLICE) == GOLDEN_SHA256
     natives = read_l0_jsonl(cache)
     assert (
-        materialize_cache(
-            TINY_TEP_CSV,
-            tmp_path / "cache" / "tep_natives_again.jsonl",
-            source_dataset=SourceDataset.TEP,
-            seed=DEFAULT_SEED,
-            include_extras=False,
-        )
+        _materialize_tep(tmp_path / "cache" / "tep_natives_again.jsonl", extras=False)
         == native_hash
     )
 
     _assert_schema(natives)
     assert all(row.source_dataset is SourceDataset.TEP for row in natives)
     assert all(row.quality is Quality.GOOD for row in natives)
-    _assert_tep_cadence_180s(natives)
+    assert_tep_cadence_180s(natives)
 
     augmented = augment(natives, seed=DEFAULT_SEED)
     _assert_schema(augmented)
-    _assert_tep_cadence_180s(augmented)
+    assert_tep_cadence_180s(augmented)
     native_names = {row.friendly_name for row in natives}
     assert [row.to_canonical_dict() for row in natives] == [
         row.to_canonical_dict() for row in augmented if row.friendly_name in native_names
@@ -102,13 +93,7 @@ def test_phase1_e2e_ingest_cache_augment_replay(tmp_path: Path) -> None:
     assert {row.sim_time_utc_ms for row in identities} == {0, 180_000}
 
     extras_cache = tmp_path / "cache" / "tep_plus_extras.jsonl"
-    extras_hash = materialize_cache(
-        TINY_TEP_CSV,
-        extras_cache,
-        source_dataset=SourceDataset.TEP,
-        seed=DEFAULT_SEED,
-        include_extras=True,
-    )
+    extras_hash = _materialize_tep(extras_cache, extras=True)
     assert extras_hash != GOLDEN_SHA256
     one_shot = identity_list(read_l0_jsonl(extras_cache))
     assert one_shot == identities
