@@ -9,7 +9,8 @@ from __future__ import annotations
 import hashlib
 import subprocess
 import sys
-from collections.abc import Callable, Sequence
+import threading
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -34,6 +35,7 @@ from scada_harmonizer.datagen.records import (
 )
 from scada_harmonizer.datagen.replay import (
     MixedCadenceError,
+    ReplayEvent,
     ReplayIdentity,
     ReplayMode,
     ReplaySettings,
@@ -70,16 +72,12 @@ class FakeWallClock:
     def __init__(self, start: datetime) -> None:
         self._now = start
         self.slept: list[float] = []
-        self._on_sleep: Callable[[], None] | None = None
 
     def now(self) -> datetime:
         return self._now
 
     def sleep(self, seconds: float) -> None:
         self.slept.append(seconds)
-        callback = self._on_sleep
-        if callable(callback):
-            callback()
         self._now = self._now + timedelta(seconds=seconds)
 
 
@@ -274,6 +272,8 @@ def test_mixed_cadence_tep_and_iiot_on_one_stream_fails() -> None:
         identity_list(mixed)
     with pytest.raises(MixedCadenceError):
         ReplayStream(mixed)
+    with pytest.raises(MixedCadenceError):
+        augment(mixed)
 
 
 def test_replay_same_seed_identical_identity_list() -> None:
@@ -328,19 +328,45 @@ def test_speed_pause_resume_rebase_do_not_change_identity_or_sim_deltas() -> Non
     assert rebase_events[0].wall_time == rebase_origin
     assert rebase_events[0].identity.sim_time_utc_ms == 0
 
-    pause_clock = FakeWallClock(origin)
-    pause_stream = ReplayStream(
+
+def test_live_emit_while_paused_then_resume_keeps_identity() -> None:
+    """emit() blocks while paused; resume() is cross-thread. Identity unchanged."""
+    records = ingest_tep(tiny_tep_wide_n(n_samples=3, n_value_columns=2))
+    base = identity_list(records)
+    origin = datetime(2026, 8, 18, 12, 0, tzinfo=UTC)
+    clock = FakeWallClock(origin)
+    stream = ReplayStream(
         records,
         settings=ReplaySettings(mode=ReplayMode.LIVE, speed_factor=1.0, rebase_origin=origin),
-        clock=pause_clock,
+        clock=clock,
     )
-    pause_clock._on_sleep = pause_stream.resume
-    pause_stream.pause()
-    pause_events = list(pause_stream.emit())
-    pause_ids = [event.identity for event in pause_events]
-    assert pause_ids == base
-    assert _sim_deltas_ms(pause_ids, "xmeas_1") == expected_sim_deltas
-    assert pause_clock.slept
+    stream.pause()
+    collected: list[ReplayEvent] = []
+    finished = threading.Event()
+
+    def _emit() -> None:
+        try:
+            collected.extend(stream.emit())
+        finally:
+            finished.set()
+
+    worker = threading.Thread(target=_emit, name="replay-emit")
+    worker.start()
+    try:
+        worker.join(timeout=0.2)
+        assert worker.is_alive()
+        assert collected == []
+        assert clock.slept == []
+        stream.resume()
+        assert finished.wait(timeout=2.0)
+        worker.join(timeout=2.0)
+        assert not worker.is_alive()
+    finally:
+        stream.resume()
+        worker.join(timeout=2.0)
+    ids = [event.identity for event in collected]
+    assert ids == base
+    assert _sim_deltas_ms(ids, "xmeas_1") == [180_000, 180_000]
 
 
 def test_backfill_vs_live_same_identity_backfill_is_not_live() -> None:
