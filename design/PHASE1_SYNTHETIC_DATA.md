@@ -89,7 +89,7 @@ Phase 1 must not mix TEP and IIoT on one stream.
 Code lives under `src/scada_harmonizer/datagen/`.
 
 - **Generate.** Seeded 1 s rotating-equipment stream (`datagen/generation/`) — native UTC, string `machine_id` as metadata, a handful of fast PVs. Ingested as `iiot`.
-- **Ingest.** Wide CSV to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Identity columns are not melted. Null/NaN is rejected; gaps are quality codes.
+- **Ingest.** Wide CSV to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Identity columns are not melted. When `machine_id` is present, `friendly_name` is `{machine_id}/{pv}` and `source_column` stays the PV. Null/NaN is rejected; gaps are quality codes.
 - **Augment.** Seeded OT extras (`xv_feed`, `machine_state`, `cycle_count`, `ctrl_mode`, `comm_gap`, `noise_spike`, `stuck_pv`). Same seed, same extras. Natives are copied, then extras append. Quality on extras: Good, plus Bad/gap, Uncertain/spike, Stale/flatline. Lots, work orders, and material IDs stay Phase 5.
 - **Replay.** Identity is `(sim_time_utc_ms, friendly_name, value, quality)`. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live. Live pause blocks `emit()` until a cross-thread resume.
 
