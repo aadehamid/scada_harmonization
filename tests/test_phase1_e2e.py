@@ -13,7 +13,12 @@ from pathlib import Path
 import pytest
 
 from scada_harmonizer.datagen.augmentation import augment
-from scada_harmonizer.datagen.ingestion import ingest_iiot_csv, read_l0_jsonl, sha256_file
+from scada_harmonizer.datagen.ingestion import (
+    ingest_iiot_csv,
+    read_l0_jsonl,
+    sha256_file,
+    write_l0_jsonl,
+)
 from scada_harmonizer.datagen.pipeline import materialize_cache
 from scada_harmonizer.datagen.records import (
     CANONICAL_FIELDS,
@@ -76,13 +81,17 @@ def test_phase1_e2e_ingest_cache_augment_replay(tmp_path: Path) -> None:
     assert all(row.quality is Quality.GOOD for row in natives)
     assert_tep_cadence_180s(natives)
 
+    # Pin ingested natives before augment — not the same objects after mutation.
+    pin_hash = write_l0_jsonl(natives, tmp_path / "natives_pin.jsonl")
+    assert pin_hash == GOLDEN_SHA256
+
     augmented = augment(natives, seed=DEFAULT_SEED)
     _assert_schema(augmented)
     assert_tep_cadence_180s(augmented)
     native_names = {row.friendly_name for row in natives}
-    assert [row.to_canonical_dict() for row in natives] == [
-        row.to_canonical_dict() for row in augmented if row.friendly_name in native_names
-    ]
+    native_after = [row for row in augmented if row.friendly_name in native_names]
+    assert write_l0_jsonl(native_after, tmp_path / "natives_after.jsonl") == pin_hash
+    assert all(before is not after for before, after in zip(natives, native_after, strict=True))
 
     identities = identity_list(augmented)
     again = identity_list(augment(read_l0_jsonl(cache), seed=DEFAULT_SEED))

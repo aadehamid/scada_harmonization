@@ -38,12 +38,26 @@ def tiny_tep_wide_n(n_samples: int, n_value_columns: int) -> pd.DataFrame:
 
 
 def tiny_iiot_wide() -> pd.DataFrame:
-    """2 samples × 2 value columns with native UTC timestamps."""
+    """3 samples × 2 value columns with native UTC timestamps (1s cadence)."""
     return pd.DataFrame(
         {
-            "timestamp": ["2024-01-01T00:00:00Z", "2024-01-01T00:00:01Z"],
-            "temperature": [70.1, 70.2],
-            "vibration": [0.11, 0.12],
+            "timestamp": [
+                "2024-01-01T00:00:00Z",
+                "2024-01-01T00:00:01Z",
+                "2024-01-01T00:00:02Z",
+            ],
+            "temperature": [70.1, 70.2, 70.3],
+            "vibration": [0.11, 0.12, 0.13],
+        }
+    )
+
+
+def tiny_iiot_wide_no_time() -> pd.DataFrame:
+    """IIoT wide frame with no timestamp column — fallback epoch + i * 1s."""
+    return pd.DataFrame(
+        {
+            "temperature": [70.1, 70.2, 70.3],
+            "vibration": [0.11, 0.12, 0.13],
         }
     )
 
@@ -53,8 +67,8 @@ def write_tiny_tep_csv(path: Path) -> Path:
     return path
 
 
-def assert_tep_cadence_180s(rows: Sequence[L0Record]) -> None:
-    """Consecutive same-name sim-time deltas are 180s (contract)."""
+def assert_same_name_cadence_seconds(rows: Sequence[L0Record], expected_seconds: float) -> None:
+    """Consecutive same-name sim-time deltas match the dataset cadence."""
     by_name: dict[str, list[datetime]] = defaultdict(list)
     for row in rows:
         by_name[row.friendly_name].append(row.ts_utc)
@@ -63,4 +77,9 @@ def assert_tep_cadence_180s(rows: Sequence[L0Record]) -> None:
         times.sort()
         deltas = [(b - a).total_seconds() for a, b in zip(times, times[1:], strict=False)]
         assert deltas
-        assert all(delta == 180.0 for delta in deltas)
+        assert all(delta == expected_seconds for delta in deltas)
+
+
+def assert_tep_cadence_180s(rows: Sequence[L0Record]) -> None:
+    """Consecutive same-name sim-time deltas are 180s (TEP contract)."""
+    assert_same_name_cadence_seconds(rows, 180.0)

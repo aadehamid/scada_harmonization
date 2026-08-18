@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -44,8 +44,10 @@ from tests.datagen.factories import (
     GOLDEN_SHA256,
     GOLDEN_SLICE,
     TINY_TEP_CSV,
+    assert_same_name_cadence_seconds,
     assert_tep_cadence_180s,
     tiny_iiot_wide,
+    tiny_iiot_wide_no_time,
     tiny_tep_wide,
     tiny_tep_wide_n,
     write_tiny_tep_csv,
@@ -68,12 +70,16 @@ class FakeWallClock:
     def __init__(self, start: datetime) -> None:
         self._now = start
         self.slept: list[float] = []
+        self._on_sleep: Callable[[], None] | None = None
 
     def now(self) -> datetime:
         return self._now
 
     def sleep(self, seconds: float) -> None:
         self.slept.append(seconds)
+        callback = self._on_sleep
+        if callable(callback):
+            callback()
         self._now = self._now + timedelta(seconds=seconds)
 
 
@@ -101,6 +107,22 @@ def test_l0_required_fields_present_and_ordered() -> None:
     assert dumped["quality"] == "Good"
     assert dumped["quality_reason"] is None
     assert DEFAULT_SEED == 42
+
+
+def test_l0_record_is_frozen() -> None:
+    rec = L0Record(
+        ts_utc=datetime(1970, 1, 1, tzinfo=UTC),
+        friendly_name="xmeas_1",
+        source_column="xmeas_1",
+        source_dataset=SourceDataset.TEP,
+        value=0.25,
+        quality=Quality.GOOD,
+        quality_reason=None,
+    )
+    with pytest.raises(ValidationError):
+        rec.value = 9.99  # type: ignore[misc]
+    with pytest.raises(ValidationError):
+        rec.quality = Quality.BAD  # type: ignore[misc]
 
 
 def test_l0_quality_always_present() -> None:
@@ -199,6 +221,10 @@ def test_augmentation_declared_schema_seed_and_natives_unchanged(tmp_path: Path)
     native_names = {row.friendly_name for row in natives}
     assert native_names.isdisjoint(extra_names)
 
+    # Pin the ingested natives *before* augment. A post-augment snapshot of the
+    # same L0Record instances would still match after in-place value/quality mutation.
+    hash_before = write_l0_jsonl(natives, tmp_path / "natives_before.jsonl")
+
     first = augment(natives, seed=DEFAULT_SEED)
     second = augment(natives, seed=DEFAULT_SEED)
     assert [row.to_canonical_dict() for row in first] == [row.to_canonical_dict() for row in second]
@@ -211,11 +237,10 @@ def test_augmentation_declared_schema_seed_and_natives_unchanged(tmp_path: Path)
     assert extra_first
     assert extra_first != extra_other
 
-    native_before = [row for row in natives if row.friendly_name in native_names]
     native_after = [row for row in first if row.friendly_name in native_names]
-    hash_before = write_l0_jsonl(native_before, tmp_path / "natives_before.jsonl")
     hash_after = write_l0_jsonl(native_after, tmp_path / "natives_after.jsonl")
     assert hash_before == hash_after
+    assert all(before is not after for before, after in zip(natives, native_after, strict=True))
 
     for row in first:
         assert row.friendly_name.lower() not in FORBIDDEN_BUSINESS_NAMES
@@ -223,6 +248,24 @@ def test_augmentation_declared_schema_seed_and_natives_unchanged(tmp_path: Path)
 
 
 # --- Replay --------------------------------------------------------------------
+
+
+def test_iiot_without_time_column_uses_epoch_plus_i_seconds() -> None:
+    records = ingest_iiot(tiny_iiot_wide_no_time())
+    temps = [row for row in records if row.friendly_name == "temperature"]
+    assert len(temps) == 3
+    assert temps[0].ts_utc == datetime(1970, 1, 1, tzinfo=UTC)
+    assert temps[1].ts_utc == datetime(1970, 1, 1, 0, 0, 1, tzinfo=UTC)
+    assert temps[2].ts_utc == datetime(1970, 1, 1, 0, 0, 2, tzinfo=UTC)
+    assert_same_name_cadence_seconds(records, 1.0)
+
+
+def test_iiot_native_utc_same_name_deltas_are_1s() -> None:
+    records = ingest_iiot(tiny_iiot_wide())
+    temps = [row for row in records if row.friendly_name == "temperature"]
+    assert temps[0].ts_utc == datetime(2024, 1, 1, tzinfo=UTC)
+    assert_same_name_cadence_seconds(records, 1.0)
+    assert_tep_cadence_180s(ingest_tep(tiny_tep_wide_n(n_samples=3, n_value_columns=2)))
 
 
 def test_mixed_cadence_tep_and_iiot_on_one_stream_fails() -> None:
@@ -248,22 +291,56 @@ def test_replay_same_seed_identical_identity_list() -> None:
 def test_speed_pause_resume_rebase_do_not_change_identity_or_sim_deltas() -> None:
     records = ingest_tep(tiny_tep_wide_n(n_samples=3, n_value_columns=2))
     base = identity_list(records)
-    fast = identity_list(records, settings=ReplaySettings(speed_factor=10.0))
-    rebased = identity_list(
-        records,
-        settings=ReplaySettings(rebase_origin=datetime(2026, 8, 18, tzinfo=UTC)),
-    )
-    stream = ReplayStream(records, settings=ReplaySettings(speed_factor=2.0))
-    stream.pause()
-    paused = stream.identity_list()
-    stream.resume()
-    resumed = stream.identity_list()
+    expected_sim_deltas = [180_000, 180_000]
+    origin = datetime(2026, 8, 18, 12, 0, tzinfo=UTC)
 
-    assert base == fast == rebased == paused == resumed
-    deltas = _sim_deltas_ms(base, "xmeas_1")
-    assert deltas == [180_000, 180_000]
-    assert _sim_deltas_ms(fast, "xmeas_1") == deltas
-    assert _sim_deltas_ms(rebased, "xmeas_1") == deltas
+    fast_clock = FakeWallClock(origin)
+    fast_stream = ReplayStream(
+        records,
+        settings=ReplaySettings(
+            mode=ReplayMode.LIVE, speed_factor=10.0, rebase_origin=origin
+        ),
+        clock=fast_clock,
+    )
+    fast_events = list(fast_stream.emit())
+    fast_ids = [event.identity for event in fast_events]
+    assert fast_ids == base
+    assert _sim_deltas_ms(fast_ids, "xmeas_1") == expected_sim_deltas
+    fast_walls = [
+        event.wall_time for event in fast_events if event.identity.friendly_name == "xmeas_1"
+    ]
+    wall_deltas = [(b - a).total_seconds() for a, b in zip(fast_walls, fast_walls[1:], strict=False)]
+    assert wall_deltas == [18.0, 18.0]
+
+    rebase_origin = datetime(2026, 1, 1, tzinfo=UTC)
+    rebase_clock = FakeWallClock(rebase_origin)
+    rebase_stream = ReplayStream(
+        records,
+        settings=ReplaySettings(
+            mode=ReplayMode.LIVE, speed_factor=1.0, rebase_origin=rebase_origin
+        ),
+        clock=rebase_clock,
+    )
+    rebase_events = list(rebase_stream.emit())
+    rebase_ids = [event.identity for event in rebase_events]
+    assert rebase_ids == base
+    assert _sim_deltas_ms(rebase_ids, "xmeas_1") == expected_sim_deltas
+    assert rebase_events[0].wall_time == rebase_origin
+    assert rebase_events[0].identity.sim_time_utc_ms == 0
+
+    pause_clock = FakeWallClock(origin)
+    pause_stream = ReplayStream(
+        records,
+        settings=ReplaySettings(mode=ReplayMode.LIVE, speed_factor=1.0, rebase_origin=origin),
+        clock=pause_clock,
+    )
+    pause_clock._on_sleep = pause_stream.resume
+    pause_stream.pause()
+    pause_events = list(pause_stream.emit())
+    pause_ids = [event.identity for event in pause_events]
+    assert pause_ids == base
+    assert _sim_deltas_ms(pause_ids, "xmeas_1") == expected_sim_deltas
+    assert pause_clock.slept
 
 
 def test_backfill_vs_live_same_identity_backfill_is_not_live() -> None:
@@ -297,4 +374,22 @@ def test_backfill_vs_live_same_identity_backfill_is_not_live() -> None:
     ]
     assert all(event.is_live is False for event in backfill_events)
     assert all(event.is_live is True for event in live_events)
+    assert clock.slept == []
+
+
+def test_backfill_wall_time_is_historical_sim_time_regardless_of_speed() -> None:
+    records = ingest_tep(tiny_tep_wide_n(n_samples=3, n_value_columns=2))
+    clock = FakeWallClock(datetime(2026, 8, 18, 12, 0, tzinfo=UTC))
+    stream = ReplayStream(
+        records,
+        settings=ReplaySettings(mode=ReplayMode.BACKFILL, speed_factor=50.0),
+        clock=clock,
+    )
+    events = list(stream.emit())
+    assert events
+    assert all(event.is_live is False for event in events)
+    assert all(event.wall_time == event.record.ts_utc for event in events)
+    assert [event.identity for event in events] == identity_list(records)
+    assert events[0].identity.sim_time_utc_ms == 0
+    assert _sim_deltas_ms([event.identity for event in events], "xmeas_1") == [180_000, 180_000]
     assert clock.slept == []
