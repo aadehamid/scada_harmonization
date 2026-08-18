@@ -9,6 +9,7 @@ from pathlib import Path
 
 import polars as pl
 
+from scada_harmonizer.datagen.ingestion.melt import METADATA_COLUMNS
 from scada_harmonizer.datagen.records import L0Record
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "datagen"
@@ -19,15 +20,7 @@ GOLDEN_SHA256 = "f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d3351
 MACHINE_STREAM_GOLDEN_SLICE = FIXTURES / "golden_machine_stream_l0_slice.jsonl"
 # SHA-256 of golden_machine_stream_l0_slice.jsonl (natives only, seed 42).
 MACHINE_STREAM_GOLDEN_SHA256 = "89f88068e08fed3f8b93a6f029a0d575b86ed9ee2d9875457f811d998184e2f8"
-IDENTITY_COLUMN_NAMES = frozenset(
-    {
-        "machine_id",
-        "Machine_ID",
-        "machine_type",
-        "faultNumber",
-        "simulationRun",
-    }
-)
+IDENTITY_COLUMN_NAMES = METADATA_COLUMNS
 FORBIDDEN_BUSINESS_NAMES = {
     "lot",
     "lot_id",
@@ -114,12 +107,11 @@ def assert_unique_same_name_cadence_seconds(
     A multi-machine IIoT stream shares one UTC grid, so raw consecutive
     same-name rows can share a timestamp. Cadence is the unique-ts step.
     """
-    by_name: dict[str, set[datetime]] = defaultdict(set)
+    seen: dict[str, set[datetime]] = defaultdict(set)
+    unique: list[L0Record] = []
     for row in rows:
-        by_name[row.friendly_name].add(row.ts_utc)
-    assert by_name
-    for times in by_name.values():
-        ordered = sorted(times)
-        deltas = [(b - a).total_seconds() for a, b in zip(ordered, ordered[1:], strict=False)]
-        assert deltas
-        assert all(delta == expected_seconds for delta in deltas)
+        if row.ts_utc in seen[row.friendly_name]:
+            continue
+        seen[row.friendly_name].add(row.ts_utc)
+        unique.append(row)
+    assert_same_name_cadence_seconds(unique, expected_seconds)

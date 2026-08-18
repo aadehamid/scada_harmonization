@@ -2,6 +2,8 @@
 
 from scada_harmonizer.datagen.generation.machine_stream import (
     DEFAULT_MACHINES,
+    DEFAULT_N_MACHINES,
+    DEFAULT_N_SECONDS,
     MACHINE_STREAM_PERIOD_S,
     MACHINE_STREAM_PVS,
     MachineSpec,
@@ -11,6 +13,8 @@ from scada_harmonizer.datagen.generation.machine_stream import (
 
 __all__ = [
     "DEFAULT_MACHINES",
+    "DEFAULT_N_MACHINES",
+    "DEFAULT_N_SECONDS",
     "MACHINE_STREAM_PERIOD_S",
     "MACHINE_STREAM_PVS",
     "MachineSpec",

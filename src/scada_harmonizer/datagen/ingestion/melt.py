@@ -36,12 +36,10 @@ def _is_value_dtype(dtype: pl.DataType) -> bool:
 
 
 def _value_columns(frame: pl.DataFrame) -> list[str]:
-    names: list[str] = []
-    for name in frame.columns:
-        if name in INDEX_COLUMNS or name in TIME_COLUMNS or name in METADATA_COLUMNS:
-            continue
-        if _is_value_dtype(frame.schema[name]):
-            names.append(name)
+    skip = INDEX_COLUMNS | TIME_COLUMNS | METADATA_COLUMNS
+    names = [
+        name for name in frame.columns if name not in skip and _is_value_dtype(frame.schema[name])
+    ]
     if not names:
         raise ValueError("no numeric/bool value columns to melt")
     return names
