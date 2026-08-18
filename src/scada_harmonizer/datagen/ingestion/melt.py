@@ -2,7 +2,8 @@
 
 TEP arrives wide. ``n_long = n_samples * n_value_columns``. Each TEP sample
 ``i`` gets sim-time ``1970-01-01T00:00:00Z + i * 180s``. IIoT uses a native
-UTC column when present.
+UTC column when present. Identity columns (``machine_id``, TEP
+``faultNumber`` / ``simulationRun``) are metadata, not PVs.
 """
 
 from __future__ import annotations
@@ -18,6 +19,16 @@ from scada_harmonizer.datagen.timebase import iiot_fallback_sim_time, tep_sim_ti
 
 INDEX_COLUMNS = frozenset({"sample", "sample_index"})
 TIME_COLUMNS = frozenset({"timestamp", "ts", "ts_utc", "time"})
+# Identity / run labels. Never L0 PVs — even when numeric (Architect lock).
+METADATA_COLUMNS = frozenset(
+    {
+        "machine_id",
+        "Machine_ID",
+        "machine_type",
+        "faultNumber",
+        "simulationRun",
+    }
+)
 
 
 def _is_value_dtype(dtype: pl.DataType) -> bool:
@@ -27,7 +38,7 @@ def _is_value_dtype(dtype: pl.DataType) -> bool:
 def _value_columns(frame: pl.DataFrame) -> list[str]:
     names: list[str] = []
     for name in frame.columns:
-        if name in INDEX_COLUMNS or name in TIME_COLUMNS:
+        if name in INDEX_COLUMNS or name in TIME_COLUMNS or name in METADATA_COLUMNS:
             continue
         if _is_value_dtype(frame.schema[name]):
             names.append(name)

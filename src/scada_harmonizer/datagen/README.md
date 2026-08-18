@@ -16,5 +16,6 @@ IoT) plus Phase 1 OT extras, in six layers
 | 5 | `context_export/` | business events/IDs for ERPNext + Neo4j flows | 5 |
 | 6 | `replay/` | cadence, simulated clock, speed factor, backfill vs live | 1 |
 
-Phase 1 code: `records.py` (L0 type), `ingestion/`, `augmentation/`, `replay/`,
-`pipeline.py` (raw + seed → cache). Later layers stay README-only until their phase.
+Phase 1 code: `records.py` (L0 type), `generation/` (1 s machine stream),
+`ingestion/`, `augmentation/`, `replay/`, `pipeline.py` (raw + seed → cache).
+Later layers stay README-only until their phase.
