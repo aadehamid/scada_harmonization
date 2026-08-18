@@ -1,7 +1,6 @@
 # ingestion (pipeline layer 1, Phase 1)
 
-Loads the benchmark datasets (TEP, Industrial IoT, optional NAB), validates schema,
-standardizes timestamps, and caches normalized forms into `data/cache/` for deterministic
-replay. The L0 record, TEP melt, sim-time rule, and cache hash are defined in
-`design/PHASE1_L0_CONTRACT.md`. NAB is optional and not required for Phase 1 exit.
-No code until Phase 1.
+Loads local TEP / IIoT CSVs (no downloaders), validates schema, melts wide tables to
+long L0 rows, and writes canonical JSONL. TEP sim-time is epoch + `i * 180s`. Cache
+hash is SHA-256 of that UTF-8 file. Full caches go in `data/cache/` (gitignored);
+CI uses `tests/fixtures/datagen/`. See `design/PHASE1_L0_CONTRACT.md`.
