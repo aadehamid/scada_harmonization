@@ -1,6 +1,6 @@
 # Phase 1 synthetic data record
 
-**Status:** Polars + 1 s machine stream on `main` (`e2c7ff3` after #36; generators `7b6cdd5` / #33). Warehouse is wide Parquet, compressed with zstd, on R2 `lagos-chem-l0`.
+**Status:** Polars + 1 s machine stream on `main` (`733cfec` after #32; generators `7b6cdd5` / #33). Warehouse is wide Parquet, compressed with zstd, on R2 `lagos-chem-l0`.
 **Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
 **Datasheet:** [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md) (why the files sit where they sit).  
 **Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
@@ -23,7 +23,7 @@ PRs closed the Phase 1 L0 path on 18 August 2026, Central Time, then the 1 s str
 | [#31](https://github.com/aadehamid/scada_harmonization/pull/31) | 18 Aug 2026 | `7da1621` | Polars replaces pandas for every tabular job |
 | [#33](https://github.com/aadehamid/scada_harmonization/pull/33) | same day | `7b6cdd5` | seeded 1 s machine stream (P-101 / K-201); `friendly_name` is `{machine_id}/{pv}` |
 
-Generator HEAD is `7b6cdd5`. `main` is `e2c7ff3` after #36. Runtime deps are polars + pydantic. Pydantic validates the L0 boundary. Polars melts wide Parquet on read into long L0 rows.
+Generator HEAD is `7b6cdd5`. `main` is `733cfec` after #32. Runtime deps are polars + pydantic. Pydantic validates the L0 boundary. Polars melts wide Parquet on read into long L0 rows.
 
 CI stays golden-slice only. No full-dataset CI. No network in CI.
 

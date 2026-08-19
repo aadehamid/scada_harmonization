@@ -30,7 +30,7 @@ conflicts with the charter, the charter wins.
 
 ## 2. Current status (2026-08-19)
 
-**Phase: Phase 1 L0 is on `main` at `e2c7ff3`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
+**Phase: Phase 1 L0 is on `main` at `733cfec`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
 1 s machine stream landed (#33). Unit 100 Rev B one-pager landed (#35). Mapping table is
 unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
 
@@ -70,7 +70,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `e2c7ff3` after #36. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `733cfec` after #32. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read |
 | Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full warehouse |
@@ -79,7 +79,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 | Rev B PDF + 59-row tag list (`design/UNIT100_PID.md`). Extra pages not drawn |
 | Not in repo | mapping-table YAML; DEXPI model / `book.py`; Phase 2+ services; Marimo notebooks |
-| Open PRs | **#32** this docs PR (R2 / datasheet / lock note) |
+| Open PRs | none |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -438,7 +438,8 @@ hold.**
 - **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
 - **PR #31** Polars replaces pandas: **MERGED** (`7da1621`); branch deleted.
 - **PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
-  **OPEN** on `cursor/docs-r2-warehouse-datasheet-3221`.
+  **MERGED** (`733cfec`); branch `cursor/docs-r2-warehouse-datasheet-3221`
+  deleted. `main` at `733cfec`.
 - **PR #33** 1 s machine stream (N8 fast class): **MERGED** (`7b6cdd5`);
   branch `cursor/phase1-1s-machine-stream-7d33` deleted local + remote.
 - **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
@@ -446,8 +447,8 @@ hold.**
 - **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
   (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
 - **PR #36** mark #35 merged: **MERGED** (`e2c7ff3`).
-- **As of 2026-08-19:** `main` at `e2c7ff3`. Warehouse is R2 `lagos-chem-l0`.
-  `entire/*` checkpoint refs remain.
+- **As of 2026-08-19:** `main` at `733cfec` (#32). Warehouse is R2 `lagos-chem-l0`.
+  `entire/*` checkpoint refs remain. No open PRs.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -621,8 +622,8 @@ lock, Sparkplug, second plant, extra P&ID pages, Eraser copy.
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred
 non-blocking question is **YAML vs TOML/JSON** for the mapping table. PRs
-#17–#31, #33, #34, #35, and #36 merged. Open docs draft: **#32** (do not
-stack). Tabular runtime is Polars. Warehouse is R2 `lagos-chem-l0`. Unit 100
+#17–#36 merged (including #32). No open PRs. Tabular runtime is Polars.
+Warehouse is R2 `lagos-chem-l0`. Unit 100
 Rev B one-pager is in `tests/fixtures/datagen/pid/`. Extra pages (index /
 analyzer / legend) are the next drawing lap if Hamid wants them. Do not
 invent a second factory.

@@ -115,7 +115,7 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (`e2c7ff3` after #36; generators from #28/#29/#31/#33).
+**Phase 1 L0 is on `main`** (`733cfec` after #32; generators from #28/#29/#31/#33).
 polars + pydantic are the runtime deps. Warehouse is wide Parquet on R2
 `lagos-chem-l0`. 41 tests (34 L0 goldens + Unit 100 P&ID). The 1 s fast class is
 a generated machine stream on P-101 and K-201 (Kaggle stays a snapshot; TEP
