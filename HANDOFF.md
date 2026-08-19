@@ -31,8 +31,9 @@ conflicts with the charter, the charter wins.
 ## 2. Current status (2026-08-19)
 
 **Phase: Phase 1 L0 generators on `main` (incl. 1 s machine stream); Phase 0 mapping table still gated; walkthrough paused at §0.2.**
-Design + charter complete; **all infrastructure decisions resolved**. Phase 1 ingestion /
-augmentation / replay landed (PRs #28 + #29). The mapping-table spine is still gated on the
+Design + charter complete; **all infrastructure decisions resolved**. Phase 1 L0
+(ingestion / generation / augmentation / replay) is on `main` (PRs #28 + #29 + #31 + #33).
+The mapping-table spine is still gated on the
 walkthrough. Hand-built Eraser **Diagram 1 v2** is drawn, layout-corrected and owner-approved;
 it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** later
 (charter §8 sequencing note; Diagram 2's target is decided — **UMH Core**, §12 #16).
