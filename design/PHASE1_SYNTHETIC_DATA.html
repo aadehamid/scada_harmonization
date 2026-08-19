@@ -105,7 +105,7 @@
     </p>
 
     <h2>What landed</h2>
-    <p>Two PRs closed the code path on 18 August 2026, Central Time.</p>
+    <p>PRs closed the Phase 1 L0 path on 18 August 2026, Central Time, then the 1 s stream the same day.</p>
     <table>
       <thead>
         <tr><th>PR</th><th>Merge</th><th>SHA</th><th>What it is</th></tr>
@@ -121,13 +121,24 @@
           <td><a href="https://github.com/aadehamid/scada_harmonization/pull/29">#29</a></td>
           <td>12:56 AM CT</td>
           <td><code>3039710</code></td>
-          <td>L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests</td>
+          <td>L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests at land</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/aadehamid/scada_harmonization/pull/31">#31</a></td>
+          <td>same day</td>
+          <td><code>7da1621</code></td>
+          <td>Polars replaces pandas (Hamid lock)</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/aadehamid/scada_harmonization/pull/33">#33</a></td>
+          <td>same day</td>
+          <td><code>7b6cdd5</code></td>
+          <td>seeded 1 s machine stream (P-101 / K-201); <code>friendly_name</code> is <code>{machine_id}/{pv}</code></td>
         </tr>
       </tbody>
     </table>
     <p>
-      The merge commit for #29 is <code>3039710</code>. The last commit on that branch is
-      <code>8b83fa6</code>. Runtime dependencies on <code>main</code> are now pandas and pydantic.
+      <code>main</code> HEAD is <code>7b6cdd5</code>. Runtime deps are polars + pydantic.
       CI stays golden-slice only. No full-dataset CI. No network in CI.
     </p>
 
@@ -150,12 +161,15 @@
         <tr><td>L0 cache JSONL</td><td>Written, then deleted the same day</td><td><strong>330,920,000</strong> rows, <strong>54.63 GiB</strong></td></tr>
         <tr><td>Full Faulty Testing L0</td><td>Never written</td><td>~96 GiB at 200 B/rec</td></tr>
         <tr><td>Raw downloads</td><td>Kept</td><td><strong>1.35 GiB</strong></td></tr>
-        <tr><td>Golden slice</td><td>Committed</td><td>4 rows, 700 bytes</td></tr>
+        <tr><td>TEP golden slice</td><td>Committed</td><td>4 rows</td></tr>
+        <tr><td>Machine-stream golden</td><td>Committed (#33)</td><td>2 machines × 20 s × 3 PVs</td></tr>
       </tbody>
     </table>
-    <p>SHA-256 of the committed golden file:</p>
+    <p>TEP golden SHA-256 (unchanged):</p>
     <pre>f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516</pre>
-    <p>Pinned as <code>GOLDEN_SHA256</code> in <code>tests/datagen/factories.py</code>. The hash is of canonical UTF-8 JSONL, not of a raw download.</p>
+    <p>Machine-stream golden SHA-256:</p>
+    <pre>84b9f0885a8efc3c28c488beebefd47d2d9d6b5fd93dc6f7f681b5b2e52159f0</pre>
+    <p>Pinned as <code>GOLDEN_SHA256</code> and <code>MACHINE_STREAM_GOLDEN_SHA256</code> in <code>tests/datagen/factories.py</code>. Hashes are of canonical UTF-8 JSONL, not of a raw download.</p>
 
     <h2>TEP (the process layer)</h2>
     <p>
@@ -201,7 +215,7 @@
       to <code>1970-01-01T00:00:00Z + i * 1s</code>. That fallback is a melt rule for a wide table
       that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names
       IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class.
-      Python extras and a later machine stream have to do that work. This file does not rewrite N8.
+      Python extras and the generated 1 s machine stream (PR #33) cover the gap. This file does not rewrite N8.
     </p>
     <p>Phase 1 must not mix TEP and IIoT on one stream.</p>
 
@@ -212,7 +226,8 @@
     </figure>
     <p>Code lives under <code>src/scada_harmonizer/datagen/</code>.</p>
     <ul>
-      <li><strong>Ingest.</strong> Wide CSV to long <code>L0Record</code> rows. TEP natives are float. IIoT natives keep bool/int/float. Null/NaN is rejected; gaps are quality codes.</li>
+      <li><strong>Generate.</strong> Seeded 1 s rotating-equipment stream — native UTC, string <code>machine_id</code> as metadata. Ingested as <code>iiot</code>.</li>
+      <li><strong>Ingest.</strong> Wide CSV to long <code>L0Record</code> rows. TEP natives are float. IIoT natives keep bool/int/float. When <code>machine_id</code> is present, <code>friendly_name</code> is <code>{machine_id}/{pv}</code>. Null/NaN is rejected; gaps are quality codes.</li>
       <li><strong>Augment.</strong> Seeded OT extras (<code>xv_feed</code>, <code>machine_state</code>, <code>cycle_count</code>, <code>ctrl_mode</code>, <code>comm_gap</code>, <code>noise_spike</code>, <code>stuck_pv</code>). Same seed, same extras. Natives are copied, then extras append. Lots, work orders, and material IDs stay Phase 5.</li>
       <li><strong>Replay.</strong> Identity is <code>(sim_time_utc_ms, friendly_name, value, quality)</code>. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live.</li>
     </ul>
@@ -221,13 +236,13 @@
       <code>source_column</code> is side metadata.
     </p>
 
-    <h2>Tests (21, all golden-slice)</h2>
+    <h2>Tests (golden-slice only)</h2>
     <p>
-      <code>uv run pytest</code> is 21 passed. No <code>data/raw</code> or <code>data/cache</code> in CI.
+      <code>uv run pytest</code> is 34 passed. No <code>data/raw</code> or <code>data/cache</code> in CI.
       Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count,
       golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and
       no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill
-      versus live, naive rebase reject.
+      versus live, naive rebase reject, generated 1 s machine stream.
     </p>
 
     <h2>What this does not close</h2>

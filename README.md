@@ -107,15 +107,18 @@ real AWS) without invalidating the design.
 
 ## Status
 
-*Updated 2026-08-18.*
+*Updated 2026-08-19.*
 
 **Design and charter are complete** — all infrastructure decisions resolved (broker, historian, PLC
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (PRs #28 + #29). polars + pydantic are the runtime deps. 21 golden-slice
-tests. The full L0 cache was written and then deleted the same day; raw downloads stay. Record:
-[`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
+**Phase 1 L0 is on `main`** (`7b6cdd5`, PRs #28 + #29 + #31 + #33). polars + pydantic are the
+runtime deps. 34 golden-slice tests. The 1 s fast class is a generated machine stream on P-101
+and K-201 (Kaggle stays a snapshot; TEP stays 180 s). The full L0 cache was written and then
+deleted the same day; raw downloads stay. Record:
+[`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md). Unit 100 P&ID Rev B is not
+in the repo yet.
 
 **Phase 0 is still open.** The uv skeleton landed in PR #22; the **three-stage mapping table** is
 still gated on the Diagram 1 walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`). ISA-95 primer

@@ -569,7 +569,7 @@ table validates.
 
 Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
 
-**Reality note (2026-08-18):** Phase 1 L0 code is on `main` (PR #28 `8564fed` pandas/ty wiring; PR #29 `3039710` generators). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. The 2026-07-27 Phase 0 split note above remains current: the mapping table is still gated.
+**Reality note (2026-08-19):** Phase 1 L0 code is on `main` at `7b6cdd5` (PR #28 wiring; #29 generators; #31 Polars; #33 1 s machine stream). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series; the ~1 s class is the generated P-101 / K-201 stream. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. The 2026-07-27 Phase 0 split note above remains current: the mapping table is still gated. Unit 100 P&ID Rev B is not in the repo. This note does not rewrite N8.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 

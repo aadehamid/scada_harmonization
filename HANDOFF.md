@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-18
+**Last updated:** 2026-08-19
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -51,7 +51,9 @@ already gone; pruned stale `origin/cursor/pandas-to-polars-8a59` (#31) and
 `origin/cursor/phase1-1s-machine-stream-7d33`. PR #32 left open. Unit 100
 P&ID Rev B exists as a PDF only — Grok Bot machine pack (model, tag schedule,
 book.py) is not in this repo. Next: land the one-page drawing from the PDF
-plus a 59-row tag list. Do not invent a second factory.
+plus a 59-row tag list. Do not invent a second factory. This pass also syncs README, AGENTS,
+charter §8 reality note, Phase 1 record + HTML twin, learning log, and
+synthetic-data notes to `7b6cdd5` / 34 tests. Charter N8 text untouched.
 
 ### This session (2026-08-18): N8 1 s machine stream (PR #33)
 

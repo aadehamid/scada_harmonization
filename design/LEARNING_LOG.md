@@ -82,6 +82,12 @@ written (~96 GiB at 200 B/rec). Golden SHA-256
 1 s historian stream. The contract's `epoch + i * 1s` path is a melt fallback.
 N8 is not rewritten.
 
+**Addendum (2026-08-19).** `#31` swapped pandas → Polars. `#33` landed the 1 s
+machine stream (`generate_machine_stream`, P-101 / K-201). `friendly_name` is
+`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` is 34 passed.
+`main` is `7b6cdd5`. TEP golden SHA unchanged. Unit 100 P&ID Rev B is not in
+the repo.
+
 **Teach-back:** *"Phase 1 stores long L0 rows and can replay them deterministically.
 Hamid keeps the raw downloads and deletes the derived cache. The mapping table
 still assigns meaning."*

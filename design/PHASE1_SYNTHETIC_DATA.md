@@ -1,6 +1,6 @@
 # Phase 1 synthetic data record
 
-**Status:** generators on `main` (2026-08-18). Full L0 cache written, then deleted.  
+**Status:** generators on `main` at `7b6cdd5` (2026-08-19). Full L0 cache written, then deleted.  
 **Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
 **Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
 
@@ -12,16 +12,16 @@ Phase 1 is replay-only. It does not assign physical meaning. It does not write S
 
 ## What landed
 
-Two PRs closed the code path on 18 August 2026, Central Time.
+PRs closed the Phase 1 L0 path on 18 August 2026, Central Time, then the 1 s stream the same day.
 
 | PR | Merge | SHA | What it is |
 |----|-------|-----|------------|
 | [#28](https://github.com/aadehamid/scada_harmonization/pull/28) | 12:34 AM CT | `8564fed` | pandas as the first runtime dependency, empty Phase 1 package inits, ty in the dev group and CI |
-| [#29](https://github.com/aadehamid/scada_harmonization/pull/29) | 12:56 AM CT | `3039710` | L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests |
+| [#29](https://github.com/aadehamid/scada_harmonization/pull/29) | 12:56 AM CT | `3039710` | L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests at land |
+| [#31](https://github.com/aadehamid/scada_harmonization/pull/31) | same day | `7da1621` | Polars replaces pandas (Hamid lock) |
+| [#33](https://github.com/aadehamid/scada_harmonization/pull/33) | same day | `7b6cdd5` | seeded 1 s machine stream (P-101 / K-201); `friendly_name` is `{machine_id}/{pv}` |
 
-The merge commit for #29 is `3039710`. The last commit on that branch is `8b83fa6`.
-
-Runtime dependencies on `main` were pandas and pydantic at land; Hamid later locked Polars as the tabular runtime (pandas removed). Pydantic validates the L0 boundary. Polars melts wide TEP (and IIoT tables that look wide) into long L0 rows.
+`main` HEAD is `7b6cdd5`. Runtime deps are polars + pydantic. Polars melts wide TEP (and IIoT tables that look wide) into long L0 rows.
 
 CI stays golden-slice only. No full-dataset CI. No network in CI.
 
@@ -43,15 +43,22 @@ Those four rules are why a 54.63 GiB file existed for one day and then did not.
 | L0 cache JSONL | Written, then deleted the same day | **330,920,000** rows, **54.63 GiB** |
 | Full Faulty Testing L0 | Never written | ~96 GiB at 200 B/rec |
 | Raw downloads | Kept | **1.35 GiB** |
-| Golden slice | Committed | 4 rows, 700 bytes |
+| TEP golden slice | Committed | 4 rows |
+| Machine-stream golden | Committed (#33) | 2 machines × 20 s × 3 PVs |
 
-SHA-256 of the committed golden file:
+TEP golden SHA-256 (unchanged):
 
 ```
 f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516
 ```
 
-Pinned as `GOLDEN_SHA256` in `tests/datagen/factories.py`. The hash is of canonical UTF-8 JSONL, not of a raw download.
+Machine-stream golden SHA-256:
+
+```
+84b9f0885a8efc3c28c488beebefd47d2d9d6b5fd93dc6f7f681b5b2e52159f0
+```
+
+Pinned as `GOLDEN_SHA256` and `MACHINE_STREAM_GOLDEN_SHA256` in `tests/datagen/factories.py`. Hashes are of canonical UTF-8 JSONL, not of a raw download.
 
 ## TEP (the process layer)
 
