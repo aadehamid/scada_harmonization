@@ -97,7 +97,8 @@ still assigns meaning."*
 - **Eraser MCP:** the AI edit path (`update_diagram`) tends to reverse connection arrow
   directions — use `manually_update_diagram` (verbatim DSL) when direction matters.
 - **IIoT Kaggle file is not 1 Hz.** Snapshot per machine. Do not replay it as TEP's
-  fast-class twin. Do not mix TEP and IIoT on one stream.
+  fast-class twin. Do not mix TEP and IIoT on one stream. The ~1 s class is
+  `generate_machine_stream` (P-101 / K-201), ingested as `iiot`. TEP stays 180 s.
 
 ---
 

@@ -5,6 +5,8 @@
 > (not InfluxDB/QuestDB); broker = two-tier Mosquitto + EMQX; **PySparkplug is a candidate, not a
 > decided dependency** (Pre-Alpha status — verified in Phase 2, see charter §4.1 pinned stack).
 > The Python-centric *philosophy* itself remains adopted (charter §5/§9). The charter governs.
+> **Runtime correction (2026-08-18):** tabular work is **Polars**, not pandas (Hamid lock, PR #31).
+> The pandas row in the library table below is historical.
 
 These notes describe a Python-centric implementation of the Sparkplug B / Unified Namespace home-lab architecture, using Python as the primary implementation language wherever it is practical and mature to do so.[cite:90][cite:92][cite:100][cite:104] The architecture remains the same as the previously discussed hand-built and UMH-anchored variants, but the bias here is explicit: when a role can be implemented well in Python, Python is the default choice.[cite:68][cite:89][cite:97]
 

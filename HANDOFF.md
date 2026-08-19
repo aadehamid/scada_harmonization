@@ -38,6 +38,20 @@ walkthrough. Hand-built Eraser **Diagram 1 v2** is drawn, layout-corrected and o
 it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** later
 (charter §8 sequencing note; Diagram 2's target is decided — **UMH Core**, §12 #16).
 
+**Repo snapshot (what is actually on `main` — `7b6cdd5`):**
+
+| Fact | Reality |
+|------|---------|
+| HEAD | `7b6cdd5` — `#33` squash-merge (`feat: 1 s machine stream for N8 fast class`) |
+| Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
+| Tests | **34** golden-slice (`uv run pytest`); no network, no full cache |
+| Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
+| 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
+| Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
+| Not in repo | mapping-table YAML; Unit 100 P&ID pack; Phase 2+ services; Marimo notebooks |
+| Open PRs | **#32** docs draft (R2 / datasheet — do not stack); **#34** this docs sync |
+| Walkthrough | §0.1 done; **§0.2 Purdue next** (`design/WALKTHROUGH_PROGRESS.md`) |
+
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
 **done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
 
@@ -50,11 +64,12 @@ write-up into this file.
 `cursor/phase1-1s-machine-stream-7d33` deleted (`-D` after squash). Remote
 already gone; pruned stale `origin/cursor/pandas-to-polars-8a59` (#31) and
 `origin/cursor/phase1-1s-machine-stream-7d33`. PR #32 left open. Unit 100
-P&ID Rev B exists as a PDF only — Grok Bot machine pack (model, tag schedule,
-book.py) is not in this repo. Next: land the one-page drawing from the PDF
-plus a 59-row tag list. Do not invent a second factory. This pass also syncs README, AGENTS,
-charter §8 reality note, Phase 1 record + HTML twin, learning log, and
-synthetic-data notes to `7b6cdd5` / 34 tests. Charter N8 text untouched.
+P&ID Rev B is not in this repo (off-repo PDF only; Grok Bot model / tag
+schedule / `book.py` were never committed). Do not invent a second factory.
+This pass syncs README, AGENTS, charter §8 reality note, Phase 1 record +
+HTML twin, learning log, synthetic-data notes, `tests/README.md`, and the
+archived Python-centric banner to `7b6cdd5` / 34 tests. Charter N8 text
+untouched. PR **#34** is this docs-only branch.
 
 ### This session (2026-08-18): N8 1 s machine stream (PR #33)
 
@@ -360,6 +375,9 @@ hold.**
 - **PR #33** 1 s machine stream (N8 fast class): **MERGED** (`7b6cdd5`);
   branch `cursor/phase1-1s-machine-stream-7d33` deleted local + remote.
   `entire/*` checkpoint refs remain. `main` at `7b6cdd5`.
+- **PR #34** docs sync to `7b6cdd5` / 34 tests: **open** draft on
+  `cursor/handoff-git-cleanup-7d33` (this file). Do not stack product
+  work on it.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -468,7 +486,8 @@ and is deleted; the skeleton is on `main`.
   **3.13** pinned, `uv.lock` committed; runtime deps now **polars + pydantic**;
   ruff + pytest + ty in the dev group;
   `src/scada_harmonizer/` (datagen 6 layers + four planes), `config/`, `docker/`, `data/`,
-  `notebooks/`, `tests/`. Phase 1 code is in `datagen/{ingestion,augmentation,replay}`;
+  `notebooks/`, `tests/`. Phase 1 code is in
+  `datagen/{generation,ingestion,augmentation,replay}`;
   later layers and the four planes stay README-only.
 - ⬜ **2. Three-stage mapping table as config (THE SPINE)** — **NOT started; deliberately gated on
   the walkthrough.** `config/mappings/` is a reserved empty folder. YAML + Pydantic validation, one
@@ -570,6 +589,8 @@ that pass **locks Diagram 1** and unblocks the **mapping-table spine** (the rest
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred non-blocking question is
 **YAML vs TOML/JSON** for the mapping table, answerable when piece 2 starts. PRs #17–#31 and #33
-merged. PR #32 remains an open docs draft. Tabular runtime is Polars. The mapping table is still
-the Phase 0 remainder. Next product lap is Unit 100 P&ID Rev B (PDF in hand; model/tag source
-not recovered from the Grok Bot machine).
+merged. Open docs drafts: **#32** (R2 warehouse / datasheet — do not stack) and **#34**
+(this status sync). Tabular runtime is Polars. The mapping table is still the Phase 0
+remainder. Unit 100 P&ID Rev B is **not in the repo** (off-repo PDF only; no
+`design/UNIT100_PID.md`, no `tests/fixtures/datagen/pid/`). Do not invent a second
+factory if that pack lands later.
