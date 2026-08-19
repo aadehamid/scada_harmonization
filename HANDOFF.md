@@ -42,7 +42,7 @@ target for Diagrams 2 & 3. Those diagrams stay **just-in-time**.
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `2003cbb` — `#34` squash-merge (docs sync). Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `a9506d4` — `#35` squash-merge. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full cache |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
@@ -391,8 +391,9 @@ hold.**
 - **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
   branch `cursor/handoff-git-cleanup-7d33` deleted local + remote.
   `main` at `2003cbb` before this P&ID / parallel-walkthrough PR.
-- **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **open** on
-  `cursor/pid-unit100-onepager-7d33`. Do not stack on #32.
+- **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
+  (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
+  `main` at `a9506d4`.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
