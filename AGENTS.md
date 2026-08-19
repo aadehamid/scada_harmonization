@@ -14,11 +14,12 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (PRs #28/#29/#31/#33, `7b6cdd5`, 2026-08-19)**;
-Phase 0 is still open because the mapping-table spine is gated on the Diagram 1
-walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
-`design/PHASE1_SYNTHETIC_DATA.md`. Unit 100 P&ID Rev B is not in the repo yet
-(PDF only; Grok Bot pack not recovered).
+The project is in **Phase 1 L0 on `main` (`2003cbb` after #34, 2026-08-19)**.
+Phase 0 mapping-table YAML is not written yet. The Diagram 1 walkthrough
+**runs in parallel and does not block build** (cursor:
+`design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
+`design/PHASE1_SYNTHETIC_DATA.md`. Unit 100 P&ID Rev B one-pager + 59-name
+tag list: `design/UNIT100_PID.md`.
 
 ## Picking up the work
 
@@ -130,6 +131,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
 - `PHASE1_L0_CONTRACT.md` — Phase 1 L0 record + replay identity
 - `PHASE1_SYNTHETIC_DATA.md` — Phase 1 land / persist / disk record (HTML twin)
+- `UNIT100_PID.md` — Unit 100 P&ID Rev B one-pager + 59-name tag list
 - `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
 - `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
 - `python_centric_uns_notes.md` — implementation philosophy: Python-centric *(archived — superseded on decided items)*
@@ -252,7 +254,7 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-19 — `7b6cdd5`, PRs #28 + #29 + #31 + #33):**
+**Current state (Phase 1 L0 on `main`, 2026-08-19 — `#34` landed on `2003cbb`; generators #28/#29/#31/#33):**
 `pyproject.toml` exists, created with `uv init --lib` (src layout). Python is **pinned to 3.13**
 via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed.
 Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
@@ -270,12 +272,12 @@ src/scada_harmonizer/
   datagen/{plc_mapping,sparkplug,context_export}  # later phases
   {harmonize,record,contextualize,apply}    # the four planes
 config/
-  mappings/                                 # the three-stage table spine — RESERVED, content gated on the walkthrough
+  mappings/                                 # the three-stage table spine — RESERVED; walkthrough does not gate it
   sites/{beaumont,geismar,rotterdam,corpus_christi}
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
 data/{raw,cache}    # payloads gitignored; Hamid persist rules in the READMEs + PHASE1_SYNTHETIC_DATA.md
 notebooks/ # Marimo learning surface, one per component
-tests/     # 34 golden-slice tests (no network, no full cache)
+tests/     # 41 tests (L0 goldens + Unit 100 P&ID; no network, no full cache)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status

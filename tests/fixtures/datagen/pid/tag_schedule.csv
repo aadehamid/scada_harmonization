@@ -1,0 +1,60 @@
+drawing_name,plant_data_name,dataset,parent_equipment,stream,pipe_number,service,on_sheet,provenance
+FT-101,xmeas_1,tep,"",1,"2""-P-1001",A feed,true,reconstructed
+FT-102,xmeas_2,tep,"",2,"2""-P-1002",D feed,true,reconstructed
+FT-103,xmeas_3,tep,"",3,"2""-P-1003",E feed,true,reconstructed
+FT-104,xmeas_4,tep,P-101,4,"4""-P-1004",A+C feed,true,reconstructed
+FT-108,xmeas_5,tep,K-201,8,"6""-P-1008",recycle flow,true,reconstructed
+FT-106,xmeas_6,tep,R-101,6,"6""-P-1006",reactor feed,true,reconstructed
+PT-101,xmeas_7,tep,R-101,6,"",reactor pressure,true,reconstructed
+LT-101,xmeas_8,tep,R-101,6,"",reactor level,true,reconstructed
+TT-101,xmeas_9,tep,R-101,6,"",reactor temperature,true,reconstructed
+FT-109,xmeas_10,tep,"",9,"4""-P-1009",purge to fuel gas,true,reconstructed
+TT-102,xmeas_11,tep,V-101,7,"",product separator temperature,true,reconstructed
+LT-102,xmeas_12,tep,V-101,10,"",product separator level,true,reconstructed
+PT-102,xmeas_13,tep,V-101,7,"",product separator pressure,true,reconstructed
+FT-110,xmeas_14,tep,V-101,10,"3""-P-1010",separator underflow,true,reconstructed
+LT-103,xmeas_15,tep,T-101,11,"",stripper level,true,reconstructed
+PT-103,xmeas_16,tep,T-101,11,"",stripper pressure,true,reconstructed
+FT-111,xmeas_17,tep,T-101,11,"3""-P-1011",stripper underflow G/H product,true,reconstructed
+TT-103,xmeas_18,tep,T-101,11,"",stripper temperature,true,reconstructed
+FT-112,xmeas_19,tep,T-101,"","4""-P-1012",stripper steam,true,reconstructed
+JI-201,xmeas_20,tep,K-201,5,"8""-P-1007",compressor work,true,reconstructed
+TT-104,xmeas_21,tep,R-101,"","3""-CW-1101",reactor CW outlet temperature,true,reconstructed
+TT-105,xmeas_22,tep,E-101,"","3""-CW-1102",separator CW outlet temperature,true,reconstructed
+AT-201,xmeas_23,tep,"","","",composition analyzer,false,drawing
+AT-202,xmeas_24,tep,"","","",composition analyzer,false,drawing
+AT-203,xmeas_25,tep,"","","",composition analyzer,false,drawing
+AT-204,xmeas_26,tep,"","","",composition analyzer,false,drawing
+AT-205,xmeas_27,tep,"","","",composition analyzer,false,drawing
+AT-206,xmeas_28,tep,"","","",composition analyzer,false,drawing
+AT-207,xmeas_29,tep,"","","",composition analyzer,false,drawing
+AT-208,xmeas_30,tep,"","","",composition analyzer,false,drawing
+AT-209,xmeas_31,tep,"","","",composition analyzer,false,drawing
+AT-210,xmeas_32,tep,"","","",composition analyzer,false,drawing
+AT-211,xmeas_33,tep,"","","",composition analyzer,false,drawing
+AT-212,xmeas_34,tep,"","","",composition analyzer,false,drawing
+AT-213,xmeas_35,tep,"","","",composition analyzer,false,drawing
+AT-214,xmeas_36,tep,"","","",composition analyzer,false,drawing
+AT-215,xmeas_37,tep,"","","",composition analyzer,false,drawing
+AT-216,xmeas_38,tep,"","","",composition analyzer,false,drawing
+AT-217,xmeas_39,tep,"","","",composition analyzer,false,drawing
+AT-218,xmeas_40,tep,"","","",composition analyzer,false,drawing
+AT-219,xmeas_41,tep,"","","",composition analyzer,false,drawing
+FCV-102,xmv_1,tep,"",2,"2""-P-1002",D feed valve,true,reconstructed
+FCV-103,xmv_2,tep,"",3,"2""-P-1003",E feed valve,true,reconstructed
+FCV-101,xmv_3,tep,"",1,"2""-P-1001",A feed valve,true,reconstructed
+FCV-104,xmv_4,tep,P-101,4,"4""-P-1004",A+C feed valve,true,reconstructed
+FCV-108,xmv_5,tep,K-201,5,"8""-P-1007",compressor recycle valve,true,reconstructed
+FCV-109,xmv_6,tep,"",9,"4""-P-1009",purge valve,true,reconstructed
+LCV-102,xmv_7,tep,V-101,10,"3""-P-1010",separator liquid valve,true,reconstructed
+LCV-103,xmv_8,tep,T-101,11,"3""-P-1011",stripper liquid product valve,true,reconstructed
+FCV-112,xmv_9,tep,T-101,"","4""-P-1012",stripper steam valve,true,reconstructed
+TCV-101,xmv_10,tep,R-101,"","3""-CW-1101",reactor CW valve,true,reconstructed
+TCV-102,xmv_11,tep,E-101,"","3""-CW-1102",condenser CW valve,true,reconstructed
+VI-101,P-101/vibration_rms,iiot,P-101,"","",pump vibration,true,reconstructed
+II-101,P-101/motor_current_a,iiot,P-101,"","",pump motor current,true,reconstructed
+SI-101,P-101/shaft_speed_rpm,iiot,P-101,"","",pump shaft speed,true,reconstructed
+VI-201,K-201/vibration_rms,iiot,K-201,5,"",compressor vibration,true,reconstructed
+II-201,K-201/motor_current_a,iiot,K-201,5,"",compressor motor current,true,reconstructed
+SI-201,K-201/shaft_speed_rpm,iiot,K-201,5,"",compressor shaft speed,true,reconstructed
+XV-101,xv_feed,extra,P-101,4,"4""-P-1004",A+C feed block valve,true,reconstructed

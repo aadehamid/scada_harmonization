@@ -10,5 +10,8 @@ committed JSONL cannot live there.
   1 s UTC, natives only, seed 42. `friendly_name` is `{machine_id}/{pv}`.
   Generated; not a Kaggle snapshot.
 
+- `pid/` — Unit 100 Rev B one-pager + 59-row tag list. See `pid/README.md`
+  and `design/UNIT100_PID.md`.
+
 Hashes are SHA-256 of the UTF-8 golden files. Pinned as `GOLDEN_SHA256` and
 `MACHINE_STREAM_GOLDEN_SHA256` in `tests/datagen/factories.py`.
