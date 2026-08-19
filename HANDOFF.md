@@ -319,8 +319,9 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
   See §3.
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) **Phase 0 — PARTIALLY DONE.** Repo skeleton **landed early** (PR #22, out of sequence but
-  harmless — it is diagram-independent). What remains is the part the walkthrough actually gates:
-  the **three-stage mapping table with the §14 columns**. Diagrams 2 & 3 do not gate it.
+  harmless — it is diagram-independent). What remains is the **three-stage mapping table with
+  the §14 columns**. The walkthrough does **not** gate it (2026-08-19). Diagrams 2 & 3 do not
+  gate it either.
 - (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
   · Diagram 3 (cloud-native → floci, before Phase 6).
 

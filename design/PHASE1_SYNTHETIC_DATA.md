@@ -1,6 +1,6 @@
 # Phase 1 synthetic data record
 
-**Status:** generators landed at `7b6cdd5` (#33). `main` then moved to `2003cbb` (#34 docs). Full L0 cache written, then deleted.  
+**Status:** generators landed at `7b6cdd5` (#33). `main` then moved to `2003cbb` (#34 docs). Full L0 cache written, then deleted.
 **Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
 **Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
 
