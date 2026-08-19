@@ -110,7 +110,7 @@ Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, m
 
 ## What this does not close
 
-Phase 0 is still open. The mapping-table spine is still gated on the Diagram 1 walkthrough (`design/WALKTHROUGH_PROGRESS.md`). Charter §8.1 Phase 0 is unchanged.
+Phase 0 is still open (mapping-table YAML not written). The Diagram 1 walkthrough runs in parallel and does not gate that table (`design/WALKTHROUGH_PROGRESS.md`). Charter §8.1 Phase 0 exit is unchanged.
 
 Phase 1 exit is replay-only (deterministic sequence plus the N8 clock). The mapping table's `source_cadence` column stays on Phase 0. This record does not rewrite N8.
 

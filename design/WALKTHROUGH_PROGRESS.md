@@ -5,7 +5,7 @@ resumed from *any* agent/surface (CLI, web, another terminal) without losing pos
 the cursor; `design/E2E_WALKTHROUGH.md` is the script; `design/LEARNING_LOG.md` is where the durable
 teaching notes land.
 
-**Last updated:** 2026-07-11
+**Last updated:** 2026-08-19
 
 ---
 
@@ -21,7 +21,9 @@ teaching notes land.
 | Thread A | Order thread (ERPNext SO → MRP → WO → lot → ship → invoice) | ⬜ pending |
 | — | Cross-cutting narratives + "consciously omitted" systems | ⬜ pending |
 
-**Completing all of the above locks Diagram 1 → unblocks the mapping-table spine (the rest of Phase 0).** The uv skeleton already landed (PR #22); it does not wait on this pass.
+**Walkthrough is parallel.** Completing the steps above still **locks Diagram 1**
+as the template for Diagrams 2 & 3. It does **not** block the mapping table or
+later build work (owner lock 2026-08-19). Hamid runs this pass independently.
 
 **Diagram under walkthrough (v2, the lock target):**
 https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
@@ -59,8 +61,9 @@ presentation-ready sentence per concept; end with a glossary."*
 
 ## Conventions reminder (so a fresh agent doesn't drift)
 
-- **Owns during the walkthrough:** this walkthrough session owns `HANDOFF.md`, `WALKTHROUGH_PROGRESS.md`,
-  and `LEARNING_LOG.md`. A parallel Phase-0 skeleton agent (if running) must NOT edit these.
+- **Owns during the walkthrough:** this session owns `WALKTHROUGH_PROGRESS.md` and
+  walkthrough notes in `LEARNING_LOG.md`. Build agents update `HANDOFF.md` / status
+  docs. Neither side waits on the other.
 - **Diagram edits → Eraser only** (`scada_harmonization` workspace); use `manually_update_diagram`
   when arrow direction matters (the AI edit path reverses arrows).
 - **Git:** branch → PR → owner merges (direct-to-`main` only for small doc/housekeeping when the owner
