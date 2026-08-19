@@ -114,9 +114,8 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (`2003cbb` after #34; generators from #28/#29/#31/#33).
-polars + pydantic are the runtime deps. 41 tests on this branch (34 L0 goldens +
-Unit 100 P&ID). The 1 s fast class is a generated machine stream on P-101 and
+**Phase 1 L0 is on `main`** (`a9506d4` after #35; generators from #28/#29/#31/#33).
+polars + pydantic are the runtime deps. 41 tests (34 L0 goldens + Unit 100 P&ID). The 1 s fast class is a generated machine stream on P-101 and
 K-201 (Kaggle stays a snapshot; TEP stays 180 s). Unit 100 Rev B one-pager +
 59-name tag list: [`design/UNIT100_PID.md`](design/UNIT100_PID.md). Record:
 [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).

@@ -14,7 +14,7 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (`2003cbb` after #34, 2026-08-19)**.
+The project is in **Phase 1 L0 on `main` (`a9506d4` after #35, 2026-08-19)**.
 Phase 0 mapping-table YAML is not written yet. The Diagram 1 walkthrough
 **runs in parallel and does not block build** (cursor:
 `design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
