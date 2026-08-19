@@ -99,6 +99,7 @@ real AWS) without invalidating the design.
 | [`design/LEARNING_LOG.md`](design/LEARNING_LOG.md) | Durable concepts + glossary |
 | [`design/PHASE1_L0_CONTRACT.md`](design/PHASE1_L0_CONTRACT.md) | Phase 1 L0 record + replay identity |
 | [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md) | Phase 1 land / persist / disk record |
+| [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md) | Phase 1 local vs R2 datasheet |
 | [`design/UNIT100_PID.md`](design/UNIT100_PID.md) | Unit 100 P&ID Rev B one-pager + 59-name tag list |
 | [`design/uns_home_lab_notes.md`](design/uns_home_lab_notes.md) | Vision & high-level scope *(archived — superseded on decided items by the charter)* |
 | [`design/hand_built_sparkplug_uns_notes.md`](design/hand_built_sparkplug_uns_notes.md) | Architecture: hand-built *(archived — superseded on decided items)* |
@@ -114,11 +115,14 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (`a9506d4` after #35; generators from #28/#29/#31/#33).
-polars + pydantic are the runtime deps. 41 tests (34 L0 goldens + Unit 100 P&ID). The 1 s fast class is a generated machine stream on P-101 and
-K-201 (Kaggle stays a snapshot; TEP stays 180 s). Unit 100 Rev B one-pager +
-59-name tag list: [`design/UNIT100_PID.md`](design/UNIT100_PID.md). Record:
+**Phase 1 L0 is on `main`** (`e2c7ff3` after #36; generators from #28/#29/#31/#33).
+polars + pydantic are the runtime deps. Warehouse is wide Parquet on R2
+`lagos-chem-l0`. 41 tests (34 L0 goldens + Unit 100 P&ID). The 1 s fast class is
+a generated machine stream on P-101 and K-201 (Kaggle stays a snapshot; TEP
+stays 180 s). Unit 100 Rev B one-pager + 59-name tag list:
+[`design/UNIT100_PID.md`](design/UNIT100_PID.md). Record:
 [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
+Datasheet: [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md).
 
 **Phase 0 mapping table is not written yet.** The uv skeleton landed in PR #22.
 The Diagram 1 walkthrough **runs in parallel and does not block build** (cursor:

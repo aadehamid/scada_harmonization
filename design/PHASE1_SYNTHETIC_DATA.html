@@ -79,6 +79,7 @@
     }
     ol, ul { padding-left: 1.2rem; }
     .meta { color: var(--muted); font-size: 0.95rem; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
@@ -87,21 +88,25 @@
     <p class="meta">Lagos Specialty Chemicals · Phase 1 record · 18 August 2026</p>
     <h1>Phase 1 synthetic data record</h1>
     <p class="lede">
-      Generators are on <code>main</code>. The full L0 cache was written, then deleted.
+      Polars and the 1 s machine stream are on <code>main</code> <code>e2c7ff3</code>.
+      Warehouse is wide Parquet, compressed with zstd, on R2 <code>lagos-chem-l0</code>.
       Contract:
       <a href="PHASE1_L0_CONTRACT.md">PHASE1_L0_CONTRACT.md</a>.
+      Datasheet:
+      <a href="PHASE1_DATASHEET.md">PHASE1_DATASHEET.md</a>.
       Markdown twin:
       <a href="PHASE1_SYNTHETIC_DATA.md">PHASE1_SYNTHETIC_DATA.md</a>.
     </p>
 
     <p>
-      This page is the durable record of what Phase 1 actually did. It is not the L0 contract
+      This file records what landed. It is not the L0 contract
       and it is not a dump of the session log. The contract still governs the record shape.
       This note records the land, the disk facts, and the persist rules Hamid set.
     </p>
     <p>
       Phase 1 is replay-only. It does not assign physical meaning. It does not write Sparkplug.
-      It does not open the mapping table.
+      It does not open the mapping table. It does not treat L0 names as if a programmable
+      logic controller (PLC) had issued them.
     </p>
 
     <h2>What landed</h2>
@@ -121,13 +126,19 @@
           <td><a href="https://github.com/aadehamid/scada_harmonization/pull/29">#29</a></td>
           <td>12:56 AM CT</td>
           <td><code>3039710</code></td>
-          <td>L0 record, ingestion, OT extras, deterministic replay, golden fixtures, 21 tests at land</td>
+          <td>L0 record, ingestion, operational-technology (OT) extras, deterministic replay, golden fixtures, 21 tests at land</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/aadehamid/scada_harmonization/pull/30">#30</a></td>
+          <td>18 Aug 2026</td>
+          <td><code>47883c7</code></td>
+          <td>Phase 1 synthetic-data record (HTML twin + assets)</td>
         </tr>
         <tr>
           <td><a href="https://github.com/aadehamid/scada_harmonization/pull/31">#31</a></td>
-          <td>same day</td>
+          <td>18 Aug 2026</td>
           <td><code>7da1621</code></td>
-          <td>Polars replaces pandas (Hamid lock)</td>
+          <td>Polars replaces pandas for every tabular job</td>
         </tr>
         <tr>
           <td><a href="https://github.com/aadehamid/scada_harmonization/pull/33">#33</a></td>
@@ -138,20 +149,21 @@
       </tbody>
     </table>
     <p>
-      Generator HEAD is <code>7b6cdd5</code>. Status-sync HEAD is <code>2003cbb</code> (#34).
-      Runtime deps are polars + pydantic.
+      Generator HEAD is <code>7b6cdd5</code>. <code>main</code> is <code>e2c7ff3</code> after #36.
+      Runtime dependencies are polars and pydantic. Pydantic validates the L0 boundary.
+      Polars melts wide Parquet on read into long L0 rows.
       CI stays golden-slice only. No full-dataset CI. No network in CI.
     </p>
 
     <h2>Persist rules (Hamid)</h2>
     <p>Hamid owns keep versus delete. Agents do not invent a retention policy.</p>
     <ol>
-      <li><strong>Keep raw.</strong> Benchmark downloads stay in <code>data/raw/</code> (gitignored). Measured size after Phase 1: <strong>1.35 GiB</strong>.</li>
-      <li><strong>Cache is regenerable.</strong> A full L0 JSONL in <code>data/cache/</code> is a derived product of raw plus seed. It is safe to delete. Hamid deleted the one that was written.</li>
-      <li><strong>Do not persist Full Faulty Testing as L0.</strong> That split was never written. At 200 B/rec it would have been about <strong>96 GiB</strong>.</li>
-      <li><strong>Commit the golden slice, not the plant.</strong> <code>tests/fixtures/datagen/golden_l0_slice.jsonl</code> is the identity pin. <code>data/**</code> payloads stay gitignored.</li>
+      <li><strong>Persist on R2.</strong> Durable L0 lives in Cloudflare R2 bucket <code>lagos-chem-l0</code>, region ENAM (East North America).</li>
+      <li><strong>Keep raw on R2.</strong> The four TEP <code>.RData</code> files and the IIoT zip stay on R2. Measured raw total: <strong>1,419,880,076 bytes</strong>. No csv.</li>
+      <li><strong>Warehouse is wide Parquet, not long JSONL.</strong> Natives stay wide. Melt happens on read. Objects are compressed with zstd.</li>
+      <li><strong>Commit the golden slice, not the plant.</strong> <code>tests/fixtures/datagen/golden_l0_slice.jsonl</code> is the identity pin (4 lines). <code>data/**</code> payloads stay gitignored and are local scratch only.</li>
     </ol>
-    <p>Those four rules are why a 54.63 GiB file existed for one day and then did not.</p>
+    <p>Those four rules are why a 58,661,861,866-byte history JSONL existed for one day and then did not. 96 GiB was an estimate, never the warehouse.</p>
 
     <h2>Disk facts (18 August 2026)</h2>
     <table>
@@ -159,10 +171,11 @@
         <tr><th>Artifact</th><th>Fate</th><th>Size / count</th></tr>
       </thead>
       <tbody>
-        <tr><td>L0 cache JSONL</td><td>Written, then deleted the same day</td><td><strong>330,920,000</strong> rows, <strong>54.63 GiB</strong></td></tr>
-        <tr><td>Full Faulty Testing L0</td><td>Never written</td><td>~96 GiB at 200 B/rec</td></tr>
-        <tr><td>Raw downloads</td><td>Kept</td><td><strong>1.35 GiB</strong></td></tr>
-        <tr><td>TEP golden slice</td><td>Committed</td><td>4 rows</td></tr>
+        <tr><td>History JSONL</td><td>Written, then deleted the same day</td><td><strong>330,920,000</strong> rows, <strong>58,661,861,866</strong> bytes</td></tr>
+        <tr><td>Wide Parquet warehouse on R2</td><td>Kept</td><td><strong>15,830,000</strong> wide rows, <strong>1,283,524,595</strong> bytes</td></tr>
+        <tr><td>Raw on R2</td><td>Kept</td><td><strong>1,419,880,076</strong> bytes (four TEP <code>.RData</code> + IIoT zip, no csv)</td></tr>
+        <tr><td>96 GiB long Faulty Testing estimate</td><td>Never the warehouse</td><td>Estimate only. The Faulty Testing Parquet exists.</td></tr>
+        <tr><td>TEP golden slice</td><td>Committed</td><td>4 lines</td></tr>
         <tr><td>Machine-stream golden</td><td>Committed (#33)</td><td>2 machines × 20 s × 3 PVs</td></tr>
       </tbody>
     </table>
@@ -172,28 +185,47 @@
     <pre>84b9f0885a8efc3c28c488beebefd47d2d9d6b5fd93dc6f7f681b5b2e52159f0</pre>
     <p>Pinned as <code>GOLDEN_SHA256</code> and <code>MACHINE_STREAM_GOLDEN_SHA256</code> in <code>tests/datagen/factories.py</code>. Hashes are of canonical UTF-8 JSONL, not of a raw download.</p>
 
+    <h2>Warehouse (R2 <code>lagos-chem-l0</code>, wide Parquet, zstd)</h2>
+    <table>
+      <thead>
+        <tr><th>Object</th><th class="num">Bytes</th><th class="num">Wide rows</th><th class="num">Columns</th><th>SHA-256</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>tep_faulty_testing</code></td><td class="num">758,943,582</td><td class="num">9,600,000</td><td class="num">56</td><td><code>59a8c456088a96b2b8696a552edca945d99b121a3c6c5d45a18270b72a38e512</code></td></tr>
+        <tr><td><code>tep_faultfree_training</code></td><td class="num">20,941,351</td><td class="num">250,000</td><td class="num">56</td><td><code>185db5cbe850d438329b0f39ef73f4ffcd0f9e4afd6fbccbc3c6325980cc66bf</code></td></tr>
+        <tr><td><code>tep_faultfree_testing</code></td><td class="num">39,868,514</td><td class="num">480,000</td><td class="num">56</td><td><code>20938da894cebbbcb94136a7835ec17af0c376484126a7bc4d876b5f5b0246f1</code></td></tr>
+        <tr><td><code>tep_faulty_training</code></td><td class="num">450,485,967</td><td class="num">5,000,000</td><td class="num">56</td><td><code>7bab727d6703fed5b9358c11f7f39d074d8888b8af95cabcb8902628dcdd8c01</code></td></tr>
+        <tr><td><code>iiot</code></td><td class="num">13,285,181</td><td class="num">500,000</td><td class="num">18</td><td><code>3393ca3993175b5d4716eb2163c38bfbab42998ea58bd3116569a9a42b372073</code></td></tr>
+        <tr><td><strong>Total</strong></td><td class="num"><strong>1,283,524,595</strong></td><td class="num"><strong>15,830,000</strong></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <p>
+      The warehouse includes the 9,600,000-row Faulty Testing native (758,943,582 bytes) and the rest of the warehouse (1,283,524,595 bytes).
+      Hamid's Mac holds no caches. Local <code>data/raw/</code> and <code>data/cache/</code> are scratch, not the durable warehouse.
+    </p>
+
     <h2>TEP (the process layer)</h2>
     <p>
       Source: Rieth et al., Harvard Dataverse,
       <a href="https://doi.org/10.7910/DVN/6C3JR1">doi:10.7910/DVN/6C3JR1</a>.
-      Wide tables. Three metadata columns (<code>faultNumber</code>, <code>simulationRun</code>,
-      <code>sample</code>) plus 52 process variables. Native cadence is a 3-minute sample index, not UTC.
+      Wide tables. Native cadence is a 3-minute sample index, not UTC.
       Ingestion assigns sim-time <code>1970-01-01T00:00:00Z + i * 180s</code>. Phase 1 does not interpolate TEP to 1 s.
     </p>
     <table>
       <thead>
-        <tr><th>Split</th><th>Wide shape (published)</th><th>L0 written?</th></tr>
+        <tr><th>Split</th><th class="num">Wide rows on R2</th><th>In the warehouse?</th></tr>
       </thead>
       <tbody>
-        <tr><td>FaultFree Training</td><td>500 runs × 500 samples = 250,000</td><td>Part of the 330,920,000-row cache</td></tr>
-        <tr><td>FaultFree Testing</td><td>500 runs × 960 samples = 480,000</td><td>Part of the 330,920,000-row cache</td></tr>
-        <tr><td>Faulty Training</td><td>20 faults × 500 runs × 500 samples = 10,000,000</td><td>Part of the 330,920,000-row cache</td></tr>
-        <tr><td>Faulty Testing</td><td>20 faults × 500 runs × 960 samples = 19,200,000</td><td><strong>No.</strong> Hamid skipped it.</td></tr>
+        <tr><td>FaultFree Training</td><td class="num">250,000</td><td>Yes</td></tr>
+        <tr><td>FaultFree Testing</td><td class="num">480,000</td><td>Yes</td></tr>
+        <tr><td>Faulty Training</td><td class="num">5,000,000</td><td>Yes. 20 faults for train.</td></tr>
+        <tr><td>Faulty Testing</td><td class="num">9,600,000</td><td>Yes. Full published test. The Faulty Testing Parquet exists.</td></tr>
       </tbody>
     </table>
     <p>
       Melt is <code>n_long = n_samples * n_value_columns</code>. Clean natives are quality Good.
-      Seed 42 is run metadata, not a column. NAB is skipped for Phase 1 exit.
+      Seed 42 is run metadata, not a column. Polars melts on read from the wide Parquet.
+      NAB is skipped for Phase 1 exit.
     </p>
 
     <h2>IIoT (snapshot per machine, not 1 s)</h2>
@@ -203,11 +235,10 @@
     </figure>
     <p>
       Source:
-      <a href="https://www.kaggle.com/datasets/canozensoy/industrial-iot-dataset-synthetic">Industrial IoT Dataset (Synthetic)</a>
-      (<code>factory_sensor_simulator_2040.csv</code>).
+      <a href="https://www.kaggle.com/datasets/canozensoy/industrial-iot-dataset-synthetic">Industrial IoT Dataset (Synthetic)</a>.
     </p>
     <p>
-      The file is <strong>one snapshot per machine</strong>: about 500,000 rows, 22 columns.
+      The file is <strong>one snapshot per machine</strong>: 500,000 wide rows, 18 warehouse columns.
       It is not a historian export and it is not a 1-second time series. Earlier notes treated it
       as a replayable 1 Hz stream. That reading is wrong. This record corrects it.
     </p>
@@ -223,24 +254,24 @@
     <h2>What the generators do</h2>
     <figure>
       <img src="assets/pipe-turn.png" alt="Orange industrial pipe elbow">
-      <figcaption>Phase 1 stops at L0. The PLC-world turn is Phase 2.</figcaption>
+      <figcaption>Phase 1 stops at L0. PLC tag names are Phase 2.</figcaption>
     </figure>
     <p>Code lives under <code>src/scada_harmonizer/datagen/</code>.</p>
     <ul>
-      <li><strong>Generate.</strong> Seeded 1 s rotating-equipment stream — native UTC, string <code>machine_id</code> as metadata. Ingested as <code>iiot</code>.</li>
-      <li><strong>Ingest.</strong> Wide CSV to long <code>L0Record</code> rows. TEP natives are float. IIoT natives keep bool/int/float. When <code>machine_id</code> is present, <code>friendly_name</code> is <code>{machine_id}/{pv}</code>. Null/NaN is rejected; gaps are quality codes.</li>
-      <li><strong>Augment.</strong> Seeded OT extras (<code>xv_feed</code>, <code>machine_state</code>, <code>cycle_count</code>, <code>ctrl_mode</code>, <code>comm_gap</code>, <code>noise_spike</code>, <code>stuck_pv</code>). Same seed, same extras. Natives are copied, then extras append. Lots, work orders, and material IDs stay Phase 5.</li>
+      <li><strong>Generate.</strong> Seeded 1 s rotating-equipment stream. Native UTC, string <code>machine_id</code> as metadata. Ingested as <code>iiot</code>.</li>
+      <li><strong>Ingest.</strong> Wide natives to long <code>L0Record</code> rows. TEP natives are float. IIoT natives keep bool/int/float. When <code>machine_id</code> is present, <code>friendly_name</code> is <code>{machine_id}/{pv}</code>. Null/NaN is rejected; gaps are quality codes. Full natives are wide Parquet on R2. Melt is on read.</li>
+      <li><strong>Augment.</strong> Seeded operational-technology (OT) extras (<code>xv_feed</code>, <code>machine_state</code>, <code>cycle_count</code>, <code>ctrl_mode</code>, <code>comm_gap</code>, <code>noise_spike</code>, <code>stuck_pv</code>). Same seed, same extras. Natives are copied, then extras append. Full extras are not persisted. Lots, work orders, and material IDs stay Phase 5.</li>
       <li><strong>Replay.</strong> Identity is <code>(sim_time_utc_ms, friendly_name, value, quality)</code>. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live.</li>
     </ul>
     <p>
-      Physical meaning waits for the mapping table. <code>friendly_name</code> is what the cache stores.
+      Physical meaning waits for the mapping table. <code>friendly_name</code> is what the L0 row stores.
       <code>source_column</code> is side metadata.
     </p>
 
     <h2>Tests (golden-slice only)</h2>
     <p>
-      <code>uv run pytest</code> is 41 passed on the Unit 100 branch (34 L0 goldens + P&amp;ID).
-      No <code>data/raw</code> or <code>data/cache</code> in CI.
+      <code>uv run pytest</code> is 41 passed (34 L0 goldens + Unit 100 P&amp;ID).
+      No <code>data/raw</code> or <code>data/cache</code> in CI. CI does not read R2.
       Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count,
       golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and
       no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill
@@ -249,14 +280,15 @@
 
     <h2>What this does not close</h2>
     <p>
-      Phase 0 is still open (mapping-table YAML not written). The Diagram 1 walkthrough
-      runs in parallel and does not gate that table
-      (<code>design/WALKTHROUGH_PROGRESS.md</code>). Charter §8.1 Phase 0 exit is unchanged.
+      Phase 0 is still open. The mapping-table spine is unwritten. The Diagram 1 walkthrough
+      is a parallel path and does not gate Phase 0 or Phase 1. The cursor is still
+      <code>design/WALKTHROUGH_PROGRESS.md</code> §0.2. This record does not move that cursor.
+      Charter §8.1 Phase 0 is unchanged.
     </p>
     <p>
       Phase 1 exit is replay-only (deterministic sequence plus the N8 clock). The mapping table's
       <code>source_cadence</code> column stays on Phase 0. This record does not rewrite N8.
-      Phase 2 has not started.
+      Phase 2 (PLC tag names, Sparkplug, edge Mosquitto) has not started.
     </p>
   </main>
 </body>

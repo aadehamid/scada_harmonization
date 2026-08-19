@@ -30,34 +30,88 @@ conflicts with the charter, the charter wins.
 
 ## 2. Current status (2026-08-19)
 
-**Phase: Phase 1 L0 generators on `main`; Unit 100 Rev B one-pager landed; walkthrough parallel (does not block build).**
+**Phase: Phase 1 L0 is on `main` at `e2c7ff3`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
+1 s machine stream landed (#33). Unit 100 Rev B one-pager landed (#35). Mapping table is
+unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+
+**Hamid lock (2026-08-18, via Chief Architect; status refreshed 2026-08-19).** Pack the
+Diagram 1 v2 L0 cuts as a written note in this file. Do not copy or edit the original
+Eraser file `MgnB91QGOhX8xWiKeaAK`. Do not build a second full cloud-architecture canvas
+now. The original stays the walkthrough lock target (cursor still §0.2 Purdue). A copy
+gets the L0 seat/caption fixes only after the walkthrough is ready to lock. The N8
+fast-class hole landed as `#33` (`generate_machine_stream`, P-101 / K-201). Not the
+landed Kaggle IIoT file as a 1 s process stream. Not interpolated TEP. Still no mapping
+YAML, no Sparkplug, no second plant. The Unit 100 Rev B one-pager landed on `#35` after
+this lock (same Phase 1 TEP/IIoT keys). Extra P&ID pages are not drawn. N8 is not rewritten.
+
+**Packed Diagram 1 v2 L0 cuts (Thread B, L0 to PLC). Packed, not drawn. For a later copy only.**
+
+Musts:
+1. Split IIoT off the TEP Replay → Sensors → PLC path. Snapshot-per-machine. Do not mix streams.
+2. Scan classes are P1 / mapping `source_cadence`, not L0 warehouse. Drop "slower scan classes"
+   from TEP and "~1s fast class" from IIoT. N8 fast class = extras + later machine stream.
+   Do not rewrite N8.
+3. Replay metadata seat (not Sensors): TEP `faultNumber` / `simulationRun` / split; IIoT
+   `Machine_ID` / `Machine_Type`.
+4. L0 join key: `(source_dataset, source_column)` → `metric_registry`. Poller raw-counts is
+   L1 disguise.
+
+Shoulds: R2 `lagos-chem-l0` as Replay upstream (wide Parquet, melt-on-read), distinct from
+L4 MinIO; TEP splits are partitions not boxes; "4 sites re-skin" is TEP-only; Sensors
+caption so vibration/power are not TEP PVs; HITL "L0 Shadow" (N30) vs Purdue L0.
+
 Design + charter complete; **all infrastructure decisions resolved**. Phase 1 L0
 (ingestion / generation / augmentation / replay) is on `main` (PRs #28 + #29 + #31 + #33).
-Status sync #34 is merged (`2003cbb`). Mapping-table YAML is **not written** and is
-**not gated** on the walkthrough (owner lock 2026-08-19). Hamid runs Diagram 1
-independently. Hand-built Eraser **Diagram 1 v2** is still the walkthrough + lock
-target for Diagrams 2 & 3. Those diagrams stay **just-in-time**.
+Mapping-table YAML is **not written** and is **not gated** on the walkthrough (owner lock
+2026-08-19). Hamid runs Diagram 1 independently. Hand-built Eraser **Diagram 1 v2** is
+still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just-in-time.
 
-**Repo snapshot (this branch, then `main` after merge):**
+**Repo snapshot:**
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `a9506d4` — `#35` squash-merge. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `e2c7ff3` after #36. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
-| Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full cache |
+| Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read |
+| Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 | Rev B PDF + 59-row tag list (`design/UNIT100_PID.md`). Extra pages not drawn |
 | Not in repo | mapping-table YAML; DEXPI model / `book.py`; Phase 2+ services; Marimo notebooks |
-| Open PRs | **#32** docs draft (R2 / datasheet — do not stack) |
+| Open PRs | **#32** this docs PR (R2 / datasheet / lock note) |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
 **done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
 
-**Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets). Do not copy that
-write-up into this file.
+**Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets).
+**Datasheet:** `design/PHASE1_DATASHEET.md`. Do not copy that write-up into this file.
+
+### This session (2026-08-18): Hamid lock via Chief Architect (docs only)
+
+Hamid locked the order: pack Diagram 1 v2 L0 cuts here; do not touch Eraser
+`MgnB91QGOhX8xWiKeaAK`; no second architecture canvas; next work at lock
+time was the N8 fast-class hole (later closed by `#33`). Walkthrough cursor
+untouched. N8 untouched. One-line pointer in `design/LEARNING_LOG.md`.
+
+### This session (2026-08-18): R2 persist and #31 merged
+
+Hamid persisted L0 on Cloudflare R2 bucket `lagos-chem-l0` (ENAM). Warehouse is wide
+Parquet compressed with zstd, including the 9,600,000-row Faulty Testing native.
+Raw stays on R2 (1,419,880,076 bytes, no csv). The 58,661,861,866-byte history JSONL
+was deleted. 96 GiB was an estimate, never the warehouse. Polars PR #31 merged.
+`main` is `7da1621`. Walkthrough stays parallel at §0.2. Datasheet:
+`design/PHASE1_DATASHEET.md`. Do not copy the write-up here.
+
+### This session (2026-08-19): merge `origin/main` (`e2c7ff3`) into #32
+
+Fetched `main` and merged. All conflicts were unions (R2 warehouse + datasheet
+from this branch; 1 s machine stream #33 and Unit 100 #35 from `main`).
+Intent-timing only: the 2026-08-18 lock said next was the N8 hole; `#33`
+and `#35` later landed on `main`. Resolution keeps packed L0 cuts + R2
+persist, marks the N8 hole done, keeps Unit 100, leaves extra P&ID pages
+undrawn. Charter N8 and §8.1 table untouched. Walkthrough cursor untouched.
 
 ### This session (2026-08-19): walkthrough parallel + Unit 100 one-pager
 
@@ -382,18 +436,18 @@ hold.**
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
 - **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
-- **PR #31** pandas → Polars: **MERGED** (`7da1621`); branch deleted.
-- **PR #32** docs draft (R2 warehouse / datasheet): **open** on
-  `cursor/docs-r2-warehouse-datasheet-3221` — do not stack drawing work on it.
+- **PR #31** Polars replaces pandas: **MERGED** (`7da1621`); branch deleted.
+- **PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
+  **OPEN** on `cursor/docs-r2-warehouse-datasheet-3221`.
 - **PR #33** 1 s machine stream (N8 fast class): **MERGED** (`7b6cdd5`);
   branch `cursor/phase1-1s-machine-stream-7d33` deleted local + remote.
-  `entire/*` checkpoint refs remain. `main` at `7b6cdd5`.
 - **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
   branch `cursor/handoff-git-cleanup-7d33` deleted local + remote.
-  `main` at `2003cbb` before this P&ID / parallel-walkthrough PR.
 - **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
   (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
-  `main` at `a9506d4`.
+- **PR #36** mark #35 merged: **MERGED** (`e2c7ff3`).
+- **As of 2026-08-19:** `main` at `e2c7ff3`. Warehouse is R2 `lagos-chem-l0`.
+  `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -417,75 +471,34 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ### ⭐ Walkthrough (Hamid, parallel — does not block build) — resume at §0.2 (Purdue)
 
-> **The live cursor is `design/WALKTHROUGH_PROGRESS.md`, not this section.** It tracks per-step
-> status and carries the canonical resume prompt. Read it first; this section is the rationale.
+1. **Mapping-table spine.** Still unwritten. Does not wait on Diagram 1 lock.
+   `config/mappings/` is reserved. YAML + Pydantic, one measurement across all 4 sites,
+   including the §14 columns. Open alignment question: YAML vs TOML/JSON.
+2. **Walkthrough remains a parallel path at §0.2.** Cursor: `design/WALKTHROUGH_PROGRESS.md`.
+   Original Eraser `MgnB91QGOhX8xWiKeaAK` stays the lock target. Packed L0 cuts live in
+   §2 of this file, not drawn. The N8 fast-class hole is closed (`#33`).
 
-**Kickoff prompt to resume (any surface):** *"Read `design/E2E_WALKTHROUGH.md` (the script),
+**Still gated / not now:** mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug,
+second plant, extra P&ID pages, Eraser copy.
+
+Warehouse reminder (not the next piece): R2 `lagos-chem-l0`, wide Parquet, melt-on-read.
+Details in `design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`.
+
+**Walkthrough kickoff (when that parallel session runs):** *"Read `design/E2E_WALKTHROUGH.md` (the script),
 `design/WALKTHROUGH_PROGRESS.md` (the cursor), and `design/LEARNING_LOG.md` (notes so far). We are
-running the Diagram 1 v2 end-to-end teaching walkthrough. §0.1 ISA-95 is done. Continue from §0.2 —
-the Purdue model — using the five-beat cadence (problem tie-in → mechanism → web research with cited
-sources → gap check against Diagram 1 v2 → one-line teach-back), pausing for my questions between
+running the Diagram 1 v2 end-to-end teaching walkthrough. §0.1 ISA-95 is done. Continue from §0.2,
+the Purdue model, using the five-beat cadence (problem tie-in, mechanism, web research with cited
+sources, gap check against Diagram 1 v2, one-line teach-back), pausing for questions between
 steps, and logging glossary terms to `design/LEARNING_LOG.md`. After Purdue, do §0.3 IEC 62443, then
-Threads B → C → A."*
+Threads B, then C, then A."*
 
-**End-to-end teaching walkthrough of Eraser Diagram 1 v2 (Hand-built / Python-centric).** Owner goal:
-understand and be able to **explain the full data and integration flow** — each component's role, why it
-exists, and where it sits — well enough to **teach others / build a presentation**. Use external research
-to validate best practices and augment explanations. **Identify gaps in Diagram 1 and correct them** in
-Eraser as we go. This pass **locks Diagram 1 as the template** for Diagrams 2 & 3.
-
-**Diagram URL (v2, 2026-07-06 — the walkthrough + lock target):**
+**Diagram URL (v2, 2026-07-06, the walkthrough + lock target):**
 https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
 *(2026-06-23 original kept for history:
 https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas)*
 
-**Per-component cadence (repeat for every block on the diagram):**
-1. **Problem tie-in** — which real pain (days-to-data, site divergence, governance, identity, yield/HITL)
-   does this component solve?
-2. **Mechanism** — what it does, inputs/outputs, protocols/formats, which plane/zone it lives in.
-3. **External research** — web search for current best practice / industry convention; note where we align
-   or deliberately diverge (e.g. central EMQX UNS vs per-plant-only brokers — charter §13.7 Tier 3,
-   "broker topology divergence" bullet).
-4. **Gap check** — missing arrow, wrong zone, missing consumer, ambiguous flow? Log it; fix in Eraser
-   (`manually_update_diagram` when arrow direction matters).
-5. **One-line teach-back** — a sentence the owner can reuse in a presentation.
-
-**Suggested walkthrough order (follow the data, left → right, OT → iDMZ → IT):**
-
-| Block | Components to cover |
-|-------|---------------------|
-| **A — Problem & L0** | Synthetic TEP + IIoT replay; why only L0 is synthetic; scan-rate/deadband (P1) |
-| **B — OT edge (L1–2)** | Sensors/actuators; OpenPLC/Modbus (Beaumont); OPC-UA (Geismar); Python-modeled PLCs (Rotterdam, Corpus Christi); equipment-type templates (P6) |
-| **C — OT messaging (L3)** | Per-site Mosquitto; Sparkplug B contract (births/RBE); Python Sparkplug publishers; local site namespace |
-| **D — Harmonization** | Python site-forwarder (store-and-forward L1.2); cross-site conforming; `metric_registry` / three-stage mapping table as governed data product |
-| **E — iDMZ (L3.5)** | Central EMQX UNS broker (Z2); the three iDMZ crossings (telemetry ↑, CDC ↑, recommendations ↓) |
-| **F — OT consumers (L3)** | TimescaleDB historian; Grafana; Ignition; real-time alerting (L2.1); HITL operator console + graded HITL (P3); defense-in-depth safety on writeback (P2); historian-less site (L1.4) |
-| **G — OT transactional (L3, IT-domain)** | MES/LIMS/CMMS/Quality + plant Postgres (Z3); why they're OT-side by ISA-95; P8 business-joins-downstream |
-| **H — iDMZ → IT streaming** | CDC (Python poll → Debezium milestone); Kafka; UNS → Kafka bridge |
-| **I — IT storage & analytics (L4–5)** | `ods_core` + `identity_map` (MDM analog L3.1); medallion Bronze/Silver/Gold + Spark ETL; Bronze schema validation + dead_letter (P7); DuckDB OLAP; batch/file-drop (L4.2); golden-batch reference (P9) |
-| **J — Enterprise & context** | ERPNext (L4); Neo4j + GraphRAG; ISO 15926/DEXPI ontology (minimal start L5.1) |
-| **K — Plane 4 (Apply)** | Edge inference (per-site) + cloud training; three feature planes; MLflow; Redis online / gold offline (L6.2); SPC/EWMA (P5); SHAP explainability (P4); closed-loop UNS command path (L6.5) |
-| **L — Cross-cutting** | Prometheus + Grafana observability (L7.1); Docker OT/IT segmentation (L1.3); floci AWS emulation; 5 consumer personas; Databricks/Iggy as post-hand-built options (§13.6) |
-
-**§14 gap checklist (2026-07-06 review — fold into each block's step 4 "Gap check"; fix in Eraser):**
-
-| Block | Charter §14 items to verify / correct in Diagram 1 |
-|-------|-----------------------------------------------------|
-| C / D / E | **N1** namespace encoding (site tier = `spBv1.0/...`; retained ISA-95 republish at EMQX); **N3/N4** forwarder-as-Edge-Node + Primary-Host STATE; EMQX labeled **single node** (not "cluster" — BSL) |
-| E | **N21** the five conduits + initiation direction (no IT-initiated into OT); **N23** TLS on forwarder→EMQX |
-| F | **N10** quality flow; **N20** ISA-18.2 alarm node placed per-site edge; **N24** `command_audit` |
-| G | **N13/N14** `production_lot` + `material_definition`/`material_lot` tables (not `batch`) |
-| H | **N6** UNS→Kafka bridge as the protobuf decode point (holds BIRTH state); **C3** Debezium/Connect dual-homed in the iDMZ |
-| I | **N16** `ods_core`/`erp_shadow` moved to IT-side Postgres; **N27** Bronze immutable-raw; **N28** dead-letter redrive path |
-| K | **N30** L0 shadow namespace; **N32** TTL on recommendations; **N33** T²/SPE; **N5** DCMD command-path arrows (console → EMQX → forwarder → DCMD → PLC → DDATA read-back) |
-| L | **N21** Prometheus per zone (federated), Redis per-site OT-side; zone labels |
-
-**Session deliverables:**
-- Owner can narrate **end-to-end flows** (OT telemetry path, IT CDC path, closed-loop command path,
-  analytics/ML path, context/graph path) without looking at notes.
-- **Gap log** — anything found → fixed in Diagram 1 or recorded as a charter follow-up if it needs a
-  decision.
-- Durable teaching notes → `design/LEARNING_LOG.md` (glossary entries as terms appear).
+Cadence, block order, and the §14 gap checklist live in
+`design/E2E_WALKTHROUGH.md`. Do not copy them here.
 
 **Walkthrough complete → Diagram 1 locked as the template for Diagrams 2 & 3.**
 That lock does **not** unblock the mapping table — the table was never waiting
@@ -530,7 +543,7 @@ Marimo notebook work still starts at **Phase 1**, not here.
 - **Debezium** — log-based CDC (Phase 5a milestone 5a.2/5a.3).
 - **Redis** — online feature store (Phase 6 milestone). Both are *learn-by-building*, not shortcuts.
 
-Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosquitto) →
+Subsequent build phases (charter §8): 1 Level-0 replay → 2 PLC tag names + Sparkplug (edge Mosquitto) →
 3 OT consume (TimescaleDB + Grafana) → 4a harmonization proof (Python-modeled sites + forwarders +
 central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont & OPC-UA Geismar) →
 4c resilience & zoning (store-and-forward, Docker segmentation, historian-less site)
@@ -587,6 +600,7 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 | `design/LEARNING_LOG.md` | Durable concepts + glossary |
 | `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity |
 | `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin) |
+| `design/PHASE1_DATASHEET.md` | Phase 1 local vs R2 datasheet (HTML twin) |
 | `design/UNIT100_PID.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
 | `AGENTS.md` | Agent working guide — constraints, data flow, domain, build sequence |
 | `README.md` | Human-facing summary |
@@ -599,14 +613,16 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-Build continues. Hamid runs the walkthrough **in parallel** from §0.2 Purdue —
-cursor in `design/WALKTHROUGH_PROGRESS.md`, script in `design/E2E_WALKTHROUGH.md`,
-notes into `design/LEARNING_LOG.md`. Completing that pass **locks Diagram 1** as
-the template for Diagrams 2 & 3. It does **not** gate the mapping table.
+Build continues. Next piece is the mapping-table spine. The N8 fast-class
+hole is closed (`#33`). Walkthrough stays parallel at §0.2. Completing that
+pass **locks Diagram 1** as the template for Diagrams 2 & 3. It does **not**
+gate the mapping table. Not now: mapping YAML as a Phase 0 exit, Diagram 1
+lock, Sparkplug, second plant, extra P&ID pages, Eraser copy.
 
 No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred
 non-blocking question is **YAML vs TOML/JSON** for the mapping table. PRs
-#17–#31, #33, and #34 merged. Open docs draft: **#32** (do not stack). Tabular
-runtime is Polars. Unit 100 Rev B one-pager is in
-`tests/fixtures/datagen/pid/`. Extra pages (index / analyzer / legend) are the
-next drawing lap if Hamid wants them. Do not invent a second factory.
+#17–#31, #33, #34, #35, and #36 merged. Open docs draft: **#32** (do not
+stack). Tabular runtime is Polars. Warehouse is R2 `lagos-chem-l0`. Unit 100
+Rev B one-pager is in `tests/fixtures/datagen/pid/`. Extra pages (index /
+analyzer / legend) are the next drawing lap if Hamid wants them. Do not
+invent a second factory.

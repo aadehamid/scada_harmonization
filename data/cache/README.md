@@ -1,9 +1,7 @@
-# data/cache — normalized replay forms (gitignored)
+# data/cache — local scratch (gitignored)
 
-Output of the ingestion layer: schema-validated, timestamp-standardized replay inputs.
-Deterministic and regenerable from `data/raw/` — **safe to delete**.
-
-Hamid deleted the full L0 JSONL on 18 Aug 2026 after it was written (330,920,000 rows,
-54.63 GiB). Full Faulty Testing was never written (~96 GiB at 200 B/rec). CI uses the
-committed golden slice under `tests/fixtures/datagen/`, not this folder. See
-`design/PHASE1_SYNTHETIC_DATA.md`.
+Not the durable warehouse. Full natives are wide Parquet on R2 `lagos-chem-l0`.
+Polars melts on read. A 58,661,861,866-byte history JSONL was written then
+deleted. 96 GiB was an estimate, never the warehouse. CI uses the committed
+golden slice (4 lines) under `tests/fixtures/datagen/`. See
+`design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`.

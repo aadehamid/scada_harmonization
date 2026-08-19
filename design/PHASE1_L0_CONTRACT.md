@@ -26,7 +26,7 @@ Melt means wide table to long rows. TEP arrives wide. Ingestion melts to long L0
 
 ## Serialization and fixtures
 
-Canonical form is JSONL, one object per line, keys in the field order above, `ts_utc` as ISO-8601 with `Z`. Cache hash is SHA-256 of that UTF-8 file. Full cache stays in `data/cache/` (gitignored). The golden slice is a tiny committed JSONL under `tests/fixtures/datagen/` (hand-authored or trimmed). CI hashes canonical records, not raw downloads. No network in CI.
+Canonical form is JSONL, one object per line, keys in the field order above, `ts_utc` as ISO-8601 with `Z`. Cache hash is SHA-256 of that UTF-8 file. The golden-slice JSONL remains the CI pin. Full natives are wide Parquet on R2 `lagos-chem-l0` (melt on read). The golden slice is a tiny committed JSONL under `tests/fixtures/datagen/` (hand-authored or trimmed). CI hashes canonical records, not raw downloads. No network in CI.
 
 ## Replay identity
 

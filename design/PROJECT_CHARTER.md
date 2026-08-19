@@ -562,16 +562,16 @@ are drawn **just-in-time** (Diagram 2 — target decided: UMH Core, §12 #16 —
 "Later" re-platform; Diagram 3 before the Phase 6 floci work).
 
 **Reality note (2026-07-27, walkthrough-gate clause superseded 2026-08-19):** Phase 0 was
-**split in practice**. Its *skeleton* half — uv project (Python 3.13, ruff + pytest, no
-runtime deps) + the full README-only directory structure — landed early (PR #22,
-2026-07-07). Its *substantive* half — the **three-stage mapping table**
-(`config/mappings/`, still an empty reserved folder) — is **not written**. It is **not**
+**split in practice**. Its *skeleton* half (uv project, Python 3.13, ruff + pytest, later
+runtime deps) plus the README-only directory structure landed early (PR #22,
+2026-07-07). Its *substantive* half, the **three-stage mapping table**
+(`config/mappings/`, still an empty reserved folder), is **not written**. It is **not**
 gated on the walkthrough. §8.1's Phase-0 exit criterion is still **not met**: Phase 0
 is open until that table validates.
 
 Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
 
-**Reality note (2026-08-19):** Phase 1 L0 code is on `main` (PR #28 wiring; #29 generators; #31 Polars; #33 1 s machine stream; #34 status sync). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). A full L0 cache (330,920,000 rows, 54.63 GiB) was written and then deleted the same day, per Hamid. Raw downloads (1.35 GiB) stay. Full Faulty Testing was never written. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series; the ~1 s class is the generated P-101 / K-201 stream. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. Unit 100 P&ID Rev B one-pager + 59-name tag list: `design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build. This note does not rewrite N8.
+**Reality note (2026-08-19):** Phase 1 L0 code is on `main` (PR #28 wiring; #29 generators; #31 Polars; #33 1 s machine stream; #34 status sync; #35 Unit 100 one-pager; #36 mark). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). Hamid persist: warehouse is wide Parquet compressed with zstd on R2 `lagos-chem-l0` (ENAM), including the 9,600,000-row Faulty Testing native (758,943,582 bytes) and the rest of the warehouse (1,283,524,595 bytes). Raw stays on R2 (1,419,880,076 bytes, no csv). A history JSONL of 330,920,000 rows / 58,661,861,866 bytes was written and then deleted. 96 GiB was an estimate, never the warehouse. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series; the ~1 s class is the generated P-101 / K-201 stream. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`. Unit 100 P&ID Rev B one-pager + 59-name tag list: `design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build. This note does not rewrite N8.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 
@@ -594,7 +594,7 @@ Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (det
 | Risk | Signal | Mitigation |
 |------|--------|------------|
 | **Single-host RAM exhaustion** — the full Phase-6 stack (EMQX + Kafka + Connect + Spark + Neo4j + ERPNext + Timescale + 2× Postgres + Ignition + MLflow + Redis + floci + 4 site stacks) is realistically **16–24 GB+** of containers | compose up fails; swapping | **docker compose profiles per phase** (`ot-core` / `streaming` / `analytics` / `enterprise` / `ml`) so only the active phase's services run; per-service `mem_limit`; stated host assumption (32 GB comfortable; 16 GB = strict profiles) |
-| **Diagram/analysis perfectionism** delaying running code | days pass with no runnable artifact | Diagram 1 walkthrough timeboxed **and parallel**; it does not stall code; Diagrams 2–3 just-in-time |
+| **Diagram/analysis perfectionism** delaying running code | days pass with no runnable artifact | Diagram 1 walkthrough timeboxed and parallel; it does not stall code; mapping-table spine does not wait on Diagram-1 lock (sequencing note above); Diagrams 2–3 just-in-time |
 | **Scope breadth** (~25 technologies, 8 phases, solo learner) | a phase drags far past estimate | §8.1 exit criteria as gates; YAGNI (AGENTS.md); 4a/4b/4c split front-loads the thesis, defers integration risk |
 | **Library immaturity** (pysparkplug Pre-Alpha; floci young) | Phase 2/6 blockers | fallbacks pre-recorded in §4.1 (hand-rolled `spBv1.0` protobuf; LocalStack + DuckDB) |
 | **License / product drift** (EMQX BSL, UMH Core pivot, Redis relicensing) | upgrade surprises | versions/editions pinned in §4.1; re-verify at each phase start; §12 #16 |
@@ -657,6 +657,7 @@ beyond ERPNext community.
 | `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
 | `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity (authoritative for ingest/augment/replay) |
 | `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin + assets) |
+| `design/PHASE1_DATASHEET.md` | Phase 1 local vs R2 datasheet (HTML twin) |
 | `design/UNIT100_PID.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
 | `design/E2E_WALKTHROUGH.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
 | `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — per-step status + resume prompt (not a design source) |

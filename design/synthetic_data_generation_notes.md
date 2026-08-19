@@ -5,9 +5,11 @@
 > (ISA-106, not ISA-88 batches — §14 N13); **PySparkplug is a candidate**, not a decided
 > dependency (§4.1); mapping-table columns include the §14 set. The charter governs.
 >
-> **Phase 1 (2026-08-19):** L0 generators are on `main` at `7b6cdd5` (PRs #28/#29/#31/#33).
-> Land, persist, and disk facts: [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md).
-> Contract: [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle
+> **Phase 1 (2026-08-19):** persist and disk facts are R2 wide Parquet on
+> `lagos-chem-l0`. Generators include the 1 s machine stream (`7b6cdd5`, #33).
+> See [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) and
+> [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
+> [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle
 > file is snapshot-per-machine; the 1 s class is the generated P-101 / K-201 stream (see below).
 
 These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.

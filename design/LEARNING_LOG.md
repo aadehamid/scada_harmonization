@@ -66,34 +66,39 @@ performance up) — nothing about networks or security; those are Purdue and 624
 
 ### Phase 1 L0 — melt, cache, persist (2026-08-18)
 
-*Captured after PRs #28 (`8564fed`) and #29 (`3039710`). Full write-up:
-`design/PHASE1_SYNTHETIC_DATA.md`. Contract: `design/PHASE1_L0_CONTRACT.md`.*
+*Captured after PRs #28 (`8564fed`), #29 (`3039710`), #30, and #31 (`7da1621`).
+Full write-up: `design/PHASE1_SYNTHETIC_DATA.md`. Datasheet:
+`design/PHASE1_DATASHEET.md`. Contract: `design/PHASE1_L0_CONTRACT.md`.*
 
-**What landed.** pandas melts wide TEP to long L0 rows. pydantic freezes the L0
-boundary. Replay identity is `(sim_time_utc_ms, friendly_name, value, quality)`.
-21 golden-slice tests. No network in CI.
+**What landed.** Polars melts wide Parquet on read into long L0 rows. pydantic
+freezes the L0 boundary. Replay identity is
+`(sim_time_utc_ms, friendly_name, value, quality)`. 21 golden-slice tests. No
+network in CI.
 
-**Persist (Hamid).** Keep raw (1.35 GiB). Cache is regenerable: 330,920,000 rows /
-54.63 GiB was written then deleted the same day. Full Faulty Testing was never
-written (~96 GiB at 200 B/rec). Golden SHA-256
+**Persist (Hamid).** Warehouse is wide Parquet on R2 `lagos-chem-l0` (ENAM, zstd),
+including the 9,600,000-row Faulty Testing native. Raw stays on R2
+(1,419,880,076 bytes, no csv). Local `data/raw/` and `data/cache/` are not
+durable. History JSONL 330,920,000 rows / 58,661,861,866 bytes was written then
+deleted. 96 GiB was an estimate, never the warehouse. Golden SHA-256
 `f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516`.
 
-**IIoT correction.** The Kaggle file is snapshot-per-machine (~500k × 22), not a
-1 s historian stream. The contract's `epoch + i * 1s` path is a melt fallback.
-N8 is not rewritten.
+**IIoT correction.** The Kaggle file is snapshot-per-machine (500,000 × 18 in the
+warehouse), not a 1 s historian stream. The contract's `epoch + i * 1s` path is a
+melt fallback. N8 is not rewritten.
 
-**Addendum (2026-08-19).** `#31` swapped pandas → Polars. `#33` landed the 1 s
-machine stream (`generate_machine_stream`, P-101 / K-201). `friendly_name` is
-`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` was 34 after #33,
-41 after the Unit 100 one-pager.
-`main` is `2003cbb` after #34 (`7b6cdd5` is still the #33 generator commit).
-TEP golden SHA unchanged. Unit 100 P&ID Rev B one-pager + 59-name tag list
-landed (`design/UNIT100_PID.md`). Walkthrough is parallel and does not gate
-build (2026-08-19).
+**Addendum (2026-08-19).** `#33` landed the 1 s machine stream
+(`generate_machine_stream`, P-101 / K-201). `friendly_name` is
+`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` is 41 after the
+Unit 100 one-pager. TEP golden SHA unchanged. Machine-stream golden
+`84b9f088…2159f0`. Unit 100 P&ID Rev B one-pager + 59-name tag list:
+`design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build.
 
-**Teach-back:** *"Phase 1 stores long L0 rows and can replay them deterministically.
-Hamid keeps the raw downloads and deletes the derived cache. The mapping table
-still assigns meaning."*
+**Teach-back:** *"Phase 1 stores wide natives on R2 and melts them on read with
+Polars. The 1 s class is a generated machine stream. Hamid persists raw and
+warehouse on R2. Local disks are scratch. The mapping table still assigns
+meaning."*
+
+**Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. The N8 fast-class hole landed as `#33`. N8 is not rewritten.
 
 ## Gotchas
 
@@ -128,7 +133,7 @@ still assigns meaning."*
   initiates connections into OT.
 - **IEC 62264** — the international designation of **ISA-95** (identical content); see ISA-95.
 - **IIoT snapshot (this lab's Kaggle file)** — one row per machine, not a 1-second
-  time series. `factory_sensor_simulator_2040.csv`, ~500,000 × 22. Distinct from TEP.
+  time series. Warehouse object `iiot` is 500,000 × 18. Distinct from TEP.
 - **ISA-88 / ISA-106** — process-modeling standards: ISA-88 (= IEC 61512) is *batch* control;
   ISA-106 is *continuous* operations. LSC is continuous → production modeled as **lots** (ISA-106),
   not **batches** (ISA-88); hence `production_lot`, not `batch` (§14 N13).

@@ -14,17 +14,17 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (`a9506d4` after #35, 2026-08-19)**.
-Phase 0 mapping-table YAML is not written yet. The Diagram 1 walkthrough
-**runs in parallel and does not block build** (cursor:
-`design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
-`design/PHASE1_SYNTHETIC_DATA.md`. Unit 100 P&ID Rev B one-pager + 59-name
-tag list: `design/UNIT100_PID.md`.
+The project is in **Phase 1 L0 on `main` (`e2c7ff3` after #36, 2026-08-19)**.
+Warehouse is wide Parquet on R2 `lagos-chem-l0`. Phase 0 mapping-table YAML is
+not written yet. The Diagram 1 walkthrough **runs in parallel and does not
+block build** (cursor: `design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
+`design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`.
+Unit 100 P&ID Rev B one-pager + 59-name tag list: `design/UNIT100_PID.md`.
 
 ## Picking up the work
 
 **New here? Read [`HANDOFF.md`](HANDOFF.md) first** — it captures current status (decisions resolved,
-open PRs, what's done vs. next), the working conventions, and the immediate next action. Then read the
+open PRs, what's done vs. next), the working conventions, and the open streams. Then read the
 charter below.
 
 ## Authoritative source of truth
@@ -131,6 +131,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 - `PROJECT_CHARTER.md` — authoritative project definition (purpose, planes, architecture, build sequence, decisions)
 - `PHASE1_L0_CONTRACT.md` — Phase 1 L0 record + replay identity
 - `PHASE1_SYNTHETIC_DATA.md` — Phase 1 land / persist / disk record (HTML twin)
+- `PHASE1_DATASHEET.md` — Phase 1 local vs R2 datasheet (HTML twin)
 - `UNIT100_PID.md` — Unit 100 P&ID Rev B one-pager + 59-name tag list
 - `uns_home_lab_notes.md` — vision & high-level scope *(archived — superseded on decided items)*
 - `hand_built_sparkplug_uns_notes.md` — architecture option: hand-built (build/learn phase) *(archived — superseded on decided items)*
@@ -254,7 +255,7 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-19 — `#34` landed on `2003cbb`; generators #28/#29/#31/#33):**
+**Current state (Phase 1 L0 on `main`, 2026-08-19, `e2c7ff3`; generators #28/#29/#31/#33):**
 `pyproject.toml` exists, created with `uv init --lib` (src layout). Python is **pinned to 3.13**
 via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed.
 Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
@@ -272,12 +273,12 @@ src/scada_harmonizer/
   datagen/{plc_mapping,sparkplug,context_export}  # later phases
   {harmonize,record,contextualize,apply}    # the four planes
 config/
-  mappings/                                 # the three-stage table spine — RESERVED; walkthrough does not gate it
+  mappings/                                 # three-stage table spine. RESERVED. Walkthrough does not gate it
   sites/{beaumont,geismar,rotterdam,corpus_christi}
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
-data/{raw,cache}    # payloads gitignored; Hamid persist rules in the READMEs + PHASE1_SYNTHETIC_DATA.md
+data/{raw,cache}    # local scratch only. Not the durable warehouse (R2 lagos-chem-l0)
 notebooks/ # Marimo learning surface, one per component
-tests/     # 41 tests (L0 goldens + Unit 100 P&ID; no network, no full cache)
+tests/     # 41 tests (L0 goldens + Unit 100 P&ID; no network, no full warehouse)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
