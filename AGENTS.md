@@ -14,9 +14,11 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (PRs #28/#29, 2026-08-18)**; Phase 0 is still
-open because the mapping-table spine is gated on the Diagram 1 walkthrough (cursor:
-`design/WALKTHROUGH_PROGRESS.md`). Phase 1 record: `design/PHASE1_SYNTHETIC_DATA.md`.
+The project is in **Phase 1 L0 on `main` (PRs #28/#29/#31/#33, `7b6cdd5`, 2026-08-19)**;
+Phase 0 is still open because the mapping-table spine is gated on the Diagram 1
+walkthrough (cursor: `design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
+`design/PHASE1_SYNTHETIC_DATA.md`. Unit 100 P&ID Rev B is not in the repo yet
+(PDF only; Grok Bot pack not recovered).
 
 ## Picking up the work
 
@@ -250,12 +252,13 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-18 — PRs #28 + #29):** `pyproject.toml` exists,
-created with `uv init --lib` (src layout). Python is **pinned to 3.13** via a committed
-`.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed. Runtime deps are
-**polars** (wide→long melt and tabular L0 frames) and **pydantic** (L0 boundary). Each further dependency is added in
-the phase that needs it, with a one-line justification. The dev group holds **ruff** (lint +
-format; `E,W,F,I,UP,B`; 100 columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
+**Current state (Phase 1 L0 on `main`, 2026-08-19 — `7b6cdd5`, PRs #28 + #29 + #31 + #33):**
+`pyproject.toml` exists, created with `uv init --lib` (src layout). Python is **pinned to 3.13**
+via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed.
+Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
+**pydantic** (L0 boundary). Each further dependency is added in the phase that needs it, with a
+one-line justification. The dev group holds **ruff** (lint + format; `E,W,F,I,UP,B`; 100
+columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
 
 Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run ty check`
 
@@ -263,7 +266,7 @@ Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff 
 
 ```
 src/scada_harmonizer/
-  datagen/{ingestion,augmentation,replay}   # Phase 1 code on main
+  datagen/{generation,ingestion,augmentation,replay}  # Phase 1 code on main
   datagen/{plc_mapping,sparkplug,context_export}  # later phases
   {harmonize,record,contextualize,apply}    # the four planes
 config/
@@ -272,7 +275,7 @@ config/
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
 data/{raw,cache}    # payloads gitignored; Hamid persist rules in the READMEs + PHASE1_SYNTHETIC_DATA.md
 notebooks/ # Marimo learning surface, one per component
-tests/     # 21 golden-slice tests (no network, no full cache)
+tests/     # 34 golden-slice tests (no network, no full cache)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
