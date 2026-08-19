@@ -1,6 +1,6 @@
 # Phase 1 synthetic data record
 
-**Status:** Polars on `main` `7da1621` (2026-08-18). Warehouse is wide Parquet, compressed with zstd, on R2 `lagos-chem-l0`.  
+**Status:** Polars + 1 s machine stream on `main` (`e2c7ff3` after #36; generators `7b6cdd5` / #33). Warehouse is wide Parquet, compressed with zstd, on R2 `lagos-chem-l0`.
 **Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
 **Datasheet:** [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md) (why the files sit where they sit).  
 **Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
@@ -13,18 +13,17 @@ Phase 1 is replay-only. It does not assign physical meaning. It does not write S
 
 ## What landed
 
-Four PRs closed the code and record path on 18 August 2026, Central Time.
+PRs closed the Phase 1 L0 path on 18 August 2026, Central Time, then the 1 s stream the same day.
 
 | PR | Merge | SHA | What it is |
 |----|-------|-----|------------|
 | [#28](https://github.com/aadehamid/scada_harmonization/pull/28) | 12:34 AM CT | `8564fed` | pandas as the first runtime dependency, empty Phase 1 package inits, ty in the dev group and CI |
-| [#29](https://github.com/aadehamid/scada_harmonization/pull/29) | 12:56 AM CT | `3039710` | L0 record, ingestion, operational-technology (OT) extras, deterministic replay, golden fixtures, 21 tests |
+| [#29](https://github.com/aadehamid/scada_harmonization/pull/29) | 12:56 AM CT | `3039710` | L0 record, ingestion, operational-technology (OT) extras, deterministic replay, golden fixtures, 21 tests at land |
 | [#30](https://github.com/aadehamid/scada_harmonization/pull/30) | 18 Aug 2026 | `47883c7` | Phase 1 synthetic-data record (HTML twin + assets) |
 | [#31](https://github.com/aadehamid/scada_harmonization/pull/31) | 18 Aug 2026 | `7da1621` | Polars replaces pandas for every tabular job |
+| [#33](https://github.com/aadehamid/scada_harmonization/pull/33) | same day | `7b6cdd5` | seeded 1 s machine stream (P-101 / K-201); `friendly_name` is `{machine_id}/{pv}` |
 
-The merge commit for #29 is `3039710`. The last commit on that branch is `8b83fa6`. `main` is `7da1621`.
-
-Runtime dependencies on `main` are polars and pydantic. Pydantic validates the L0 boundary. Polars melts wide Parquet on read into long L0 rows.
+Generator HEAD is `7b6cdd5`. `main` is `e2c7ff3` after #36. Runtime deps are polars + pydantic. Pydantic validates the L0 boundary. Polars melts wide Parquet on read into long L0 rows.
 
 CI stays golden-slice only. No full-dataset CI. No network in CI.
 
@@ -47,15 +46,22 @@ Those four rules are why a 58,661,861,866-byte history JSONL existed for one day
 | Wide Parquet warehouse on R2 | Kept | **15,830,000** wide rows, **1,283,524,595** bytes |
 | Raw on R2 | Kept | **1,419,880,076** bytes (four TEP `.RData` + IIoT zip, no csv) |
 | 96 GiB long Faulty Testing estimate | Never the warehouse | Estimate only. The Faulty Testing Parquet exists. |
-| Golden slice | Committed | 4 lines |
+| TEP golden slice | Committed | 4 lines |
+| Machine-stream golden | Committed (#33) | 2 machines × 20 s × 3 PVs |
 
-SHA-256 of the committed golden file:
+TEP golden SHA-256 (unchanged):
 
 ```
 f5b9d1cfdaf9f298d9cdcbcb926bc3486dfdac1cccff7816b34ac290e6d33516
 ```
 
-Pinned as `GOLDEN_SHA256` in `tests/datagen/factories.py`. The hash is of canonical UTF-8 JSONL, not of a raw download.
+Machine-stream golden SHA-256:
+
+```
+84b9f0885a8efc3c28c488beebefd47d2d9d6b5fd93dc6f7f681b5b2e52159f0
+```
+
+Pinned as `GOLDEN_SHA256` and `MACHINE_STREAM_GOLDEN_SHA256` in `tests/datagen/factories.py`. Hashes are of canonical UTF-8 JSONL, not of a raw download.
 
 ## Warehouse (R2 `lagos-chem-l0`, wide Parquet, zstd)
 
@@ -95,7 +101,7 @@ Source: [Industrial IoT Dataset (Synthetic)](https://www.kaggle.com/datasets/can
 
 The file is **one snapshot per machine**: 500,000 wide rows, 18 warehouse columns. It is not a historian export and it is not a 1-second time series. Earlier notes treated it as a replayable 1 Hz stream. That reading is wrong. This record corrects it.
 
-The L0 contract still says: if an IIoT table has a UTC column, use it; otherwise fall back to `1970-01-01T00:00:00Z + i * 1s`. That fallback is a melt rule for a wide table that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class. Python extras and a later machine stream have to do that work. This file does not rewrite N8.
+The L0 contract still says: if an IIoT table has a UTC column, use it; otherwise fall back to `1970-01-01T00:00:00Z + i * 1s`. That fallback is a melt rule for a wide table that lacks time. It is not a claim that this Kaggle file is 1 Hz. Charter §14 N8 still names IIoT as the intended carrier of the fast scan class. The chosen file does not carry that class. The 1 s class is now a seeded generated machine stream (`generate_machine_stream`), ingested as `SourceDataset.IIOT`. Kaggle remains a snapshot. Python extras ride that 1 s host grid. This file does not rewrite N8.
 
 Phase 1 must not mix TEP and IIoT on one stream.
 
@@ -105,17 +111,18 @@ Phase 1 must not mix TEP and IIoT on one stream.
 
 Code lives under `src/scada_harmonizer/datagen/`.
 
-- **Ingest.** Wide natives to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Null/NaN is rejected; gaps are quality codes. Full natives are wide Parquet on R2. Melt is on read.
+- **Generate.** Seeded 1 s rotating-equipment stream (`datagen/generation/`). Native UTC, string `machine_id` as metadata, a handful of fast PVs. Ingested as `iiot`.
+- **Ingest.** Wide natives to long `L0Record` rows. TEP natives are float. IIoT natives keep bool/int/float. Identity columns are not melted. When `machine_id` is present, `friendly_name` is `{machine_id}/{pv}` and `source_column` stays the PV. Null/NaN is rejected; gaps are quality codes. Full natives are wide Parquet on R2. Melt is on read.
 - **Augment.** Seeded operational-technology (OT) extras (`xv_feed`, `machine_state`, `cycle_count`, `ctrl_mode`, `comm_gap`, `noise_spike`, `stuck_pv`). Same seed, same extras. Natives are copied, then extras append. Quality on extras: Good, plus Bad/gap, Uncertain/spike, Stale/flatline. Lots, work orders, and material IDs stay Phase 5. Full extras are not persisted.
 - **Replay.** Identity is `(sim_time_utc_ms, friendly_name, value, quality)`. Speed, pause/resume, and rebase change wall-clock spacing only. Backfill writes historical sim timestamps and is not live. Live pause blocks `emit()` until a cross-thread resume.
 
 Physical meaning waits for the mapping table. `friendly_name` is what the L0 row stores. `source_column` is side metadata.
 
-## Tests (21, all golden-slice)
+## Tests (golden-slice only)
 
-`uv run pytest` is 21 passed. No `data/raw` or `data/cache` in CI. CI does not read R2.
+`uv run pytest` is 41 passed (34 L0 goldens + Unit 100 P&ID). No `data/raw` or `data/cache` in CI. CI does not read R2.
 
-Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject.
+Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject, generated 1 s machine stream (identity metadata, seed pin, extras on the 1 s grid).
 
 ## What this does not close
 

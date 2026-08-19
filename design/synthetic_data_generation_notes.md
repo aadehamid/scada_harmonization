@@ -5,11 +5,12 @@
 > (ISA-106, not ISA-88 batches — §14 N13); **PySparkplug is a candidate**, not a decided
 > dependency (§4.1); mapping-table columns include the §14 set. The charter governs.
 >
-> **Phase 1 (2026-08-18):** persist and disk facts are R2 wide Parquet on
-> `lagos-chem-l0`. See [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md)
-> and [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
-> [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle file is
-> snapshot-per-machine, not a 1-second time series (see below).
+> **Phase 1 (2026-08-19):** persist and disk facts are R2 wide Parquet on
+> `lagos-chem-l0`. Generators include the 1 s machine stream (`7b6cdd5`, #33).
+> See [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) and
+> [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
+> [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle
+> file is snapshot-per-machine; the 1 s class is the generated P-101 / K-201 stream (see below).
 
 These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.
 
@@ -61,7 +62,7 @@ The recommended baseline is to use one machine-oriented dataset and one process-
 
 **Link:** [Industrial IoT Dataset (Synthetic)](https://www.kaggle.com/datasets/canozensoy/industrial-iot-dataset-synthetic)
 
-This dataset is synthetic, designed around industrial predictive-maintenance style signals, and useful for machine-centered equipment data. **Correction (2026-08-18):** the published file (`factory_sensor_simulator_2040.csv`) is **one snapshot per machine** (about 500,000 rows, 22 columns). It is **not** a 1-second historian export and must not be replayed as a 1 Hz stream. The L0 contract's `epoch + i * 1s` rule is a melt fallback for a wide table that lacks a time column, not a description of this file. Charter §14 N8 still names IIoT as the intended fast-class carrier; this file does not carry that class. Python extras and a later machine stream cover the gap. N8 itself is not rewritten here.
+This dataset is synthetic, designed around industrial predictive-maintenance style signals, and useful for machine-centered equipment data. **Correction (2026-08-18):** the published file (`factory_sensor_simulator_2040.csv`) is **one snapshot per machine** (about 500,000 rows, 22 columns). It is **not** a 1-second historian export and must not be replayed as a 1 Hz stream. The L0 contract's `epoch + i * 1s` rule is a melt fallback for a wide table that lacks a time column, not a description of this file. Charter §14 N8 still names IIoT as the intended fast-class carrier; this file does not carry that class. Python extras and the generated 1 s machine stream (PR #33) cover the gap. N8 itself is not rewritten here.
 
 Good uses in the lab include:
 

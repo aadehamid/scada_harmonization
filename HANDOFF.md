@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-18
+**Last updated:** 2026-08-19
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,21 +28,21 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-08-18)
+## 2. Current status (2026-08-19)
 
-**Phase: Phase 1 L0 is on `main` at `7da1621`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
-Mapping table is unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+**Phase: Phase 1 L0 is on `main` at `e2c7ff3`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
+1 s machine stream landed (#33). Unit 100 Rev B one-pager landed (#35). Mapping table is
+unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
 
-**Hamid lock (2026-08-18, via Chief Architect).** Pack the Diagram 1 v2 L0 cuts as a written
-note in this file. Do not copy or edit the original Eraser file `MgnB91QGOhX8xWiKeaAK`.
-Do not build a second full cloud-architecture canvas now. The original stays the
-walkthrough lock target (cursor still §0.2 Purdue). A copy gets the L0 seat/caption
-fixes only after the walkthrough is ready to lock. Continue synthetic data generation.
-Next piece is the N8 hole, not a drawing. Fast class: seeded extras plus a later
-machine stream. Not the landed Kaggle IIoT file as a 1 s process stream. Not
-interpolated TEP. Still no mapping YAML, no Sparkplug, no second plant. P&ID waits
-until L0 identity is stable so it ties to the same Phase 1 TEP/IIoT keys. N8 is
-not rewritten.
+**Hamid lock (2026-08-18, via Chief Architect; status refreshed 2026-08-19).** Pack the
+Diagram 1 v2 L0 cuts as a written note in this file. Do not copy or edit the original
+Eraser file `MgnB91QGOhX8xWiKeaAK`. Do not build a second full cloud-architecture canvas
+now. The original stays the walkthrough lock target (cursor still §0.2 Purdue). A copy
+gets the L0 seat/caption fixes only after the walkthrough is ready to lock. The N8
+fast-class hole landed as `#33` (`generate_machine_stream`, P-101 / K-201). Not the
+landed Kaggle IIoT file as a 1 s process stream. Not interpolated TEP. Still no mapping
+YAML, no Sparkplug, no second plant. The Unit 100 Rev B one-pager landed on `#35` after
+this lock (same Phase 1 TEP/IIoT keys). Extra P&ID pages are not drawn. N8 is not rewritten.
 
 **Packed Diagram 1 v2 L0 cuts (Thread B, L0 to PLC). Packed, not drawn. For a later copy only.**
 
@@ -60,12 +60,27 @@ Shoulds: R2 `lagos-chem-l0` as Replay upstream (wide Parquet, melt-on-read), dis
 L4 MinIO; TEP splits are partitions not boxes; "4 sites re-skin" is TEP-only; Sensors
 caption so vibration/power are not TEP PVs; HITL "L0 Shadow" (N30) vs Purdue L0.
 
-Design + charter complete; **all infrastructure decisions resolved**. Phase 1 ingestion /
-augmentation / replay landed (PRs #28 + #29). Polars is the tabular runtime (#31). The
-mapping-table spine is still unwritten and does not wait on the Diagram 1 walkthrough.
-Hand-built Eraser **Diagram 1 v2** is drawn, layout-corrected and owner-approved;
-it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** later
-(charter §8 sequencing note; Diagram 2's target is decided — **UMH Core**, §12 #16).
+Design + charter complete; **all infrastructure decisions resolved**. Phase 1 L0
+(ingestion / generation / augmentation / replay) is on `main` (PRs #28 + #29 + #31 + #33).
+Mapping-table YAML is **not written** and is **not gated** on the walkthrough (owner lock
+2026-08-19). Hamid runs Diagram 1 independently. Hand-built Eraser **Diagram 1 v2** is
+still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just-in-time.
+
+**Repo snapshot:**
+
+| Fact | Reality |
+|------|---------|
+| `main` HEAD | `e2c7ff3` after #36. Generators still `#33` / `7b6cdd5` |
+| Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
+| Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read |
+| Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full warehouse |
+| Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
+| 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
+| Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
+| Unit 100 | Rev B PDF + 59-row tag list (`design/UNIT100_PID.md`). Extra pages not drawn |
+| Not in repo | mapping-table YAML; DEXPI model / `book.py`; Phase 2+ services; Marimo notebooks |
+| Open PRs | **#32** this docs PR (R2 / datasheet / lock note) |
+| Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
 **done**; **§0.2 Purdue is next**; then §0.3 IEC 62443, then Threads B → C → A, then cross-cutting.
@@ -76,8 +91,8 @@ it is the walkthrough + lock target. Diagrams 2 & 3 are drawn **just-in-time** l
 ### This session (2026-08-18): Hamid lock via Chief Architect (docs only)
 
 Hamid locked the order: pack Diagram 1 v2 L0 cuts here; do not touch Eraser
-`MgnB91QGOhX8xWiKeaAK`; no second architecture canvas; next work is the N8
-fast-class hole (seeded extras + later machine stream). Walkthrough cursor
+`MgnB91QGOhX8xWiKeaAK`; no second architecture canvas; next work at lock
+time was the N8 fast-class hole (later closed by `#33`). Walkthrough cursor
 untouched. N8 untouched. One-line pointer in `design/LEARNING_LOG.md`.
 
 ### This session (2026-08-18): R2 persist and #31 merged
@@ -88,6 +103,52 @@ Raw stays on R2 (1,419,880,076 bytes, no csv). The 58,661,861,866-byte history J
 was deleted. 96 GiB was an estimate, never the warehouse. Polars PR #31 merged.
 `main` is `7da1621`. Walkthrough stays parallel at §0.2. Datasheet:
 `design/PHASE1_DATASHEET.md`. Do not copy the write-up here.
+
+### This session (2026-08-19): merge `origin/main` (`e2c7ff3`) into #32
+
+Fetched `main` and merged. All conflicts were unions (R2 warehouse + datasheet
+from this branch; 1 s machine stream #33 and Unit 100 #35 from `main`).
+Intent-timing only: the 2026-08-18 lock said next was the N8 hole; `#33`
+and `#35` later landed on `main`. Resolution keeps packed L0 cuts + R2
+persist, marks the N8 hole done, keeps Unit 100, leaves extra P&ID pages
+undrawn. Charter N8 and §8.1 table untouched. Walkthrough cursor untouched.
+
+### This session (2026-08-19): walkthrough parallel + Unit 100 one-pager
+
+Hamid lock: the Diagram 1 walkthrough **runs in parallel** and **does not
+block build**. Mapping-table YAML can start when the build needs it. #34
+merged (`2003cbb`); leftover docs branch deleted. Recovered the Rev B PDF
+from Hamid's upload and landed it under `tests/fixtures/datagen/pid/` with a
+59-row reconstructed tag list (1:1 drawing name → existing L0 names). Grok
+Bot DEXPI / `tag_schedule.py` pack was not recovered — `provenance` column
+says so. Extra pages not this lap. Do not invent a second factory. Do not
+stack on #32.
+
+### This session (2026-08-19): git cleanup after #33 merge
+
+`main` is `7b6cdd5` (PR #33 squash-merged). Local leftover
+`cursor/phase1-1s-machine-stream-7d33` deleted (`-D` after squash). Remote
+already gone; pruned stale `origin/cursor/pandas-to-polars-8a59` (#31) and
+`origin/cursor/phase1-1s-machine-stream-7d33`. PR #32 left open. Unit 100
+P&ID Rev B was not in the repo at that cleanup (PDF only). Landed later
+the same day — see the session note above. Do not invent a second factory.
+This pass syncs README, AGENTS, charter §8 reality note, Phase 1 record +
+HTML twin, learning log, synthetic-data notes, `tests/README.md`, and the
+archived Python-centric banner to `7b6cdd5` / 34 tests. Charter N8 text
+untouched. PR **#34** was that docs-only branch (now merged).
+
+### This session (2026-08-18): N8 1 s machine stream (PR #33)
+
+Charter §14 N8 fast class was a hole: Kaggle IIoT is a snapshot, TEP is 180 s,
+extras inherited the host grid. Added `generate_machine_stream` — seeded wide
+Polars frame at native 1 s UTC, ingested as `SourceDataset.IIOT`. Machine
+identity is stream metadata, not an L0 PV (`METADATA_COLUMNS`). Extras ride
+that 1 s grid. Golden slice 2×20 s×3 PVs. TEP 180 s and Kaggle-snapshot tests
+stay green. Charter N8 text and Phase 0 `source_cadence` untouched. Walkthrough
+cursor untouched. Do not stack on PR #32. Follow-up: P1 fix — ingest qualifies
+`friendly_name` as `{machine_id}/{pv}` so two machines at the same tick do not
+collapse. Raw same-name cadence is 1 s. Machine-stream golden regenerated;
+TEP golden SHA unchanged.
 
 ### This session (2026-08-18): Hamid lock — pandas → Polars
 
@@ -313,7 +374,8 @@ with external research → (2) lock Diagram 1 → (3) Diagrams 2 & 3 → (4) Pha
 - (b) ~~Two-components discussion~~ — **DONE** (Databricks + Iggy, charter §13.6).
 - (c) **Phase 0 — PARTIALLY DONE.** Repo skeleton **landed early** (PR #22, out of sequence but
   harmless — it is diagram-independent). What remains is the **three-stage mapping table with
-  the §14 columns**. That spine does not wait on Diagram 1. Diagrams 2 & 3 do not gate it either.
+  the §14 columns**. The walkthrough does **not** gate it (2026-08-19). Diagrams 2 & 3 do not
+  gate it either.
 - (d) **Just-in-time:** Diagram 2 (UMH Core — decided, §12 #16; draw before the "Later" re-platform)
   · Diagram 3 (cloud-native → floci, before Phase 6).
 
@@ -374,12 +436,18 @@ hold.**
 - **PR #29** Phase 1 L0 generators: **MERGED** 2026-08-18 12:56 AM CT (`3039710`);
   branch `cursor/phase1-l0-datagen-5739`.
 - **PR #30** Phase 1 synthetic data record: **MERGED** (`47883c7`).
-- **PR #31** Polars replaces pandas: **MERGED** (`7da1621`);
-  branch `cursor/pandas-to-polars-8a59`.
-- **As of 2026-08-18:** `main` at `7da1621`. PRs **#28 through #31** merged.
-  Warehouse is R2 `lagos-chem-l0`. `entire/*` checkpoint refs remain.
-- **This PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
+- **PR #31** Polars replaces pandas: **MERGED** (`7da1621`); branch deleted.
+- **PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
   **OPEN** on `cursor/docs-r2-warehouse-datasheet-3221`.
+- **PR #33** 1 s machine stream (N8 fast class): **MERGED** (`7b6cdd5`);
+  branch `cursor/phase1-1s-machine-stream-7d33` deleted local + remote.
+- **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
+  branch `cursor/handoff-git-cleanup-7d33` deleted local + remote.
+- **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
+  (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
+- **PR #36** mark #35 merged: **MERGED** (`e2c7ff3`).
+- **As of 2026-08-19:** `main` at `e2c7ff3`. Warehouse is R2 `lagos-chem-l0`.
+  `entire/*` checkpoint refs remain.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -399,22 +467,19 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ---
 
-## 3. What's next
+## 3. What's next — build continues; walkthrough is parallel
 
-Hamid lock (2026-08-18, via Chief Architect). The walkthrough is not the next action.
+### ⭐ Walkthrough (Hamid, parallel — does not block build) — resume at §0.2 (Purdue)
 
-1. **N8 fast-class hole (do this).** Seeded extras plus a later machine stream (synthetic
-   data generation). Not the landed Kaggle IIoT file as a 1 s process stream. Not
-   interpolated TEP. Do not rewrite N8.
-2. **Mapping-table spine.** Still unwritten. Does not wait on Diagram 1 lock.
+1. **Mapping-table spine.** Still unwritten. Does not wait on Diagram 1 lock.
    `config/mappings/` is reserved. YAML + Pydantic, one measurement across all 4 sites,
    including the §14 columns. Open alignment question: YAML vs TOML/JSON.
-3. **Walkthrough remains a parallel path at §0.2.** Cursor: `design/WALKTHROUGH_PROGRESS.md`.
+2. **Walkthrough remains a parallel path at §0.2.** Cursor: `design/WALKTHROUGH_PROGRESS.md`.
    Original Eraser `MgnB91QGOhX8xWiKeaAK` stays the lock target. Packed L0 cuts live in
-   §2 of this file, not drawn.
+   §2 of this file, not drawn. The N8 fast-class hole is closed (`#33`).
 
 **Still gated / not now:** mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug,
-second plant, P&ID, Eraser copy.
+second plant, extra P&ID pages, Eraser copy.
 
 Warehouse reminder (not the next piece): R2 `lagos-chem-l0`, wide Parquet, melt-on-read.
 Details in `design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`.
@@ -429,6 +494,43 @@ Threads B, then C, then A."*
 
 **Diagram URL (v2, 2026-07-06, the walkthrough + lock target):**
 https://app.eraser.io/workspace/MgnB91QGOhX8xWiKeaAK?diagram=133RhOiN_-G6Ko5kaTj8&layout=canvas
+*(2026-06-23 original kept for history:
+https://app.eraser.io/workspace/6Ng61sTaot9VjtU87bEY?diagram=vheRVPpajwodCEDwqnBZ&layout=canvas)*
+
+Cadence, block order, and the §14 gap checklist live in
+`design/E2E_WALKTHROUGH.md`. Do not copy them here.
+
+**Walkthrough complete → Diagram 1 locked as the template for Diagrams 2 & 3.**
+That lock does **not** unblock the mapping table — the table was never waiting
+on it after 2026-08-19. The uv skeleton already landed (PR #22). Diagrams 2 & 3
+stay just-in-time (Diagram 2 = UMH Core, §12 #16; Diagram 3 before Phase 6).
+
+---
+
+### Phase 0 — partially complete (skeleton landed; mapping table not written)
+
+**State (2026-07-27): 2 of 3 pieces done.** The `feat/phase-0-foundation` branch shipped as PR #22
+and is deleted; the skeleton is on `main`.
+
+- ✅ **1. Python project skeleton** — `pyproject.toml` via **`uv init --lib`** (src layout), Python
+  **3.13** pinned, `uv.lock` committed; runtime deps now **polars + pydantic**;
+  ruff + pytest + ty in the dev group;
+  `src/scada_harmonizer/` (datagen 6 layers + four planes), `config/`, `docker/`, `data/`,
+  `notebooks/`, `tests/`. Phase 1 code is in
+  `datagen/{generation,ingestion,augmentation,replay}`;
+  later layers and the four planes stay README-only.
+- ⬜ **2. Three-stage mapping table as config (THE SPINE)** — **NOT started.**
+  Not gated on the walkthrough. `config/mappings/` is a reserved empty folder. YAML + Pydantic validation, one
+  measurement across all 4 sites, **including the §14 columns** (N17 `raw_min`/`raw_max`/`eu_min`/
+  `eu_max` + `scale_linear`; N10 quality; N8 `source_cadence`; N11 `interpolation_type`; N18 UNECE
+  unit codes). This is charter §8.1's Phase-0 exit criterion.
+- 🟡 **3. `design/LEARNING_LOG.md`** — seeded and growing (§0.1 ISA-95 concepts + glossary landed
+  2026-07-11); continues to fill as the walkthrough proceeds.
+
+**When resuming piece 2:** re-explain from scratch (learning-first), align, then build per cadence —
+explain → align → build piece by piece → run & observe → prune. Open alignment question kept from the
+original plan: **YAML vs TOML/JSON** for the mapping table (YAML is the assumed default).
+Marimo notebook work still starts at **Phase 1**, not here.
 
 ### Tooling decided this session
 - **`uv`** for all package/project management (`uv add`/`sync`/`run`, committed `uv.lock`). No pip/poetry.
@@ -499,6 +601,7 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 | `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity |
 | `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin) |
 | `design/PHASE1_DATASHEET.md` | Phase 1 local vs R2 datasheet (HTML twin) |
+| `design/UNIT100_PID.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
 | `AGENTS.md` | Agent working guide — constraints, data flow, domain, build sequence |
 | `README.md` | Human-facing summary |
 | `design/uns_home_lab_notes.md` | Vision & scope *(archived)* |
@@ -510,11 +613,16 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-Next piece is the N8 fast-class hole (seeded extras + later machine stream). Mapping-table
-spine is unwritten and does not wait on Diagram 1. Walkthrough stays parallel at §0.2.
-Not now: mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug, second plant, P&ID,
-Eraser copy.
+Build continues. Next piece is the mapping-table spine. The N8 fast-class
+hole is closed (`#33`). Walkthrough stays parallel at §0.2. Completing that
+pass **locks Diagram 1** as the template for Diagrams 2 & 3. It does **not**
+gate the mapping table. Not now: mapping YAML as a Phase 0 exit, Diagram 1
+lock, Sparkplug, second plant, extra P&ID pages, Eraser copy.
 
-No open blocking decisions (§12 #16 resolved: UMH Core). The one deferred non-blocking question is
-**YAML vs TOML/JSON** for the mapping table, answerable when the spine starts. PRs #28 through #31
-merged. `main` is `7da1621`. Tabular runtime is Polars. Warehouse is R2. This docs PR is #32.
+No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred
+non-blocking question is **YAML vs TOML/JSON** for the mapping table. PRs
+#17–#31, #33, #34, #35, and #36 merged. Open docs draft: **#32** (do not
+stack). Tabular runtime is Polars. Warehouse is R2 `lagos-chem-l0`. Unit 100
+Rev B one-pager is in `tests/fixtures/datagen/pid/`. Extra pages (index /
+analyzer / legend) are the next drawing lap if Hamid wants them. Do not
+invent a second factory.

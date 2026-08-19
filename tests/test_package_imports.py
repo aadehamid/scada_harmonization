@@ -3,6 +3,7 @@
 import scada_harmonizer
 import scada_harmonizer.datagen
 import scada_harmonizer.datagen.augmentation
+import scada_harmonizer.datagen.generation
 import scada_harmonizer.datagen.ingestion
 import scada_harmonizer.datagen.replay
 
@@ -17,6 +18,7 @@ def test_phase1_datagen_packages_import() -> None:
         scada_harmonizer.datagen,
         scada_harmonizer.datagen.ingestion,
         scada_harmonizer.datagen.augmentation,
+        scada_harmonizer.datagen.generation,
         scada_harmonizer.datagen.replay,
     ):
         assert module.__file__ is not None

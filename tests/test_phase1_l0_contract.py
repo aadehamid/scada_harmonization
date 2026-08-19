@@ -43,6 +43,7 @@ from scada_harmonizer.datagen.replay import (
     identity_list,
 )
 from tests.datagen.factories import (
+    FORBIDDEN_BUSINESS_NAMES,
     GOLDEN_SHA256,
     GOLDEN_SLICE,
     TINY_TEP_CSV,
@@ -54,16 +55,6 @@ from tests.datagen.factories import (
     tiny_tep_wide_n,
     write_tiny_tep_csv,
 )
-
-FORBIDDEN_BUSINESS_NAMES = {
-    "lot",
-    "lot_id",
-    "work_order",
-    "wo_id",
-    "workorder",
-    "material",
-    "material_id",
-}
 
 
 class FakeWallClock:

@@ -1,8 +1,8 @@
 # mappings — the three-stage mapping table (THE SPINE)
 
-> **Status: folder reserved — content deliberately not written yet.**
-> The YAML + Pydantic schema is gated on the Diagram 1 end-to-end walkthrough
-> (HANDOFF §3). Build this table well and the rest is plumbing.
+> **Status: folder reserved — content not written yet.**
+> The Diagram 1 walkthrough runs **in parallel** and does **not** gate this
+> table (owner lock 2026-08-19). Build this table well and the rest is plumbing.
 
 What will live here (charter §6 + §8.1 Phase 0 exit criteria): the
 `friendly source variable → site-specific PLC tag → Sparkplug metric + asset path` table,

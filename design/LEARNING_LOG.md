@@ -86,18 +86,27 @@ deleted. 96 GiB was an estimate, never the warehouse. Golden SHA-256
 warehouse), not a 1 s historian stream. The contract's `epoch + i * 1s` path is a
 melt fallback. N8 is not rewritten.
 
-**Teach-back:** *"Phase 1 stores wide natives on R2 and melts them on read with
-Polars. Hamid persists raw and warehouse on R2. Local disks are scratch. The
-mapping table still assigns meaning."*
+**Addendum (2026-08-19).** `#33` landed the 1 s machine stream
+(`generate_machine_stream`, P-101 / K-201). `friendly_name` is
+`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` is 41 after the
+Unit 100 one-pager. TEP golden SHA unchanged. Machine-stream golden
+`84b9f088…2159f0`. Unit 100 P&ID Rev B one-pager + 59-name tag list:
+`design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build.
 
-**Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. Next SDG is the N8 fast-class hole (seeded extras + later machine stream). N8 is not rewritten.
+**Teach-back:** *"Phase 1 stores wide natives on R2 and melts them on read with
+Polars. The 1 s class is a generated machine stream. Hamid persists raw and
+warehouse on R2. Local disks are scratch. The mapping table still assigns
+meaning."*
+
+**Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. The N8 fast-class hole landed as `#33`. N8 is not rewritten.
 
 ## Gotchas
 
 - **Eraser MCP:** the AI edit path (`update_diagram`) tends to reverse connection arrow
   directions — use `manually_update_diagram` (verbatim DSL) when direction matters.
 - **IIoT Kaggle file is not 1 Hz.** Snapshot per machine. Do not replay it as TEP's
-  fast-class twin. Do not mix TEP and IIoT on one stream.
+  fast-class twin. Do not mix TEP and IIoT on one stream. The ~1 s class is
+  `generate_machine_stream` (P-101 / K-201), ingested as `iiot`. TEP stays 180 s.
 
 ---
 
