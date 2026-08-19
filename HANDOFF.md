@@ -76,12 +76,12 @@ stack on #32.
 `cursor/phase1-1s-machine-stream-7d33` deleted (`-D` after squash). Remote
 already gone; pruned stale `origin/cursor/pandas-to-polars-8a59` (#31) and
 `origin/cursor/phase1-1s-machine-stream-7d33`. PR #32 left open. Unit 100
-P&ID Rev B is not in this repo (off-repo PDF only; Grok Bot model / tag
-schedule / `book.py` were never committed). Do not invent a second factory.
+P&ID Rev B was not in the repo at that cleanup (PDF only). Landed later
+the same day — see the session note above. Do not invent a second factory.
 This pass syncs README, AGENTS, charter §8 reality note, Phase 1 record +
 HTML twin, learning log, synthetic-data notes, `tests/README.md`, and the
 archived Python-centric banner to `7b6cdd5` / 34 tests. Charter N8 text
-untouched. PR **#34** is this docs-only branch.
+untouched. PR **#34** was that docs-only branch (now merged).
 
 ### This session (2026-08-18): N8 1 s machine stream (PR #33)
 
@@ -390,6 +390,8 @@ hold.**
 - **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
   branch `cursor/handoff-git-cleanup-7d33` deleted local + remote.
   `main` at `2003cbb` before this P&ID / parallel-walkthrough PR.
+- **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **open** on
+  `cursor/pid-unit100-onepager-7d33`. Do not stack on #32.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -490,7 +492,7 @@ stay just-in-time (Diagram 2 = UMH Core, §12 #16; Diagram 3 before Phase 6).
 
 ---
 
-### Phase 0 — partially complete (skeleton landed; the spine is still gated)
+### Phase 0 — partially complete (skeleton landed; mapping table not written)
 
 **State (2026-07-27): 2 of 3 pieces done.** The `feat/phase-0-foundation` branch shipped as PR #22
 and is deleted; the skeleton is on `main`.

@@ -69,9 +69,13 @@ def test_no_lots_or_business_ids() -> None:
 def test_printed_analyzer_and_machine_join() -> None:
     frame = _schedule()
     by_drawing = dict(zip(frame["drawing_name"], frame["plant_data_name"], strict=True))
-    assert by_drawing["AT-201"] == "xmeas_23"
-    assert by_drawing["AT-219"] == "xmeas_41"
+    for at, meas in enumerate(range(23, 42), start=201):
+        assert by_drawing[f"AT-{at}"] == f"xmeas_{meas}"
     assert by_drawing["VI-101"] == "P-101/vibration_rms"
+    assert by_drawing["II-101"] == "P-101/motor_current_a"
+    assert by_drawing["SI-101"] == "P-101/shaft_speed_rpm"
+    assert by_drawing["VI-201"] == "K-201/vibration_rms"
+    assert by_drawing["II-201"] == "K-201/motor_current_a"
     assert by_drawing["SI-201"] == "K-201/shaft_speed_rpm"
     assert by_drawing["XV-101"] == "xv_feed"
     assert "xv_feed" in {spec.friendly_name for spec in DEFAULT_EXTRAS}

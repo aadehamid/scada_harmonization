@@ -138,7 +138,8 @@
       </tbody>
     </table>
     <p>
-      <code>main</code> HEAD is <code>7b6cdd5</code>. Runtime deps are polars + pydantic.
+      Generator HEAD is <code>7b6cdd5</code>. Status-sync HEAD is <code>2003cbb</code> (#34).
+      Runtime deps are polars + pydantic.
       CI stays golden-slice only. No full-dataset CI. No network in CI.
     </p>
 
@@ -238,7 +239,8 @@
 
     <h2>Tests (golden-slice only)</h2>
     <p>
-      <code>uv run pytest</code> is 34 passed. No <code>data/raw</code> or <code>data/cache</code> in CI.
+      <code>uv run pytest</code> is 41 passed on the Unit 100 branch (34 L0 goldens + P&amp;ID).
+      No <code>data/raw</code> or <code>data/cache</code> in CI.
       Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count,
       golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and
       no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill

@@ -84,7 +84,8 @@ N8 is not rewritten.
 
 **Addendum (2026-08-19).** `#31` swapped pandas → Polars. `#33` landed the 1 s
 machine stream (`generate_machine_stream`, P-101 / K-201). `friendly_name` is
-`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` is 34 passed.
+`{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` was 34 after #33,
+41 after the Unit 100 one-pager.
 `main` is `2003cbb` after #34 (`7b6cdd5` is still the #33 generator commit).
 TEP golden SHA unchanged. Unit 100 P&ID Rev B one-pager + 59-name tag list
 landed (`design/UNIT100_PID.md`). Walkthrough is parallel and does not gate

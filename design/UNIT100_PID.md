@@ -1,8 +1,8 @@
 # Unit 100 P&ID — Rev B one-pager
 
 **Status:** one-pager landed 2026-08-19. Extra pages (index, analyzer, legend,
-area sheets) are not in the repo.  
-**Drawing:** `tests/fixtures/datagen/pid/LSC-U100-PID-001_revB.pdf`  
+area sheets) are not in the repo.
+**Drawing:** `tests/fixtures/datagen/pid/LSC-U100-PID-001_revB.pdf`
 **Tag list:** `tests/fixtures/datagen/pid/tag_schedule.csv`
 
 This is Lagos Specialty Chemicals **Unit 100** — the same Tennessee Eastman

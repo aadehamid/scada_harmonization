@@ -1,6 +1,6 @@
 # Phase 1 synthetic data record
 
-**Status:** generators on `main` at `7b6cdd5` (2026-08-19). Full L0 cache written, then deleted.  
+**Status:** generators landed at `7b6cdd5` (#33). `main` then moved to `2003cbb` (#34 docs). Full L0 cache written, then deleted.  
 **Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
 **Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
 
@@ -21,7 +21,7 @@ PRs closed the Phase 1 L0 path on 18 August 2026, Central Time, then the 1 s str
 | [#31](https://github.com/aadehamid/scada_harmonization/pull/31) | same day | `7da1621` | Polars replaces pandas (Hamid lock) |
 | [#33](https://github.com/aadehamid/scada_harmonization/pull/33) | same day | `7b6cdd5` | seeded 1 s machine stream (P-101 / K-201); `friendly_name` is `{machine_id}/{pv}` |
 
-`main` HEAD is `7b6cdd5`. Runtime deps are polars + pydantic. Polars melts wide TEP (and IIoT tables that look wide) into long L0 rows.
+Generator HEAD is `7b6cdd5`. Status-sync HEAD is `2003cbb` (#34). Runtime deps are polars + pydantic. Polars melts wide TEP (and IIoT tables that look wide) into long L0 rows.
 
 CI stays golden-slice only. No full-dataset CI. No network in CI.
 
@@ -104,7 +104,7 @@ Physical meaning waits for the mapping table. `friendly_name` is what the cache 
 
 ## Tests (golden-slice only)
 
-`uv run pytest` is 34 passed, golden-slice only. No `data/raw` or `data/cache` in CI.
+`uv run pytest` is 41 passed on the Unit 100 branch (34 L0 goldens + P&ID). No `data/raw` or `data/cache` in CI.
 
 Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, melt row count, golden SHA-256, two-process cache hash, extras schema plus native-pin, IIoT time-column and no-time-column paths, mixed-cadence reject, replay identity, speed/pause/rebase, backfill versus live, naive rebase reject, generated 1 s machine stream (identity metadata, seed pin, extras on the 1 s grid).
 
