@@ -98,6 +98,11 @@ Polars. The 1 s class is a generated machine stream. Hamid persists raw and
 warehouse on R2. Local disks are scratch. The mapping table still assigns
 meaning."*
 
+**Addendum (2026-08-20).** Two leftovers, two tracks. Unit 100 L0 join (PDF +
+59-row CSV) is done for ingestion. Extra P&ID pages + lost DEXPI/`book.py` are
+a drawing/ET lap, not a rebuild-to-continue gate. Next build is the mapping
+spine (`xmeas_7` / `PT-101` × 4 sites, YAML). Pickup: `HANDOFF.md` §2.1 / §3.
+
 **Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. The N8 fast-class hole landed as `#33`. N8 is not rewritten.
 
 ## Gotchas
