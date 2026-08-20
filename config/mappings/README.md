@@ -1,8 +1,10 @@
 # mappings — the three-stage mapping table (THE SPINE)
 
-> **Status: folder reserved — content not written yet.**
+> **Status: folder reserved — content not written yet. Next build slice.**
 > The Diagram 1 walkthrough runs **in parallel** and does **not** gate this
-> table (owner lock 2026-08-19). Build this table well and the rest is plumbing.
+> table (owner lock 2026-08-19). Format locked **YAML** (2026-08-20). First
+> row locked: L0 `xmeas_7` = drawing `PT-101` across all 4 sites. Pickup
+> packet: `HANDOFF.md` §3. Build this table well and the rest is plumbing.
 
 What will live here (charter §6 + §8.1 Phase 0 exit criteria): the
 `friendly source variable → site-specific PLC tag → Sparkplug metric + asset path` table,

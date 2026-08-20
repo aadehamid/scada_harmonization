@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-20
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -28,11 +28,18 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-08-19)
+## 2. Current status (2026-08-20)
 
-**Phase: Phase 1 L0 is on `main` at `733cfec`. Warehouse is wide Parquet on R2 `lagos-chem-l0`.
-1 s machine stream landed (#33). Unit 100 Rev B one-pager landed (#35). Mapping table is
-unwritten. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+**Phase: Phase 1 L0 is on `main` at `6e3406c` (after #37). Warehouse is wide Parquet on R2
+`lagos-chem-l0`. 1 s machine stream landed (#33). Unit 100 Rev B one-pager + 59-row
+tag list landed (#35). Mapping table is unwritten — that is the next build slice.
+Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+
+**Do not confuse the two leftovers (Hamid, 2026-08-20).** L0 *data* for Unit 100 is
+done. The unfinished P&ID work is a *drawing book* + a later *DEXPI graph*, not
+ingestion. The mapping table consumes the 59 L0 names already in
+`tests/fixtures/datagen/pid/tag_schedule.csv`. Extra sheets do not unlock
+Sparkplug. DEXPI does not unblock Phase 0. See §2.1 and §3.
 
 **Hamid lock (2026-08-18, via Chief Architect; status refreshed 2026-08-19).** Pack the
 Diagram 1 v2 L0 cuts as a written note in this file. Do not copy or edit the original
@@ -70,16 +77,17 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `733cfec` after #32. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `6e3406c` after #37. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
-| Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read |
+| Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
+| R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
 | Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
-| Unit 100 | Rev B PDF + 59-row tag list (`design/UNIT100_PID.md`). Extra pages not drawn |
-| Not in repo | mapping-table YAML; DEXPI model / `book.py`; Phase 2+ services; Marimo notebooks |
-| Open PRs | none |
+| Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
+| Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
+| Open PRs | none on `main` as of this write (this docs PR excepted) |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -87,6 +95,37 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 **Phase 1 record:** `design/PHASE1_SYNTHETIC_DATA.md` (HTML twin + assets).
 **Datasheet:** `design/PHASE1_DATASHEET.md`. Do not copy that write-up into this file.
+
+### 2.1 Two leftover tracks — do not mix them
+
+**Track A — L0 / ingestion (DONE).** Generate → melt → augment → replay is on
+`main`. Warehouse bytes are on R2. The 59 `plant_data_name`s in
+`tests/fixtures/datagen/pid/tag_schedule.csv` **are** the L0 names
+(`xmeas_*`, `xmv_*`, `P-101/…`, `K-201/…`, `xv_feed`). CI pins the PDF hash
+and the 59-name set. You can continue the OT build without more drawings.
+
+**Track B — drawing book + DEXPI (NOT done; not the next build slice).**
+
+| Missing | Kind | When to pick it up |
+|---------|------|--------------------|
+| Index + analyzer (print AT-201..AT-219) + legend | Extra PDF pages. Architect lock: these **before** more process sheets. Titles become sheet N of N, not “1 of 1”. Caption: “1 second machine stream on P-101 and K-201”. | Owner-triggered drawing lap. Packet: `design/UNIT100_PID.md` → Extra pages. Do not invent a second factory. |
+| `models/unit100_dexpi.json`, `tag_schedule.py`, `book.py` | Grok Bot pack. Lost. Graph of equipment / nozzles / lines. | Phase 5b (Neo4j / ET). Do **not** rebuild to unblock mapping or Sparkplug. |
+| `data/tag_schedule.parquet` | Drawing note 2. | Issued join is the CSV. Do not recreate parquet as a second pin. |
+
+`provenance=drawing` vs `reconstructed` in the CSV is honest: most
+instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
+That is good enough for mapping-table join keys. Pipe/stream cells are
+list columns, not a second naming system.
+
+### This session (2026-08-20): pick mapping spine; document the fork
+
+Hamid asked where to continue given unfinished P&ID feelings after the
+Grok Bot loss. Decision: **next build is the mapping-table spine**
+(Phase 0 exit). P&ID extra pages stay an owner-triggered drawing lap
+(§2.1 Track B) — not abandoned, not a gate. YAML vs TOML/JSON closed:
+**YAML**. First row locked: `xmeas_7` / `PT-101`. R2 object list/get/put
+verified from Cursor Cloud secrets; probe object deleted; no package
+reader added. Walkthrough cursor untouched.
 
 ### This session (2026-08-18): Hamid lock via Chief Architect (docs only)
 
@@ -439,7 +478,7 @@ hold.**
 - **PR #31** Polars replaces pandas: **MERGED** (`7da1621`); branch deleted.
 - **PR #32** docs: R2 warehouse, Phase 1 datasheet, walkthrough is parallel:
   **MERGED** (`733cfec`); branch `cursor/docs-r2-warehouse-datasheet-3221`
-  deleted. `main` at `733cfec`.
+  deleted.
 - **PR #33** 1 s machine stream (N8 fast class): **MERGED** (`7b6cdd5`);
   branch `cursor/phase1-1s-machine-stream-7d33` deleted local + remote.
 - **PR #34** docs sync to `7b6cdd5` / 34 tests: **MERGED** (`2003cbb`);
@@ -447,8 +486,10 @@ hold.**
 - **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
   (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
 - **PR #36** mark #35 merged: **MERGED** (`e2c7ff3`).
-- **As of 2026-08-19:** `main` at `733cfec` (#32). Warehouse is R2 `lagos-chem-l0`.
-  `entire/*` checkpoint refs remain. No open PRs.
+- **PR #37** mark #32 merged: **MERGED** (`6e3406c`). `main` at `6e3406c`.
+- **As of 2026-08-20:** `main` at `6e3406c`. Warehouse is R2 `lagos-chem-l0`
+  (17 objects; machine_stream parquet present). `entire/checkpoints/v1` remains
+  on purpose. No leftover `cursor/*` remotes. No open PRs on `main`.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -468,19 +509,68 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 
 ---
 
-## 3. What's next — build continues; walkthrough is parallel
+## 3. What's next — mapping spine is the build; P&ID book is a later lap
+
+### ⭐ Next build session — mapping-table spine (Phase 0 exit)
+
+**Kickoff prompt (paste into a fresh session):**
+
+> Read `HANDOFF.md` §2.1 and §3, `design/PROJECT_CHARTER.md` §6 (three-stage
+> table) + §14 N8/N10/N11/N17/N18, `design/PHASE1_L0_CONTRACT.md`, and
+> `tests/fixtures/datagen/pid/tag_schedule.csv`. Phase 1 L0 is done. We are
+> writing the first mapping-table slice: **one analog × four sites**, YAML +
+> Pydantic, including the §14 columns. First row is locked: L0 `xmeas_7` =
+> drawing `PT-101` (reactor pressure on R-101). Format is YAML. Explain the
+> three stages and the §14 columns, then write the models + YAML + a small
+> test. Do not dump all 59 rows. Do not start Sparkplug. Do not rebuild DEXPI.
+> Do not draw extra P&ID pages unless I say so.
+
+**Locked for that session (2026-08-20):**
+
+| Item | Value |
+|------|--------|
+| Format | **YAML** (TOML/JSON question closed) |
+| Stage 1 | L0 `friendly_name` already stored: `xmeas_7`. Do not invent a second semantic alias. |
+| Drawing join | `PT-101` → `xmeas_7` (CSV row; `provenance=reconstructed`) |
+| Stage 3 Sparkplug | `R-101/Pressure` (asset path; Unit 100 / R-101) |
+| Sites | Beaumont `N7:20` (AB **raw counts**, N17) · Geismar `DB1.DBD24` (Siemens) · Rotterdam `PT101_PV` (Ignition-style) · Corpus Christi `UNIT100.PT101.PV` (CygNet compound) |
+| `source_cadence` | `180s` (TEP honest; do not rewrite N8) |
+| `interpolation_type` | `linear` |
+| UNECE `unit` | `KPA` (TEP reactor pressure is kPa) |
+| Scale | Beaumont: `raw_min=6208` `raw_max=31208` (charter N17 4–20 mA counts) → `eu_min`/`eu_max` in kPa. Other three sites publish EU floats (`scale_linear` identity). Confirm EU span against Downs & Vogel / warehouse min-max in that session — do not guess a process limit in the YAML comment as if measured. |
+| Quality | Clean rows `Good`. Per-site quality **map** column exists (N10); Beaumont integer status → Good/Uncertain/Bad/Stale can be a stub map. |
+| Governance | owner / definition / lineage on the metric (catalog, not a comment) |
+| Out of this slice | lots / work-order / material IDs (Phase 5); machine-stream PVs (already EU; later rows); R2 melt client |
+
+**First-PR files (keep it small):**
+
+1. `config/mappings/` YAML — one metric, four `site` bindings.
+2. Pydantic models under `src/scada_harmonizer/datagen/plc_mapping/` (that layer’s first real code; replace the README-only stub).
+3. `tests/test_phase0_mapping.py` — load YAML, validate, four sites, §14 columns present, join key equals CSV `PT-101` → `xmeas_7`. No network.
+
+Cadence: explain → align (locks above are the align) → build piece by piece → `uv run pytest` → prune. Learning-first: show the YAML as data before any helper that hides it.
+
+### P&ID drawing lap — pickup when Hamid says so (not the default next)
+
+**Kickoff prompt:**
+
+> Read `design/UNIT100_PID.md` (Extra pages + domain locks) and
+> `tests/fixtures/datagen/pid/`. One plant. Rev B process sheet stays. Draw
+> index + analyzer (AT-201..AT-219) + legend **before** any new process page.
+> Titles are sheet N of N. Say “1 second machine stream on P-101 and K-201”.
+> Do not invent a second factory. Do not rebuild DEXPI / `book.py`. Do not
+> change L0 names. Update the PDF pin + `design/UNIT100_PID.md` if the book
+> hash changes.
 
 ### ⭐ Walkthrough (Hamid, parallel — does not block build) — resume at §0.2 (Purdue)
 
-1. **Mapping-table spine.** Still unwritten. Does not wait on Diagram 1 lock.
-   `config/mappings/` is reserved. YAML + Pydantic, one measurement across all 4 sites,
-   including the §14 columns. Open alignment question: YAML vs TOML/JSON.
-2. **Walkthrough remains a parallel path at §0.2.** Cursor: `design/WALKTHROUGH_PROGRESS.md`.
-   Original Eraser `MgnB91QGOhX8xWiKeaAK` stays the lock target. Packed L0 cuts live in
-   §2 of this file, not drawn. The N8 fast-class hole is closed (`#33`).
+Walkthrough remains a parallel path at §0.2. Cursor: `design/WALKTHROUGH_PROGRESS.md`.
+Original Eraser `MgnB91QGOhX8xWiKeaAK` stays the lock target. Packed L0 cuts live in
+§2 of this file, not drawn. The N8 fast-class hole is closed (`#33`).
 
-**Still gated / not now:** mapping YAML as a Phase 0 exit, Diagram 1 lock, Sparkplug,
-second plant, extra P&ID pages, Eraser copy.
+**Not now (unless Hamid redirects):** Diagram 1 lock, Sparkplug, second plant,
+DEXPI rebuild, extra P&ID pages, Eraser copy, R2 melt-on-read client in the
+package.
 
 Warehouse reminder (not the next piece): R2 `lagos-chem-l0`, wide Parquet, melt-on-read.
 Details in `design/PHASE1_SYNTHETIC_DATA.md` and `design/PHASE1_DATASHEET.md`.
@@ -520,17 +610,16 @@ and is deleted; the skeleton is on `main`.
   `notebooks/`, `tests/`. Phase 1 code is in
   `datagen/{generation,ingestion,augmentation,replay}`;
   later layers and the four planes stay README-only.
-- ⬜ **2. Three-stage mapping table as config (THE SPINE)** — **NOT started.**
-  Not gated on the walkthrough. `config/mappings/` is a reserved empty folder. YAML + Pydantic validation, one
-  measurement across all 4 sites, **including the §14 columns** (N17 `raw_min`/`raw_max`/`eu_min`/
-  `eu_max` + `scale_linear`; N10 quality; N8 `source_cadence`; N11 `interpolation_type`; N18 UNECE
-  unit codes). This is charter §8.1's Phase-0 exit criterion.
+- ⬜ **2. Three-stage mapping table as config (THE SPINE)** — **NOT started. Next build.**
+  Not gated on the walkthrough. `config/mappings/` is reserved. **YAML** + Pydantic,
+  first slice = `xmeas_7` / `PT-101` across all 4 sites, **including the §14 columns**
+  (N17 `raw_min`/`raw_max`/`eu_min`/`eu_max` + `scale_linear`; N10 quality; N8
+  `source_cadence`; N11 `interpolation_type`; N18 UNECE unit codes). Charter §8.1
+  Phase-0 exit. Pickup packet is §3 above.
 - 🟡 **3. `design/LEARNING_LOG.md`** — seeded and growing (§0.1 ISA-95 concepts + glossary landed
   2026-07-11); continues to fill as the walkthrough proceeds.
 
-**When resuming piece 2:** re-explain from scratch (learning-first), align, then build per cadence —
-explain → align → build piece by piece → run & observe → prune. Open alignment question kept from the
-original plan: **YAML vs TOML/JSON** for the mapping table (YAML is the assumed default).
+**When resuming piece 2:** use the §3 kickoff prompt. Format is YAML (closed 2026-08-20).
 Marimo notebook work still starts at **Phase 1**, not here.
 
 ### Tooling decided this session
@@ -614,16 +703,15 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 ## 6. No open blocking questions
 
-Build continues. Next piece is the mapping-table spine. The N8 fast-class
-hole is closed (`#33`). Walkthrough stays parallel at §0.2. Completing that
-pass **locks Diagram 1** as the template for Diagrams 2 & 3. It does **not**
-gate the mapping table. Not now: mapping YAML as a Phase 0 exit, Diagram 1
-lock, Sparkplug, second plant, extra P&ID pages, Eraser copy.
+**Next build = mapping-table spine** (`xmeas_7` / `PT-101` × 4 sites, YAML).
+P&ID extra pages are an owner-triggered drawing lap (§2.1 / §3), not a gate
+and not abandoned. DEXPI / `book.py` wait for Phase 5b. Do not invent a
+second factory.
 
-No open blocking decisions (§12 #16 resolved → UMH Core). The one deferred
-non-blocking question is **YAML vs TOML/JSON** for the mapping table. PRs
-#17–#36 merged (including #32). No open PRs. Tabular runtime is Polars.
-Warehouse is R2 `lagos-chem-l0`. Unit 100
-Rev B one-pager is in `tests/fixtures/datagen/pid/`. Extra pages (index /
-analyzer / legend) are the next drawing lap if Hamid wants them. Do not
-invent a second factory.
+Walkthrough stays parallel at §0.2. Completing that pass **locks Diagram 1**
+as the template for Diagrams 2 & 3. It does **not** gate the mapping table.
+
+No open blocking decisions (§12 #16 resolved → UMH Core). YAML vs TOML/JSON
+is **closed: YAML**. PRs #17–#37 merged. Tabular runtime is Polars. Warehouse
+is R2 `lagos-chem-l0`. Unit 100 Rev B + 59-row CSV are in
+`tests/fixtures/datagen/pid/`.
