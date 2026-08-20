@@ -1,7 +1,13 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-20
+**Last updated:** 2026-08-20 (stopped for the night)
+
+> **RESUME HERE.** Session wrapped 2026-08-20. Next build is the mapping-table
+> spine. Paste the kickoff in **§3** (“Next build session”). Do not start
+> Sparkplug, extra P&ID pages, or DEXPI unless Hamid redirects. Walkthrough
+> stays parallel at §0.2. P&ID leftovers are **§2.1 Track B** (documented, not
+> a gate).
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
