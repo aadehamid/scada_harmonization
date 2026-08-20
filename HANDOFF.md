@@ -87,7 +87,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
 | Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
-| Open PRs | none on `main` as of this write (this docs PR excepted) |
+| Open PRs | **#38** this docs PR (pickup packet; mapping not written yet) |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -489,7 +489,8 @@ hold.**
 - **PR #37** mark #32 merged: **MERGED** (`6e3406c`). `main` at `6e3406c`.
 - **As of 2026-08-20:** `main` at `6e3406c`. Warehouse is R2 `lagos-chem-l0`
   (17 objects; machine_stream parquet present). `entire/checkpoints/v1` remains
-  on purpose. No leftover `cursor/*` remotes. No open PRs on `main`.
+  on purpose. No leftover `cursor/*` remotes. Open docs PR **#38**
+  (`cursor/handoff-next-mapping-d4f3`).
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
