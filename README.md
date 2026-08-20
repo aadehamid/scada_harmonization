@@ -115,7 +115,7 @@ real AWS) without invalidating the design.
 realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
 (charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
 
-**Phase 1 L0 is on `main`** (`6e3406c` after #37; generators from #28/#29/#31/#33).
+**Phase 1 L0 is on `main`** (`9ffe415` after #38; generators from #28/#29/#31/#33).
 Next build: mapping-table spine (`HANDOFF.md` §3). Extra P&ID pages are a
 later drawing lap, not a gate.
 polars + pydantic are the runtime deps. Warehouse is wide Parquet on R2
