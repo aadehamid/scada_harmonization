@@ -36,7 +36,7 @@ conflicts with the charter, the charter wins.
 
 ## 2. Current status (2026-08-20)
 
-**Phase: Phase 1 L0 is on `main` at `6e3406c` (after #37). Warehouse is wide Parquet on R2
+**Phase: Phase 1 L0 is on `main` at `9ffe415` (after #38). Warehouse is wide Parquet on R2
 `lagos-chem-l0`. 1 s machine stream landed (#33). Unit 100 Rev B one-pager + 59-row
 tag list landed (#35). Mapping table is unwritten — that is the next build slice.
 Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
@@ -83,7 +83,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `6e3406c` after #37. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `9ffe415` after #38. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
@@ -93,7 +93,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
 | Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
-| Open PRs | **#38** this docs PR (pickup packet; mapping not written yet) |
+| Open PRs | none |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -492,11 +492,13 @@ hold.**
 - **PR #35** Unit 100 one-pager + walkthrough-is-parallel: **MERGED**
   (`a9506d4`); branch `cursor/pid-unit100-onepager-7d33` deleted local + remote.
 - **PR #36** mark #35 merged: **MERGED** (`e2c7ff3`).
-- **PR #37** mark #32 merged: **MERGED** (`6e3406c`). `main` at `6e3406c`.
-- **As of 2026-08-20:** `main` at `6e3406c`. Warehouse is R2 `lagos-chem-l0`
+- **PR #37** mark #32 merged: **MERGED** (`6e3406c`).
+- **PR #38** pickup packet (mapping spine next; P&ID leftovers split):
+  **MERGED** (`9ffe415`); branch `cursor/handoff-next-mapping-d4f3`
+  deleted local + remote.
+- **As of 2026-08-20:** `main` at `9ffe415` (#38). Warehouse is R2 `lagos-chem-l0`
   (17 objects; machine_stream parquet present). `entire/checkpoints/v1` remains
-  on purpose. No leftover `cursor/*` remotes. Open docs PR **#38**
-  (`cursor/handoff-next-mapping-d4f3`).
+  on purpose. No leftover `cursor/*` remotes. No open PRs.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |

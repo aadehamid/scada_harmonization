@@ -14,7 +14,7 @@ industrial data stack before adopting enterprise software that abstracts it away
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 
-The project is in **Phase 1 L0 on `main` (`6e3406c` after #37, 2026-08-20)**.
+The project is in **Phase 1 L0 on `main` (`9ffe415` after #38, 2026-08-20)**.
 Next build is the mapping-table spine (`HANDOFF.md` §3).
 Warehouse is wide Parquet on R2 `lagos-chem-l0`. Phase 0 mapping-table YAML is
 not written yet. The Diagram 1 walkthrough **runs in parallel and does not
@@ -256,7 +256,7 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-20, `6e3406c`; generators #28/#29/#31/#33):**
+**Current state (Phase 1 L0 on `main`, 2026-08-20, `9ffe415`; generators #28/#29/#31/#33):**
 `pyproject.toml` exists, created with `uv init --lib` (src layout). Python is **pinned to 3.13**
 via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed.
 Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
