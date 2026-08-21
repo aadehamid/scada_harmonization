@@ -84,4 +84,5 @@ hard cases, not the easy one.
    delivered as human-in-the-loop, edge-executed recommendations) and a GenAI copilot.
 
 Get there and LSC unlocks enterprise analytics, predictive maintenance, yield gains, and trustworthy
-AI. That's the payoff the lab is built to demonstrate end to end.
+AI — because context is a **governed data product** that scales to the next site, not a one-off
+pipeline. That's the payoff the lab is built to demonstrate end to end.
