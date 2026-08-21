@@ -16,15 +16,18 @@ abstracts those layers away.
 
 ## The problem being simulated
 
-Different sites, lines, and machines represent the *same underlying reality* differently — local
-PLC naming, controller memory structures, brownfield integrations, divergent tag taxonomies, and
-even different integrators per project (so tags diverge *within* a site too). What should be
-enterprise-comparable data arrives as site-specific, cryptic, inconsistent signals — and the cost is
-operational: analytics data can take **days to assemble by hand**, real-time data stays **fragmented
-and "owned" by sites**, and ML can't scale across the enterprise. The lab deliberately manufactures
-this mess (same reality, different names per site), then proves it can be conformed to one namespace,
-**governed as a reusable data product**, and enriched into connected context. The problem mirrors
-real process/CPG transformation discovery (anonymized industry pains); see charter §2.
+The industry does not have a data problem. It has a **contextualization and scalability** problem:
+same physical reality, different names, and a model that works at one site is an eighteen-month
+redo at the next. Different sites, lines, and machines represent the *same underlying reality*
+differently — local PLC naming, controller memory structures, brownfield integrations, divergent
+tag taxonomies, and even different integrators per project (so tags diverge *within* a site too).
+What should be enterprise-comparable data arrives as site-specific, cryptic, inconsistent signals —
+and the cost is operational: analytics data can take **days to assemble by hand**, real-time data
+stays **fragmented and "owned" by sites**, and ML can't scale because context was never a product.
+**Contextualize before models.** The lab deliberately manufactures this mess (same reality,
+different names per site), then proves it can be conformed to one namespace, **governed as a
+reusable data product**, and enriched into connected context. The problem mirrors real process /
+CPG / Energy & Chemicals discovery (anonymized industry pains); see charter §2.
 
 ## The four planes
 

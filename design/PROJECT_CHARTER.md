@@ -4,7 +4,7 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-08-17 (Phase 1 exit lock: replay-only; decisions otherwise unchanged since 2026-07-06)
+**Last updated:** 2026-08-21 (problem-statement scale fold; decisions otherwise unchanged since 2026-07-06)
 
 ---
 
@@ -34,19 +34,29 @@ abstracts those layers away.
 
 ## 2. The problem being simulated
 
-The core problem is **not** collecting plant telemetry. It is that different sites, lines, and
-machines represent the *same underlying reality* in different ways — because of local PLC naming
-conventions, controller memory structures, brownfield integrations, differing tag taxonomies,
-uneven operational modeling, and even **different system integrators contracted per project** — so
-tag modeling diverges not only site-to-site but *within* a single site. What should be
-enterprise-comparable data arrives as site-specific, cryptic, inconsistent signals.
+The industry does not have a **data** problem. It has a **contextualization and scalability**
+problem. The question is not "do we have the data?" It is whether there is **infrastructure to make
+that data mean something — at every site, for every asset, in real time.** Collecting plant
+telemetry is not the hard part.
+
+The lab's mechanism is unchanged. Different sites, lines, and machines represent the *same
+underlying reality* in different ways — because of local PLC naming conventions, controller memory
+structures, brownfield integrations, differing tag taxonomies, uneven operational modeling, and even
+**different system integrators contracted per project** — so tag modeling diverges not only
+site-to-site but *within* a single site. What should be enterprise-comparable data arrives as
+site-specific, cryptic, inconsistent signals.
 
 The consequences are operational, not cosmetic. When every plant organizes data differently and
-there is **no standardized contextualization**, analytics data can take **days to assemble by hand**
-(engineers pull historian extracts manually), real-time plant data stays **fragmented and "owned" by
-individual sites**, and ML/analytics cannot scale across the enterprise. The lab deliberately
-manufactures this mess (same reality, different names per site), then proves it can be conformed to
-one namespace, **governed as a reusable data product**, and enriched into connected context.
+there is **no standardized contextualization**, two costs stack: analytics data can take **days to
+assemble by hand** (engineers pull historian extracts manually), and a model that works at one site
+becomes an **eighteen-month engineering project at the next** — because tags change and context was
+never a product. Real-time plant data stays **fragmented and "owned" by individual sites**. Data
+products are the **scaling mechanism**: they convert a successful pilot into an enterprise
+capability instead of a one-off pipeline. The lab deliberately manufactures this mess (same reality,
+different names per site), then proves it can be conformed to one namespace, **governed as a
+reusable data product**, and enriched into connected context. **Contextualize before models** — do
+not bolt intelligence onto a broken process. That is why the three-stage mapping table exists
+before Sparkplug and before Plane 4.
 
 The same fragmentation spans **three source domains** — the classic IT/OT/ET integration problem —
 and each contributes a distinct kind of mess:
@@ -68,14 +78,22 @@ The three recurring challenges across these domains:
   named owners ("data creators as gatekeepers") and per-field lineage — the lab's lightweight answer to
   "a unified approach for contextualizing *and governing* data, reusable for all users" (see §4).
 
+A great model on one compressor is not valuable if it takes years to deploy at the next site.
+Scale is where value is won or lost — and contextualized data products are what make scale
+possible.
+
 Clean operational data **plus** reconciled transactional records **plus** accurate engineering
 context = a complete foundation for industrial AI. None is useful at full scale without the others.
+Human-in-the-loop is not only a safety/zoning rule (§14 N30): if experts stop evaluating anomalies
+because the model always triages, the plant loses resilience on the novel failure mode the model
+has never seen. The model never actuates; the controller executes.
 
 ### Grounded in real industry discovery
 
-The simulated problem is not invented — it mirrors what real process and CPG manufacturers report in
-digital-transformation discovery. Two representative inputs are folded in as problem *patterns* (not
-client/sales framing — consistent with how the `reference/` material is treated):
+The simulated problem is not invented — it mirrors what real process, CPG, and Energy & Chemicals
+operators report in digital-transformation discovery. Representative inputs are folded in as
+problem *patterns* (not client/sales framing — consistent with how the `reference/` material is
+treated):
 
 - **A global specialty-chemicals manufacturer:** "Every plant organizes data differently
   (different tags, names, descriptions); real-time plant data is fragmented and often considered owned
@@ -90,6 +108,13 @@ client/sales framing — consistent with how the `reference/` material is treate
   data foundation feeding **yield-improvement** feedback loops, **root-cause analysis**, and
   **edge-executed, human-in-the-loop** actions, with **governance that preserves operator control while
   enabling autonomy** across a **variable plant footprint**.
+- **Asset-intensive Energy & Chemicals operators:** decades of historian, CMMS, and telemetry
+  already exist; predictive-maintenance pilots succeed locally and then fail to scale. Models
+  break when tags change; the next site is a multi-month (often ~18-month) redo. The ask is not
+  more data or more models — it is a unified, governed context layer (UNS + reusable data
+  products) so a model can train once and deploy across a fleet. Closed-loop action stays
+  human-gated. *(Pattern only — not a retarget of Plane 4's flagship, which remains yield /
+  production-leakage.)*
 
 These map onto the lab without changing the thesis — they sharpen *why* it matters:
 
@@ -98,6 +123,9 @@ These map onto the lab without changing the thesis — they sharpen *why* it mat
 | same reality / different names; site & integrator variance | Plane 1 harmonization · `DOMAIN.md` divergence roster |
 | fragmented, site-"owned" data; govern + reuse; data-marketplace/gatekeepers | governed data-product catalog — `metric_registry` (§4) |
 | days-to-data, manual historian pulls | automated pipelines (Phases 1–5) — the cost of *not* harmonizing |
+| pilots die at site two; models break when tags change | mapping table / `metric_registry` as the scaling mechanism; Phase 4a cross-source equivalence |
+| contextualize before models | Phase 0 spine before Sparkplug / Plane 4 |
+| HITL so expertise does not atrophy on novel failures | graded HITL §14 N30; model never actuates |
 | M&A footprint; ongoing SAP migration | acquisition backstory (`DOMAIN.md`); ERP-in-flux realism |
 | global **and** local requirements | two-tier broker — local site autonomy + central enterprise UNS (§4) |
 | yield improvement / production-leakage; edge + human-in-the-loop feedback | Plane 4 Track A flagship use case (§3, §6, §8) |
