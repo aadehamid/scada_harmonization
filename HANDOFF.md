@@ -93,7 +93,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
 | Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
-| Open PRs | charter §2 scale fold (this branch) |
+| Open PRs | **#40** charter §2 scale fold |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -508,9 +508,11 @@ hold.**
   **MERGED** (`9ffe415`); branch `cursor/handoff-next-mapping-d4f3`
   deleted local + remote.
 - **PR #39** mark #38 merged: **MERGED** (`d37409a`).
-- **As of 2026-08-21:** `main` at `d37409a` (#39). Charter §2 scale fold is
-  this branch (open PR). Warehouse is R2 `lagos-chem-l0`.
-  `entire/checkpoints/v1` remains on purpose. No leftover `cursor/*` remotes.
+- **PR #40** charter §2 scale fold: **OPEN** (this branch
+  `cursor/charter-problem-scale-2910`).
+- **As of 2026-08-21:** `main` at `d37409a` (#39). Warehouse is R2
+  `lagos-chem-l0`. `entire/checkpoints/v1` remains on purpose. No leftover
+  `cursor/*` remotes besides this branch.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
