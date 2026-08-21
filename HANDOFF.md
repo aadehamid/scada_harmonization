@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-21 (charter §2 scale fold; mapping spine still next)
+**Last updated:** 2026-08-21 (#40 merged; mapping spine still next)
 
 > **RESUME HERE.** Session wrapped 2026-08-20. Next build is the mapping-table
 > spine. Paste the kickoff in **§3** (“Next build session”). Do not start
@@ -34,9 +34,9 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-08-20)
+## 2. Current status (2026-08-21)
 
-**Phase: Phase 1 L0 is on `main` at `d37409a` (after #39). Warehouse is wide Parquet on R2
+**Phase: Phase 1 L0 is on `main` at `753de7a` (after #40). Warehouse is wide Parquet on R2
 `lagos-chem-l0`. 1 s machine stream landed (#33). Unit 100 Rev B one-pager + 59-row
 tag list landed (#35). Mapping table is unwritten — that is the next build slice.
 Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
@@ -83,7 +83,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `d37409a` after #39. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `753de7a` after #40. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
@@ -93,7 +93,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
 | Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
-| Open PRs | **#40** charter §2 scale fold |
+| Open PRs | none |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -508,11 +508,11 @@ hold.**
   **MERGED** (`9ffe415`); branch `cursor/handoff-next-mapping-d4f3`
   deleted local + remote.
 - **PR #39** mark #38 merged: **MERGED** (`d37409a`).
-- **PR #40** charter §2 scale fold: **OPEN** (this branch
-  `cursor/charter-problem-scale-2910`).
-- **As of 2026-08-21:** `main` at `d37409a` (#39). Warehouse is R2
+- **PR #40** charter §2 scale fold: **MERGED** (`753de7a`); branch
+  `cursor/charter-problem-scale-2910` deleted local + remote.
+- **As of 2026-08-21:** `main` at `753de7a` (#40). Warehouse is R2
   `lagos-chem-l0`. `entire/checkpoints/v1` remains on purpose. No leftover
-  `cursor/*` remotes besides this branch.
+  `cursor/*` remotes.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
@@ -735,6 +735,6 @@ Walkthrough stays parallel at §0.2. Completing that pass **locks Diagram 1**
 as the template for Diagrams 2 & 3. It does **not** gate the mapping table.
 
 No open blocking decisions (§12 #16 resolved → UMH Core). YAML vs TOML/JSON
-is **closed: YAML**. PRs #17–#37 merged. Tabular runtime is Polars. Warehouse
+is **closed: YAML**. PRs #17–#40 merged. Tabular runtime is Polars. Warehouse
 is R2 `lagos-chem-l0`. Unit 100 Rev B + 59-row CSV are in
 `tests/fixtures/datagen/pid/`.
