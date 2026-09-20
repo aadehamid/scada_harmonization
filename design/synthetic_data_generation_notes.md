@@ -11,8 +11,28 @@
 > [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
 > [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle
 > file is snapshot-per-machine; the 1 s class is the generated P-101 / K-201 stream (see below).
+> **Cloudflare R2:** one bucket per project; this lab uses `lagos-chem-l0`. Locked
+> tree and connection block live in PHASE1_SYNTHETIC_DATA.md.
 
 These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.
+
+## Cloudflare R2
+
+Durable Phase 1 data lives in Cloudflare R2. The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Connection settings (account, endpoint, region `auto`, signature `s3v4`, boto3) are shared across Hamid's projects and are recorded with the locked prefix tree in [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) under **Cloudflare R2 (durable store)**. Do not invent a second bucket for this lab. Do not write other projects into this one.
+
+```
+lagos-chem-l0/
+├── raw/
+│   ├── tep/
+│   └── iiot/
+├── cache/
+│   ├── native/          # wide Parquet by source_dataset=...
+│   ├── extras/          # seeded OT extras Parquet
+│   └── manifest.json    # when present
+└── notes/
+```
+
+Local `data/raw/` and `data/cache/` remain scratch. Agents pull from this bucket and write durable results back here.
 
 ## Design goal
 
