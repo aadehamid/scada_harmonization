@@ -38,6 +38,37 @@ Hamid owns keep versus delete. Agents do not invent a retention policy.
 
 Those four rules are why a 58,661,861,866-byte history JSONL existed for one day and then did not. 96 GiB was an estimate, never the warehouse.
 
+## Cloudflare R2 (durable store)
+
+Cloudflare R2 is the durable source of truth for Phase 1 L0. Agents pull from this bucket when they need data and write durable results back here. Local `data/raw/` and `data/cache/` are scratch only. The warehouse is wide Parquet, compressed with zstd. Melt to long L0 rows happens on read, not as a stored file on R2.
+
+The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Do not invent a second bucket for this lab. Do not dump other projects into this bucket.
+
+Connection settings are fixed for this Cloudflare account. They do not change per project. Only the bucket name does. The S3 client uses region `auto` and signature `s3v4`. The bucket itself still lives in ENAM, as the persist rules already say.
+
+| Field | Value |
+|-------|-------|
+| Account ID | `011701390f6fee966f04b48182e37f9e` <!-- pragma: allowlist secret --> |
+| Endpoint | `https://011701390f6fee966f04b48182e37f9e.r2.cloudflarestorage.com` <!-- pragma: allowlist secret --> |
+| Region | `auto` |
+| Signature | `s3v4` |
+| Client | boto3 (S3 API). Not the AWS CLI. |
+| Secrets | Access Key ID and Secret Access Key from an R2 API token, via a secret card. Never paste them in chat. |
+
+The prefix tree inside `lagos-chem-l0` is locked as it exists today for this operational-technology (OT) / industrial-IoT warehouse:
+
+```
+lagos-chem-l0/
+├── raw/
+│   ├── tep/
+│   └── iiot/
+├── cache/
+│   ├── native/          # wide Parquet by source_dataset=...
+│   ├── extras/          # seeded OT extras Parquet
+│   └── manifest.json    # when present
+└── notes/
+```
+
 ## Disk facts (18 August 2026)
 
 | Artifact | Fate | Size / count |

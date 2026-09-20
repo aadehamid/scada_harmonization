@@ -165,6 +165,45 @@
     </ol>
     <p>Those four rules are why a 58,661,861,866-byte history JSONL existed for one day and then did not. 96 GiB was an estimate, never the warehouse.</p>
 
+    <h2>Cloudflare R2 (durable store)</h2>
+    <p>
+      Cloudflare R2 is the durable source of truth for Phase 1 L0. Agents pull from this bucket when they need data and write durable results back here.
+      Local <code>data/raw/</code> and <code>data/cache/</code> are scratch only. The warehouse is wide Parquet, compressed with zstd.
+      Melt to long L0 rows happens on read, not as a stored file on R2.
+    </p>
+    <p>
+      The pattern is <strong>one bucket per project</strong>. This project's bucket is <code>lagos-chem-l0</code>.
+      Do not invent a second bucket for this lab. Do not dump other projects into this bucket.
+    </p>
+    <p>
+      Connection settings are fixed for this Cloudflare account. They do not change per project. Only the bucket name does.
+      The S3 client uses region <code>auto</code> and signature <code>s3v4</code>.
+      The bucket itself still lives in ENAM, as the persist rules already say.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Account ID</td><td><code>011701390f6fee966f04b48182e37f9e</code></td></tr><!-- pragma: allowlist secret -->
+        <tr><td>Endpoint</td><td><code>https://011701390f6fee966f04b48182e37f9e.r2.cloudflarestorage.com</code></td></tr><!-- pragma: allowlist secret -->
+        <tr><td>Region</td><td><code>auto</code></td></tr>
+        <tr><td>Signature</td><td><code>s3v4</code></td></tr>
+        <tr><td>Client</td><td>boto3 (S3 API). Not the AWS CLI.</td></tr>
+        <tr><td>Secrets</td><td>Access Key ID and Secret Access Key from an R2 API token, via a secret card. Never paste them in chat.</td></tr>
+      </tbody>
+    </table>
+    <p>The prefix tree inside <code>lagos-chem-l0</code> is locked as it exists today for this operational-technology (OT) / industrial-IoT warehouse:</p>
+    <pre>lagos-chem-l0/
+├── raw/
+│   ├── tep/
+│   └── iiot/
+├── cache/
+│   ├── native/          # wide Parquet by source_dataset=...
+│   ├── extras/          # seeded OT extras Parquet
+│   └── manifest.json    # when present
+└── notes/</pre>
+
     <h2>Disk facts (18 August 2026)</h2>
     <table>
       <thead>
