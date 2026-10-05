@@ -20,6 +20,8 @@ These notes describe how to build a realistic, high-volume synthetic data layer 
 
 Durable Phase 1 data lives in Cloudflare R2. The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Connection settings (account, endpoint, region `auto`, signature `s3v4`, boto3) are shared across Hamid's projects and are recorded with the locked prefix tree in [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) under **Cloudflare R2 (durable store)**. Do not invent a second bucket for this lab. Do not write other projects into this one.
 
+The locked prefix tree for this operational-technology (OT) / industrial-IoT warehouse is the OT prefixes below (`raw/`, `cache/`, and `notes/`). The live `lagos-chem-l0` bucket also holds keys outside that locked OT tree: root `CACHE_NOTES.md`, root `DOWNLOAD_NOTES.md`, and prefix `_hermes-connectivity-tests/`. Those keys are not part of the locked OT tree.
+
 ```
 lagos-chem-l0/
 ├── raw/
@@ -32,7 +34,7 @@ lagos-chem-l0/
 └── notes/
 ```
 
-Local `data/raw/` and `data/cache/` remain scratch. Agents pull from this bucket and write durable results back here.
+Local `data/raw/` and `data/cache/` remain scratch. Read is allowed. Do not write warehouse objects.
 
 ## Design goal
 

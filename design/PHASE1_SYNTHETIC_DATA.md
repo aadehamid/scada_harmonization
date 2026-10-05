@@ -40,7 +40,7 @@ Those four rules are why a 58,661,861,866-byte history JSONL existed for one day
 
 ## Cloudflare R2 (durable store)
 
-Cloudflare R2 is the durable source of truth for Phase 1 L0. Agents pull from this bucket when they need data and write durable results back here. Local `data/raw/` and `data/cache/` are scratch only. The warehouse is wide Parquet, compressed with zstd. Melt to long L0 rows happens on read, not as a stored file on R2.
+Cloudflare R2 is the durable source of truth for Phase 1 L0. Read is allowed. Do not write warehouse objects. Local `data/raw/` and `data/cache/` are scratch only. The warehouse is wide Parquet, compressed with zstd. Melt to long L0 rows happens on read, not as a stored file on R2.
 
 The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Do not invent a second bucket for this lab. Do not dump other projects into this bucket.
 
@@ -55,7 +55,7 @@ Connection settings are fixed for this Cloudflare account. They do not change pe
 | Client | boto3 (S3 API). Not the AWS CLI. |
 | Secrets | Access Key ID and Secret Access Key from an R2 API token, via a secret card. Never paste them in chat. |
 
-The prefix tree inside `lagos-chem-l0` is locked as it exists today for this operational-technology (OT) / industrial-IoT warehouse:
+The locked prefix tree for this operational-technology (OT) / industrial-IoT warehouse is the OT prefixes below (`raw/`, `cache/`, and `notes/`). The live `lagos-chem-l0` bucket also holds keys outside that locked OT tree: root `CACHE_NOTES.md`, root `DOWNLOAD_NOTES.md`, and prefix `_hermes-connectivity-tests/`. Those keys are not part of the locked OT tree.
 
 ```
 lagos-chem-l0/

@@ -167,7 +167,7 @@
 
     <h2>Cloudflare R2 (durable store)</h2>
     <p>
-      Cloudflare R2 is the durable source of truth for Phase 1 L0. Agents pull from this bucket when they need data and write durable results back here.
+      Cloudflare R2 is the durable source of truth for Phase 1 L0. Read is allowed. Do not write warehouse objects.
       Local <code>data/raw/</code> and <code>data/cache/</code> are scratch only. The warehouse is wide Parquet, compressed with zstd.
       Melt to long L0 rows happens on read, not as a stored file on R2.
     </p>
@@ -193,7 +193,7 @@
         <tr><td>Secrets</td><td>Access Key ID and Secret Access Key from an R2 API token, via a secret card. Never paste them in chat.</td></tr>
       </tbody>
     </table>
-    <p>The prefix tree inside <code>lagos-chem-l0</code> is locked as it exists today for this operational-technology (OT) / industrial-IoT warehouse:</p>
+    <p>The locked prefix tree for this operational-technology (OT) / industrial-IoT warehouse is the OT prefixes below (<code>raw/</code>, <code>cache/</code>, and <code>notes/</code>). The live <code>lagos-chem-l0</code> bucket also holds keys outside that locked OT tree: root <code>CACHE_NOTES.md</code>, root <code>DOWNLOAD_NOTES.md</code>, and prefix <code>_hermes-connectivity-tests/</code>. Those keys are not part of the locked OT tree.</p>
     <pre>lagos-chem-l0/
 ├── raw/
 │   ├── tep/
