@@ -66,6 +66,9 @@ CURRENT_STATUS_DOCS: tuple[tuple[Path, str | None], ...] = (
     (REPO / "AGENTS.md", None),
     (REPO / "tests" / "README.md", None),
     (REPO / "HANDOFF.md", "## 2. Current status"),
+    # §2.1 sits below a sub-heading but is still current state, not history: it
+    # carries the schedule's name count. Reading only §2 left it unchecked.
+    (REPO / "HANDOFF.md", "### 2.1"),
 )
 
 # Directories that are not the project's own prose or code.
@@ -109,7 +112,12 @@ EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
     "README.md": ("row count",),
     "AGENTS.md": ("test count", "row count"),
     "tests/README.md": ("test count", "row count"),
-    "HANDOFF.md": ("test count", "row count"),
+    # Keyed by the section as well as the file, because the two HANDOFF
+    # sections carry different figures. Requiring the wrong one would ask a
+    # section for a claim it never made; requiring too little would let a
+    # claim vanish from the parser without failing the gate.
+    "HANDOFF.md ## 2. Current status": ("test count", "row count"),
+    "HANDOFF.md ### 2.1": ("row count",),
 }
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
@@ -318,26 +326,29 @@ class Problem:
     detail: str
 
 
-def _section(path: Path, heading: str | None) -> str:
-    """One section of a file, or the whole file when no heading is given.
+def _section(path: Path, heading: str | None) -> tuple[str, int]:
+    """One section of a file, and the 1-based file line its heading sits on.
 
-    A section runs from its heading to the next heading of *any* level at or
-    below it, so a subsection — and everything filed under it — is outside.
-    HANDOFF's status section carries every dated session note beneath it, and
-    those are history; reading them as status is exactly the mistake this
-    avoids. Raises rather than returning nothing, because a heading that has
-    been renamed must be noticed, not silently left unchecked.
+    The line is returned so a reported finding points at the line in the file
+    rather than the line in the slice — a claim at slice line 8 is useless to
+    someone looking for file line 94.
+
+    A section runs from its heading to the next heading of *any* level. That
+    is what both HANDOFF cases need: §2 must stop before the subsection §2.1,
+    and §2.1 must stop before the next top-level section — and it must not run
+    on into the dated session notes filed beneath either, which are history.
+    Raises rather than returning nothing, because a heading that has been
+    renamed must be noticed, not silently left unchecked.
     """
     text = path.read_text(encoding="utf-8")
     if heading is None:
-        return text
+        return text, 1
     start = text.find(heading)
     if start == -1:
         raise SystemExit(f"{_label(path)} has no section {heading!r}")
-    level = len(heading) - len(heading.lstrip("#"))
-    following = re.compile(rf"^#{{{level},}} ", re.MULTILINE).search(text, start + len(heading))
+    following = re.compile(r"^#+ ", re.MULTILINE).search(text, start + len(heading))
     end = following.start() if following else len(text)
-    return text[start:end]
+    return text[start:end], text.count("\n", 0, start) + 1
 
 
 def _claims(text: str, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
@@ -380,13 +391,16 @@ def check(
         # Claims are found in the flattened text, so one wrapped across two
         # lines is still a claim. Scanning line by line is what lets a stale
         # figure survive, and it is the failure this tool exists to stop.
-        body = _section(path, heading)
-        test_claims = _claims(body, TEST_COUNT_PATTERN)
-        row_claims = _claims(body, ROW_COUNT_PATTERN)
+        body, first_line = _section(path, heading)
+        # Claim lines are relative to the slice; shift them back to file lines
+        # so a finding points somewhere the reader can actually go.
+        offset = first_line - 1
+        test_claims = [(offset + n, v) for n, v in _claims(body, TEST_COUNT_PATTERN)]
+        row_claims = [(offset + n, v) for n, v in _claims(body, ROW_COUNT_PATTERN)]
 
         # Each document is asked for the figures it is expected to carry. A
         # document that stops quoting one is a gap, not a pass.
-        expected = EXPECTED_CLAIMS.get(_label(path), ())
+        expected = EXPECTED_CLAIMS.get(label, ())
         if "test count" in expected and not test_claims:
             problems.append(Problem(label, 0, "quotes no test count to verify"))
         if "row count" in expected and not row_claims:

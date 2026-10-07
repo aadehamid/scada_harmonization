@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 89
+EXPECTED_TESTS = 92
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -305,9 +305,36 @@ def test_section_stops_at_a_subsection(tmp_path: Path) -> None:
         "The suite had 34 tests.\n",
         encoding="utf-8",
     )
-    body = facts._section(doc, "## 2. Current status")
+    body, first_line = facts._section(doc, "## 2. Current status")
     assert "85 tests" in body
     assert "34 tests" not in body
+    assert first_line == 1, "the heading is the first line of this file"
+
+
+def test_section_reports_the_file_line_of_its_heading(tmp_path: Path) -> None:
+    """A finding must point at a line the reader can go to, not a slice line."""
+    doc = tmp_path / "H.md"
+    doc.write_text(f"intro\nintro\nintro\n{HEADING}\n\nThe suite has 34 tests.\n")
+    body, first_line = facts._section(doc, HEADING)
+    assert first_line == 4
+    claims = facts._claims(body, facts.TEST_COUNT_PATTERN)
+    assert [first_line - 1 + n for n, _ in claims] == [6]
+
+
+def test_section_stops_at_a_shallower_heading(tmp_path: Path) -> None:
+    """Reading a subsection must not run on into the next top-level section."""
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        "## 2. Current status\n\nThe suite has 91 tests.\n\n"
+        "### 2.1\n\nA 59-name schedule.\n\n"
+        "### This session\n\nThe suite had 34 tests.\n\n"
+        "## 3. Next\n\nHistorical: 21 tests.\n",
+        encoding="utf-8",
+    )
+    sub, _ = facts._section(doc, "### 2.1")
+    assert "59-name" in sub
+    assert "34 tests" not in sub, "the dated note below is history"
+    assert "21 tests" not in sub, "the next top-level section is outside"
 
 
 def test_section_raises_when_the_heading_is_gone(tmp_path: Path) -> None:
@@ -327,6 +354,22 @@ def test_check_flags_a_stale_count_inside_a_named_section(tmp_path: Path) -> Non
     problems = facts.check(docs=[(doc, HEADING)], pin_files=[])
     assert [p.detail for p in problems] == [STALE]
     assert problems[0].path == f"{doc} {HEADING}"
+
+
+def test_check_requires_a_readable_test_count_in_a_named_section(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A count the parser cannot read is a gap, not a pass.
+
+    Without this, a figure could be reformatted out of the pattern and the
+    section would stop being checked while the gate still reported success.
+    """
+    doc = tmp_path / "H.md"
+    doc.write_text(f"{HEADING}\n\nThe suite has **34**.\n", encoding="utf-8")
+    monkeypatch.setitem(facts.EXPECTED_CLAIMS, f"{doc} {HEADING}", ("test count", "row count"))
+    details = [p.detail for p in facts.check(docs=[(doc, HEADING)], pin_files=[])]
+    assert "quotes no test count to verify" in details
+    assert "quotes no row/name count to verify" in details
 
 
 def test_check_ignores_history_below_a_named_section(tmp_path: Path) -> None:
