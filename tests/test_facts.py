@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 82
+EXPECTED_TESTS = 85
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -253,6 +253,13 @@ def test_check_flags_a_non_hexadecimal_prefix(tmp_path: Path) -> None:
     assert "is not a pin" in problems[0].detail
 
 
+def test_check_judges_an_all_letter_digest(tmp_path: Path) -> None:
+    """`deadbeef` is all hex letters, so it must still be read as a pin."""
+    problems = _check(tmp_path, pin="TEP `deadbeef…`\n")
+    assert len(problems) == 1
+    assert "deadbeef" in problems[0].detail
+
+
 def test_check_flags_a_non_hexadecimal_suffix(tmp_path: Path) -> None:
     problems = _check(tmp_path, pin="TEP `f5b9d1cf…zzzzzzzz`\n")
     assert len(problems) == 1
@@ -277,7 +284,9 @@ def test_check_accepts_a_prefix_only_pin(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     "text",
     [
+        "Run `docker compose up …` first\n",
         "Run `! docker compose up …` first\n",
+        "Then `uv run pytest …`\n",
         "Machines `P-101/…` and `K-201/…`\n",
         "Topic `lagos-chem/<site>/<area>/…`\n",
         "TEP golden `f5b9d1cf…` then deadbeef\n",

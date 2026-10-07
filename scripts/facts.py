@@ -77,11 +77,18 @@ CODE_SPAN = re.compile(r"`([^`]*)`")
 # A whole pin, after whitespace inside the span is removed: a pin is one token,
 # so a wrap inside the span is not a space between two of them.
 PIN_TOKEN = re.compile(r"\A([0-9a-f]+)…([0-9a-f]*)\Z")
-# Not every code span holding an ellipsis is a pin: `! docker compose up …` and
-# `P-101/…` use it for "and so on". Only a span whose first token is a long
-# alphanumeric run is treated as a pin at all, so a mistyped digest is still
-# judged while ordinary prose is left alone.
-PIN_CANDIDATE = re.compile(r"\A[0-9A-Za-z]{6,}…")
+# Not every code span holding an ellipsis is a pin: `docker compose up …` and
+# `P-101/…` use it for "and so on", and a documentation command must not fail
+# the build.
+#
+# Candidacy is judged on the span's *first* token, before any joining, so a
+# command's words cannot be welded into something digest-shaped. The run before
+# the ellipsis must then be mostly hexadecimal: a digest is, and a word like
+# `docker` is not. That keeps a mistyped digit (`f5b9d1cg…`) under judgement
+# while leaving English alone.
+PIN_CANDIDATE = re.compile(r"\A([0-9A-Za-z]{6,})…")
+HEX_DIGITS = frozenset("0123456789abcdef")
+MIN_HEX_IN_CANDIDATE = 6
 PIN_PREFIX_LENGTH = 8
 # "60 tests" and "60 passed" are both claims about the suite; the second is the
 # wording pytest itself prints.
@@ -376,9 +383,16 @@ def check(
         text = path.read_text(encoding="utf-8")
         for span in CODE_SPAN.finditer(text):
             content = span.group(1)
-            token = "".join(content.split())
-            if not PIN_CANDIDATE.match(token):
+            words = content.split()
+            if not words:
                 continue
+            candidate = PIN_CANDIDATE.match(words[0])
+            if candidate is None:
+                continue
+            run = candidate.group(1).lower()
+            if sum(char in HEX_DIGITS for char in run) < MIN_HEX_IN_CANDIDATE:
+                continue
+            token = "".join(words)
             line = text.count("\n", 0, span.start()) + 1
             shown = content.strip()
 
