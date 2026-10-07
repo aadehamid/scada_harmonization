@@ -13,8 +13,13 @@ an incident is a guess, and this file does not carry guesses.
 **Incident:** #43, #46, #47. `README.md`, `AGENTS.md` and `HANDOFF.md` each restated the current
 status, and drifted: they quoted `main` at two different commits while the truth was a third, and
 `HANDOFF.md`'s status table claimed 41 tests while the suite collected 85 on `main`. The 41 was
-correct before the figures tool added tests of its own (#46) and was never updated;
-`scripts/facts.py` reported it on its first run.
+correct before the figures tool added tests of its own (#46) and was never updated.
+
+The tool did not catch it. Its first run reported **34 tests**, read from a dated session note, and
+left the 41 in the status table untouched, because `scripts/facts.py check` did not treat
+`HANDOFF.md` as a current-status document. The pattern found a record and walked past the claim,
+which is why telling the two apart is this rule's job rather than the script's. #47 closes the hole
+from the other side: it makes §2 the status the check reads.
 
 #47 consolidates the status into `HANDOFF.md` §2 and points the other documents at it. **It is
 open, not merged** — treat the consolidation as pending until it lands, and read the copies on
@@ -47,8 +52,10 @@ missing, extend the tool — never count by hand, and never write a script for t
 **Incident:** #44 and #45. The working-tree guard passed all four of its stated claims while missing
 untracked file rewrites, a file named `-` (which `sha256sum` read as standard input), a dropped
 executable bit, and an index change. Each was found by breaking it on purpose after the fact, not
-before. A test can also pass for the wrong reason: one written `docker compose up …` proved
-nothing, because the `!` in front of the real case is what stopped it being read as a digest (#46).
+before. A test can also pass for the wrong reason: one written `! docker compose up …` proved
+nothing, because the leading `!` is what kept it from being read as a digest, while the same command
+without the `!` was welded into `dockercomposeup…`, judged a pin, and failed the build
+(#46, `edcb364`).
 
 ## Fixing a finding can introduce the next one
 
