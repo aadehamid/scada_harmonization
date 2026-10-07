@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 78
+EXPECTED_TESTS = 82
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -233,17 +233,11 @@ def test_check_flags_an_over_long_pin_suffix(tmp_path: Path) -> None:
     assert "matches 0 pinned fixtures" in problems[0].detail
 
 
-def test_check_reads_a_pin_wrapped_mid_token_as_prefix_only(tmp_path: Path) -> None:
-    """A known limit, recorded rather than papered over.
-
-    The suffix must sit against the ellipsis. Accepting whitespace there would
-    read the next word of ordinary prose as a suffix and flag correct text.
-    """
-    assert _check(tmp_path, pin="TEP golden `f5b9d1cf…\n00000000` (do not change)\n") == []
-
-
-def test_check_does_not_read_prose_after_a_pin_as_a_suffix(tmp_path: Path) -> None:
-    assert _check(tmp_path, pin="TEP golden `f5b9d1cf…` then deadbeef\n") == []
+def test_check_flags_a_pin_wrapped_inside_its_code_span(tmp_path: Path) -> None:
+    """A pin is one token, so a wrap inside the span is not a space between two."""
+    problems = _check(tmp_path, pin="TEP golden `f5b9d1cf…\n00000000` (do not change)\n")
+    assert len(problems) == 1
+    assert "matches 0 pinned fixtures" in problems[0].detail
 
 
 def test_check_flags_a_pin_prefix_of_the_wrong_length(tmp_path: Path) -> None:
@@ -252,16 +246,23 @@ def test_check_flags_a_pin_prefix_of_the_wrong_length(tmp_path: Path) -> None:
     assert "not 8 hex digits" in problems[0].detail
 
 
+def test_check_flags_a_non_hexadecimal_prefix(tmp_path: Path) -> None:
+    """A mistyped prefix is named, not skipped for failing to look like a pin."""
+    problems = _check(tmp_path, pin="TEP `f5b9d1cg…e6d33516`\n")
+    assert len(problems) == 1
+    assert "is not a pin" in problems[0].detail
+
+
 def test_check_flags_a_non_hexadecimal_suffix(tmp_path: Path) -> None:
     problems = _check(tmp_path, pin="TEP `f5b9d1cf…zzzzzzzz`\n")
     assert len(problems) == 1
-    assert "not hexadecimal" in problems[0].detail
+    assert "is not a pin" in problems[0].detail
 
 
-def test_check_flags_a_trailing_character_after_the_suffix(tmp_path: Path) -> None:
-    problems = _check(tmp_path, pin="TEP `f5b9d1cf…e6d33516g`\n")
+def test_check_flags_punctuation_inside_a_pin(tmp_path: Path) -> None:
+    problems = _check(tmp_path, pin="TEP `f5b9d1cf…e6d33516-g`\n")
     assert len(problems) == 1
-    assert "not hexadecimal" in problems[0].detail
+    assert "is not a pin" in problems[0].detail
 
 
 def test_check_accepts_a_correct_pin(tmp_path: Path) -> None:
@@ -271,6 +272,20 @@ def test_check_accepts_a_correct_pin(tmp_path: Path) -> None:
 def test_check_accepts_a_prefix_only_pin(tmp_path: Path) -> None:
     """LEARNING_LOG quotes one this way, and a lone prefix is unambiguous."""
     assert _check(tmp_path, pin="machine stream `84b9f088…`\n") == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Run `! docker compose up …` first\n",
+        "Machines `P-101/…` and `K-201/…`\n",
+        "Topic `lagos-chem/<site>/<area>/…`\n",
+        "TEP golden `f5b9d1cf…` then deadbeef\n",
+    ],
+)
+def test_check_leaves_ordinary_ellipsis_alone(tmp_path: Path, text: str) -> None:
+    """`…` means "and so on" far more often than it means a pin."""
+    assert _check(tmp_path, pin=text) == []
 
 
 def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None:

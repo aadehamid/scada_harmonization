@@ -68,19 +68,21 @@ SKIP_DIRS = frozenset(
 )
 SKIP_PREFIXES = ("reference/", "data/")
 
-# A candidate pin: whatever hex run sits before an ellipsis, and whatever
-# follows it. Deliberately loose — it matches *candidates*, and the syntax is
-# judged afterwards, so a malformed pin is reported rather than skipped. A
-# strict pattern here would quietly ignore `f5b9d1cff…` (nine digits) instead
-# of calling it wrong.
-#
-# The suffix must be adjacent to the ellipsis. Allowing whitespace between them
-# would read the next word of ordinary prose as a suffix and flag correct text,
-# which is worse than the case it would catch: a pin wrapped mid-token reads as
-# a prefix-only pin, and a reader sees the same space the tool does.
-PIN_PATTERN = re.compile(r"\b([0-9a-f]+)…([0-9A-Za-z]*)")
+# Pins are read from code spans, not from prose. Hunting for digest-shaped
+# tokens in running text cannot be made correct: every round of review found
+# another way for a malformed pin to hide in the words around it, and the
+# pattern that catches one case flags correct sentences in another. A code span
+# is an explicit boundary the document already draws, so the tool uses it.
+CODE_SPAN = re.compile(r"`([^`]*)`")
+# A whole pin, after whitespace inside the span is removed: a pin is one token,
+# so a wrap inside the span is not a space between two of them.
+PIN_TOKEN = re.compile(r"\A([0-9a-f]+)…([0-9a-f]*)\Z")
+# Not every code span holding an ellipsis is a pin: `! docker compose up …` and
+# `P-101/…` use it for "and so on". Only a span whose first token is a long
+# alphanumeric run is treated as a pin at all, so a mistyped digest is still
+# judged while ordinary prose is left alone.
+PIN_CANDIDATE = re.compile(r"\A[0-9A-Za-z]{6,}…")
 PIN_PREFIX_LENGTH = 8
-HEX = re.compile(r"\A[0-9a-f]+\Z")
 # "60 tests" and "60 passed" are both claims about the suite; the second is the
 # wording pytest itself prints.
 TEST_COUNT_PATTERN = re.compile(r"\b(\d+)\s+(?:tests?|passed)\b")
@@ -371,30 +373,31 @@ def check(
     for path in tracked_text_files() if pin_files is None else pin_files:
         if path.suffix != ".md":
             continue
-        flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
-        for match in PIN_PATTERN.finditer(flat):
-            prefix, suffix = match.group(1), match.group(2)
-            shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
-            line = line_of[match.start()]
+        text = path.read_text(encoding="utf-8")
+        for span in CODE_SPAN.finditer(text):
+            content = span.group(1)
+            token = "".join(content.split())
+            if not PIN_CANDIDATE.match(token):
+                continue
+            line = text.count("\n", 0, span.start()) + 1
+            shown = content.strip()
 
-            # Judge the whole token before matching it, so a pin that is
-            # malformed is named as malformed rather than skipped or accepted
-            # on the part that happens to parse.
-            if len(prefix) != PIN_PREFIX_LENGTH or not HEX.match(prefix):
+            # The whole token is judged before it is matched, so a malformed
+            # pin is named as malformed rather than skipped, or accepted on
+            # whichever fragment happens to parse.
+            found = PIN_TOKEN.match(token)
+            if found is None:
                 problems.append(
-                    Problem(
-                        _label(path),
-                        line,
-                        f"quotes pin {shown}, whose prefix is not {PIN_PREFIX_LENGTH} hex digits",
-                    )
+                    Problem(_label(path), line, f"quotes `{shown}`, which is not a pin")
                 )
                 continue
-            if suffix and not HEX.match(suffix):
+            prefix, suffix = found.group(1), found.group(2)
+            if len(prefix) != PIN_PREFIX_LENGTH:
                 problems.append(
                     Problem(
                         _label(path),
                         line,
-                        f"quotes pin {shown}, whose suffix is not hexadecimal",
+                        f"quotes `{shown}`, whose prefix is not {PIN_PREFIX_LENGTH} hex digits",
                     )
                 )
                 continue
@@ -403,10 +406,11 @@ def check(
             # against the union of all fixtures would accept a swapped pin,
             # because the wrong digest is still a real one.
             #
-            # Known limit: a complete, well-formed digest of the *wrong*
-            # fixture still matches one fixture, and only the sentence around
-            # it says which fixture was meant. That is a reader's judgement,
-            # so it is a review-standards rule, not a pattern.
+            # Known limit, deliberately not closed: a complete, well-formed
+            # digest of the *wrong* fixture matches one fixture, and only the
+            # prose around the span says which fixture was meant. This check
+            # guarantees digest membership, not fixture attribution — that is a
+            # reader's rule for the review standards, not a pattern.
             matches = [
                 name
                 for name, digest in digests.items()
