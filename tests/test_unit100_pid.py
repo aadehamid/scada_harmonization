@@ -21,11 +21,7 @@ PID_PDF_SHA256 = "dd75cc078110e1f5b519dcf3024832d932d996daa14d0e4607d8ac6d227617
 PLANT_DATA_NAMES: frozenset[str] = frozenset(
     [f"xmeas_{i}" for i in range(1, 42)]
     + [f"xmv_{i}" for i in range(1, 12)]
-    + [
-        f"{machine.machine_id}/{pv}"
-        for machine in DEFAULT_MACHINES
-        for pv in MACHINE_STREAM_PVS
-    ]
+    + [f"{machine.machine_id}/{pv}" for machine in DEFAULT_MACHINES for pv in MACHINE_STREAM_PVS]
     + ["xv_feed"]
 )
 
