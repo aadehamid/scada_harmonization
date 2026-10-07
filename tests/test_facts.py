@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 85
+EXPECTED_TESTS = 89
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -295,6 +295,48 @@ def test_check_accepts_a_prefix_only_pin(tmp_path: Path) -> None:
 def test_check_leaves_ordinary_ellipsis_alone(tmp_path: Path, text: str) -> None:
     """`…` means "and so on" far more often than it means a pin."""
     assert _check(tmp_path, pin=text) == []
+
+
+def test_section_stops_at_a_subsection(tmp_path: Path) -> None:
+    """A dated note filed below a status section is not status."""
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        "## 2. Current status\n\nThe suite has 85 tests.\n\n### This session (2024-01-01)\n\n"
+        "The suite had 34 tests.\n",
+        encoding="utf-8",
+    )
+    body = facts._section(doc, "## 2. Current status")
+    assert "85 tests" in body
+    assert "34 tests" not in body
+
+
+def test_section_raises_when_the_heading_is_gone(tmp_path: Path) -> None:
+    """A renamed heading must be noticed, not silently left unchecked."""
+    doc = tmp_path / "H.md"
+    doc.write_text("## Something else\n", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        facts._section(doc, "## 2. Current status")
+
+
+HEADING = "## 2. Current status"
+
+
+def test_check_flags_a_stale_count_inside_a_named_section(tmp_path: Path) -> None:
+    doc = tmp_path / "H.md"
+    doc.write_text(f"{HEADING}\n\nThe suite has 34 tests.\n", encoding="utf-8")
+    problems = facts.check(docs=[(doc, HEADING)], pin_files=[])
+    assert [p.detail for p in problems] == [STALE]
+    assert problems[0].path == f"{doc} {HEADING}"
+
+
+def test_check_ignores_history_below_a_named_section(tmp_path: Path) -> None:
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        f"{HEADING}\n\nThe suite has {EXPECTED_TESTS} tests.\n\n"
+        "### This session\n\nThe suite had 34 tests.\n",
+        encoding="utf-8",
+    )
+    assert facts.check(docs=[(doc, HEADING)], pin_files=[]) == []
 
 
 def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None:

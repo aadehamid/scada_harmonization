@@ -53,13 +53,19 @@ PINNED_FIXTURES: tuple[Path, ...] = (
     FIXTURES / "pid" / "LSC-U100-PID-001_revB.pdf",
 )
 
-# Documents that describe the repo as it is now. A dated session note or a
-# phase record states what was true when it was written, so a figure in one is
+# Documents that describe the repo as it is now, and the section within them
+# when only part of the file is a status claim. A dated session note or a phase
+# record states what was true when it was written, so a figure in one is
 # history, not a claim about today, and `check` does not read it.
-CURRENT_STATUS_DOCS: tuple[Path, ...] = (
-    REPO / "README.md",
-    REPO / "AGENTS.md",
-    REPO / "tests" / "README.md",
+#
+# HANDOFF.md is mostly dated session notes, so only its current-status section
+# is read — but it *is* read, because since the status was consolidated there,
+# it is the one document that can go stale in a way the owner would act on.
+CURRENT_STATUS_DOCS: tuple[tuple[Path, str | None], ...] = (
+    (REPO / "README.md", None),
+    (REPO / "AGENTS.md", None),
+    (REPO / "tests" / "README.md", None),
+    (REPO / "HANDOFF.md", "## 2. Current status"),
 )
 
 # Directories that are not the project's own prose or code.
@@ -103,6 +109,7 @@ EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
     "README.md": ("row count",),
     "AGENTS.md": ("test count", "row count"),
     "tests/README.md": ("test count", "row count"),
+    "HANDOFF.md": ("test count", "row count"),
 }
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
@@ -311,19 +318,41 @@ class Problem:
     detail: str
 
 
-def _claims(path: Path, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
-    """Every match of `pattern` in a file, with the line each one starts on.
+def _section(path: Path, heading: str | None) -> str:
+    """One section of a file, or the whole file when no heading is given.
+
+    A section runs from its heading to the next heading of *any* level at or
+    below it, so a subsection — and everything filed under it — is outside.
+    HANDOFF's status section carries every dated session note beneath it, and
+    those are history; reading them as status is exactly the mistake this
+    avoids. Raises rather than returning nothing, because a heading that has
+    been renamed must be noticed, not silently left unchecked.
+    """
+    text = path.read_text(encoding="utf-8")
+    if heading is None:
+        return text
+    start = text.find(heading)
+    if start == -1:
+        raise SystemExit(f"{_label(path)} has no section {heading!r}")
+    level = len(heading) - len(heading.lstrip("#"))
+    following = re.compile(rf"^#{{{level},}} ", re.MULTILINE).search(text, start + len(heading))
+    end = following.start() if following else len(text)
+    return text[start:end]
+
+
+def _claims(text: str, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
+    """Every match of `pattern` in `text`, with the line each one starts on.
 
     Matched against the flattened text, so a claim wrapped across two lines is
     still found. Line-by-line scanning is what lets a stale figure survive a
     sweep, and that is the failure this whole tool exists to stop.
     """
-    flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
+    flat, line_of = flatten(text, markdown=True)
     return [(line_of[match.start()], match.group(1)) for match in pattern.finditer(flat)]
 
 
 def check(
-    docs: Sequence[Path] | None = None,
+    docs: Sequence[Path | tuple[Path, str | None]] | None = None,
     pin_files: Sequence[Path] | None = None,
 ) -> list[Problem]:
     """Compare every quoted figure against the source it is about.
@@ -339,35 +368,40 @@ def check(
     row_count = int(names()["rows"])  # type: ignore[arg-type]
     digests = hashes()
 
-    for path in CURRENT_STATUS_DOCS if docs is None else docs:
+    # A caller may name a whole file or a section of one, so a test can point
+    # the check at a section without editing a real document.
+    targets = (
+        CURRENT_STATUS_DOCS
+        if docs is None
+        else tuple(entry if isinstance(entry, tuple) else (entry, None) for entry in docs)
+    )
+    for path, heading in targets:
+        label = _label(path) if heading is None else f"{_label(path)} {heading}"
         # Claims are found in the flattened text, so one wrapped across two
         # lines is still a claim. Scanning line by line is what lets a stale
         # figure survive, and it is the failure this tool exists to stop.
-        test_claims = _claims(path, TEST_COUNT_PATTERN)
-        row_claims = _claims(path, ROW_COUNT_PATTERN)
+        body = _section(path, heading)
+        test_claims = _claims(body, TEST_COUNT_PATTERN)
+        row_claims = _claims(body, ROW_COUNT_PATTERN)
 
         # Each document is asked for the figures it is expected to carry. A
         # document that stops quoting one is a gap, not a pass.
         expected = EXPECTED_CLAIMS.get(_label(path), ())
         if "test count" in expected and not test_claims:
-            problems.append(Problem(_label(path), 0, "quotes no test count to verify"))
+            problems.append(Problem(label, 0, "quotes no test count to verify"))
         if "row count" in expected and not row_claims:
-            problems.append(Problem(_label(path), 0, "quotes no row/name count to verify"))
+            problems.append(Problem(label, 0, "quotes no row/name count to verify"))
 
         for number, quoted in test_claims:
             if int(quoted) != total:
                 problems.append(
-                    Problem(
-                        _label(path),
-                        number,
-                        f"says {quoted} tests; the suite collects {total}",
-                    )
+                    Problem(label, number, f"says {quoted} tests; the suite collects {total}")
                 )
         for number, quoted in row_claims:
             if int(quoted) != row_count:
                 problems.append(
                     Problem(
-                        _label(path),
+                        label,
                         number,
                         f"says {quoted}-row/name; the schedule has {row_count}",
                     )
