@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-21 (#40 merged; mapping spine still next)
+**Last updated:** 2026-10-07 (§2 gains the ET problem + related public repo; mapping spine still next)
 
 > **RESUME HERE.** Session wrapped 2026-08-20. Next build is the mapping-table
 > spine. Paste the kickoff in **§3** (“Next build session”). Do not start
@@ -122,6 +122,23 @@ and the 59-name set. You can continue the OT build without more drawings.
 instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
+
+### This session (2026-10-07): ET problem statement + related public repo (docs only)
+
+Hamid asked to fold the problem statement from the related public repo
+[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+(LIONG — engineering drawings to a maintained engineering graph) into this
+repo's problem statement. Decisions: **cross-reference only** (no build
+dependency, no scope change) and **keep both framings** (the anonymized
+industry-discovery patterns stay; the named public project joins them as the
+ET leg). Charter §2 gains two paragraphs — the engineering (ET) problem
+(tag ≠ asset identity; intersecting lines ≠ pipe connection; cross-sheet
+tracing; evidence vs. confirmed) and the change problem (stable identities,
+controlled publication, authoritative source, approved vs. proposed state) —
+plus a fourth discovery bullet, a mapping-table row, and a §7 note that the
+public repo supersedes the local EngiGraph folder as the live ET reference.
+Mirrored into `README.md`, `DOMAIN.md`, `AGENTS.md`, `reference/README.md`.
+No code, no tests, no decision changes. Branch `docs/et-problem-statement`.
 
 ### This session (2026-08-21): charter §2 scale fold (docs only)
 

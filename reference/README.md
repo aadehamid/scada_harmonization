@@ -20,6 +20,12 @@ market / sales framing is **not** part of this project. Consult them only for th
 | `engineering_drawing_business_case/` | **EngiGraph** — engineering-drawing knowledge graph | **Plane 3 (Contextualize):** ISO 15926 / DEXPI ontology foundation, multi-level ontology architecture, node/edge vocabulary, GraphRAG pattern, and graph-algorithm use cases (isolation-path, centrality, impact analysis). |
 | `enterprise_it_ot_deck/` | **External slide deck** — "Enterprise IT vs Manufacturing/OT" (third-party consulting material; drop the slide images here) | **The end-to-end walkthrough (Thread A):** the ten-handoff order-to-cash flow, the L0–L4 systems vocabulary (CRM/ERP/WMS/MES/SCADA/PLC…), integration pains, and organizational red flags. Used as the *transaction-thread* script in [`../design/E2E_WALKTHROUGH.md`](../design/E2E_WALKTHROUGH.md) — which adds the two threads the deck lacks (telemetry up, decision/control back). |
 
+> **Superseded as the live ET reference (2026-10-07).** The public
+> [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+> project now owns the engineering-drawing leg — DEXPI 2.0 conversion, stable object identities,
+> source authority, revision and publication control. The EngiGraph folder stays as the local-only
+> business-case ancestor; consult it for the original ontology and graph-query patterns.
+
 ## What was deliberately NOT carried forward
 
 - Market sizing, TAM/revenue projections, persona pain tables, competitor matrices, named clients,
@@ -28,3 +34,6 @@ market / sales framing is **not** part of this project. Consult them only for th
   *examples* for the multi-site process/chemicals assets the home lab simulates.
 - EngiGraph's CV/VLM P&ID-extraction pipeline (symbol detection, OCR, VLM) — the home lab
   synthesizes graph topology directly, so only the ontology + graph + query layers are relevant.
+  The extraction problem is not abandoned; it belongs to the related public
+  [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+  project, which owns the drawing-to-DEXPI path.

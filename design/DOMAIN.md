@@ -53,6 +53,15 @@ layer is itself a moving target. HQ's response is not just "one namespace" but *
 governed and reusable**: every harmonized metric gets an owner, a definition, and lineage — a data
 product the whole enterprise can trust — while sites keep local autonomy (the *global-and-local* ask).
 
+The same is true of the drawings. Every site's P&IDs describe the same Unit 100 equipment, and the
+engineering truth sits in two places at once — the authoring databases and the flat sheets. A tag
+on a sheet names an instrument; it does not by itself say which equipment that instrument belongs
+to, and two crossing lines are not a pipe connection until someone confirms it. Rebuilding that
+connectivity means tracing paths across sheets by hand. That engineering leg is the subject of a
+related open-source project,
+[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph),
+which builds the maintained engineering graph this lab's Plane 3 draws on.
+
 ---
 
 ## The cast of divergence (what the lab must reconcile)

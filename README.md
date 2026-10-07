@@ -29,6 +29,16 @@ different names per site), then proves it can be conformed to one namespace, **g
 reusable data product**, and enriched into connected context. The problem mirrors real process /
 CPG / Energy & Chemicals discovery (anonymized industry pains); see charter §2.
 
+The **engineering (ET) leg** carries the same disease. P&IDs and backend engineering records hold
+equipment, pipe, valve, instrument, and connection information, but neither shape is directly
+queryable: a recognized tag does not establish which equipment it identifies, and an intersecting
+line does not establish a pipe connection. A one-time conversion then drifts as tags change,
+equipment is removed, and connections are rerouted. The sibling open-source project
+[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+treats that leg in full — DEXPI 2.0 conversion, stable object identities, source evidence, and
+revision control. This lab consumes its engineering data product as Plane 3's ET input while
+continuing to synthesize its own topology.
+
 ## The four planes
 
 Sources span the classic **IT / OT / ET** divide: OT (SCADA/PLC tags), IT (on-prem
@@ -96,6 +106,7 @@ real AWS) without invalidating the design.
 | Document | Role |
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
+| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) | Related public repo — engineering drawings to a maintained engineering graph (the ET leg) |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/E2E_WALKTHROUGH.md`](design/E2E_WALKTHROUGH.md) | End-to-end teaching walkthrough script (Threads A/B/C) |
 | [`design/WALKTHROUGH_PROGRESS.md`](design/WALKTHROUGH_PROGRESS.md) | Live walkthrough cursor — resume here |

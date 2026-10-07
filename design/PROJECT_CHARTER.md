@@ -4,7 +4,8 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-08-21 (problem-statement scale fold; decisions otherwise unchanged since 2026-07-06)
+**Last updated:** 2026-10-07 (§2 gains the engineering (ET) problem and the related
+`Engineering_Drawing_to_Graph` project; decisions otherwise unchanged since 2026-07-06)
 
 ---
 
@@ -78,6 +79,26 @@ The three recurring challenges across these domains:
   named owners ("data creators as gatekeepers") and per-field lineage — the lab's lightweight answer to
   "a unified approach for contextualizing *and governing* data, reusable for all users" (see §4).
 
+The **engineering (ET) leg** carries the same disease. Piping and instrumentation diagrams
+describe equipment, pipes, valves, instruments, and their connections, but that meaning lives in
+two shapes: structured records in authoring databases, and flat files such as PDFs, scans, and
+drawing exports. Neither shape is directly queryable. Database tables need mappings that preserve
+the meaning of their objects and relationships. Flat drawings encode that meaning in text, symbols,
+lines, and conventions — and recognizing a tag does not establish which equipment it identifies,
+just as detecting intersecting lines does not establish a pipe connection. Answering one
+engineering question can mean tracing paths across several sheets and reconciling records by hand.
+A useful representation must preserve connection points, branches, bypasses, and cross-sheet
+references, show the evidence for each relationship, and distinguish a confirmed connection from
+an unresolved interpretation.
+
+Engineering change adds a second problem. A one-time conversion drifts from its source: tags
+change, equipment is removed, connections are rerouted. Without stable identities and controlled
+publication, updates duplicate assets, lose operational links, or expose an incomplete revision as
+accepted information. Each dataset must declare its **authoritative source**, and conflicting
+records or uncertain extraction results are resolved rather than silently merged. Proposed
+engineering states stay separate from approved ones, so a change can be inspected without being
+treated as installed.
+
 A great model on one compressor is not valuable if it takes years to deploy at the next site.
 Scale is where value is won or lost — and contextualized data products are what make scale
 possible.
@@ -115,6 +136,16 @@ treated):
   products) so a model can train once and deploy across a fleet. Closed-loop action stays
   human-gated. *(Pattern only — not a retarget of Plane 4's flagship, which remains yield /
   production-leakage.)*
+- **A related open-source project — engineering drawings to graph:**
+  [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+  states the ET problem in full: engineering information sits in backend records and flat P&IDs,
+  neither is directly queryable, and a one-time conversion drifts as the plant changes. That
+  project builds the engineering foundation — DEXPI 2.0 conversion, stable object identities,
+  source evidence, revision and publication control, approved-versus-proposed state — which this
+  lab's Plane 3 consumes as its ET input. This lab still synthesizes its own topology; the sibling
+  project is the real implementation of that leg, and its problem statement is the reference for
+  the ET paragraphs above. Same owner, separate scope: it targets one oil-and-gas demonstration
+  facility, this lab targets four chemical-process sites.
 
 These map onto the lab without changing the thesis — they sharpen *why* it matters:
 
@@ -130,6 +161,7 @@ These map onto the lab without changing the thesis — they sharpen *why* it mat
 | global **and** local requirements | two-tier broker — local site autonomy + central enterprise UNS (§4) |
 | yield improvement / production-leakage; edge + human-in-the-loop feedback | Plane 4 Track A flagship use case (§3, §6, §8) |
 | blend edge + historian + SAP; labs feed predictive models | IT/OT/ET fusion; LIMS as the lab leg of the IT source |
+| engineering records and flat P&IDs give no queryable, current model; tag ≠ asset identity | ET leg of Plane 3; related project `Engineering_Drawing_to_Graph` |
 
 ---
 
@@ -535,6 +567,13 @@ around them is **discarded**.
   impact analysis. These are the demo queries that prove the graph is worth building.
 - **Digital-thread framing** — topology ↔ SCADA tag ↔ ERP FLOC ↔ work order linkage.
 
+> **Superseded as the live reference (2026-10-07).** The public
+> [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+> project is now the documented treatment of the ET leg. Consult it for DEXPI 2.0 conversion,
+> stable object identity, source authority, revision and publication control, and
+> approved-versus-proposed state. Keep the local-only EngiGraph folder for the original ontology
+> and graph-query patterns; it remains the business-case ancestor of that project.
+
 ### Deliberately NOT extracted
 
 - All market sizing, revenue/TAM projections, persona pain tables, competitor matrices, named
@@ -543,7 +582,9 @@ around them is **discarded**.
   swap the *examples* for manufacturing/multi-site assets.
 - EngiGraph's CV/VLM P&ID-extraction pipeline (symbol detection, OCR, VLM). The home lab
   *synthesizes* graph topology directly, so it keeps only EngiGraph's **ontology + graph + query**
-  layers, not the document-extraction layers.
+  layers, not the document-extraction layers. Document extraction is not dropped as a problem — it
+  belongs to the sibling `Engineering_Drawing_to_Graph` project, which owns the drawing-to-DEXPI
+  path. This lab consumes the engineering data product, not the extraction machinery.
 
 ---
 
@@ -694,6 +735,7 @@ beyond ERPNext community.
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
 | `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer pipeline |
+| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) *(related public repo)* | Sibling project — engineering drawings and backend records to a maintained engineering graph. The reference for the ET leg (DEXPI 2.0, identity, revision, publication). |
 | `reference/docs/` *(local-only ref)* | Reference: ISHE harmonization patterns (Plane 1) |
 | `reference/engineering_drawing_business_case/` *(local-only ref)* | Reference: EngiGraph ontology/graph patterns (Plane 3) |
 | `reference/README.md` | Index of reference material & what to consult each for |
