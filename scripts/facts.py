@@ -68,11 +68,19 @@ SKIP_DIRS = frozenset(
 )
 SKIP_PREFIXES = ("reference/", "data/")
 
-# A quoted digest, as the golden pins are written: eight hex digits, an
-# ellipsis, and the trailing digits. The trailing group is greedy and must not
-# be followed by another hex digit, so a truncated or extended suffix is read
-# whole and then rejected, rather than being silently shortened to fit.
-PIN_PATTERN = re.compile(r"\b([0-9a-f]{8})…\s*([0-9a-f]+)?(?![0-9a-f])")
+# A candidate pin: whatever hex run sits before an ellipsis, and whatever
+# follows it. Deliberately loose — it matches *candidates*, and the syntax is
+# judged afterwards, so a malformed pin is reported rather than skipped. A
+# strict pattern here would quietly ignore `f5b9d1cff…` (nine digits) instead
+# of calling it wrong.
+#
+# The suffix must be adjacent to the ellipsis. Allowing whitespace between them
+# would read the next word of ordinary prose as a suffix and flag correct text,
+# which is worse than the case it would catch: a pin wrapped mid-token reads as
+# a prefix-only pin, and a reader sees the same space the tool does.
+PIN_PATTERN = re.compile(r"\b([0-9a-f]+)…([0-9A-Za-z]*)")
+PIN_PREFIX_LENGTH = 8
+HEX = re.compile(r"\A[0-9a-f]+\Z")
 # "60 tests" and "60 passed" are both claims about the suite; the second is the
 # wording pytest itself prints.
 TEST_COUNT_PATTERN = re.compile(r"\b(\d+)\s+(?:tests?|passed)\b")
@@ -365,21 +373,50 @@ def check(
             continue
         flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
         for match in PIN_PATTERN.finditer(flat):
-            prefix, suffix = match.group(1), match.group(2) or ""
+            prefix, suffix = match.group(1), match.group(2)
+            shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
+            line = line_of[match.start()]
+
+            # Judge the whole token before matching it, so a pin that is
+            # malformed is named as malformed rather than skipped or accepted
+            # on the part that happens to parse.
+            if len(prefix) != PIN_PREFIX_LENGTH or not HEX.match(prefix):
+                problems.append(
+                    Problem(
+                        _label(path),
+                        line,
+                        f"quotes pin {shown}, whose prefix is not {PIN_PREFIX_LENGTH} hex digits",
+                    )
+                )
+                continue
+            if suffix and not HEX.match(suffix):
+                problems.append(
+                    Problem(
+                        _label(path),
+                        line,
+                        f"quotes pin {shown}, whose suffix is not hexadecimal",
+                    )
+                )
+                continue
+
             # Both ends must belong to the *same* fixture. Checking the prefix
             # against the union of all fixtures would accept a swapped pin,
             # because the wrong digest is still a real one.
+            #
+            # Known limit: a complete, well-formed digest of the *wrong*
+            # fixture still matches one fixture, and only the sentence around
+            # it says which fixture was meant. That is a reader's judgement,
+            # so it is a review-standards rule, not a pattern.
             matches = [
                 name
                 for name, digest in digests.items()
                 if digest.startswith(prefix) and (not suffix or digest.endswith(suffix))
             ]
             if len(matches) != 1:
-                shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
                 problems.append(
                     Problem(
                         _label(path),
-                        line_of[match.start()],
+                        line,
                         f"quotes pin {shown}, which matches "
                         f"{len(matches)} pinned fixtures, not one",
                     )
