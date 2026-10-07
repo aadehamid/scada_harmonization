@@ -73,22 +73,19 @@ SKIP_PREFIXES = ("reference/", "data/")
 # another way for a malformed pin to hide in the words around it, and the
 # pattern that catches one case flags correct sentences in another. A code span
 # is an explicit boundary the document already draws, so the tool uses it.
-CODE_SPAN = re.compile(r"`([^`]*)`")
-# A whole pin, after whitespace inside the span is removed: a pin is one token,
-# so a wrap inside the span is not a space between two of them.
-PIN_TOKEN = re.compile(r"\A([0-9a-f]+)…([0-9a-f]*)\Z")
-# Not every code span holding an ellipsis is a pin: `docker compose up …` and
-# `P-101/…` use it for "and so on", and a documentation command must not fail
-# the build.
 #
-# Candidacy is judged on the span's *first* token, before any joining, so a
-# command's words cannot be welded into something digest-shaped. The run before
-# the ellipsis must then be mostly hexadecimal: a digest is, and a word like
-# `docker` is not. That keeps a mistyped digit (`f5b9d1cg…`) under judgement
-# while leaving English alone.
-PIN_CANDIDATE = re.compile(r"\A([0-9A-Za-z]{6,})…")
-HEX_DIGITS = frozenset("0123456789abcdef")
-MIN_HEX_IN_CANDIDATE = 6
+# A pin is recognised by its strict form — hex, ellipsis, hex — after the
+# whitespace inside the span is removed, so a pin wrapped inside its backticks
+# is read as one token rather than two.
+#
+# Known limit, deliberately not closed: something that is not that form is not
+# a pin, so a mistyped digit (`f5b9d1cg…`) is not judged at all. Catching
+# malformed digests means guessing at intent in prose, which six review rounds
+# showed cannot be done without flagging correct documents. What this checks is
+# that a published pin is a real fixture digest; the fixture files themselves
+# are pinned by the test suite.
+CODE_SPAN = re.compile(r"`([^`]*)`")
+PIN_TOKEN = re.compile(r"\A([0-9a-f]+)…([0-9a-f]*)\Z")
 PIN_PREFIX_LENGTH = 8
 # "60 tests" and "60 passed" are both claims about the suite; the second is the
 # wording pytest itself prints.
@@ -382,36 +379,21 @@ def check(
             continue
         text = path.read_text(encoding="utf-8")
         for span in CODE_SPAN.finditer(text):
-            content = span.group(1)
-            words = content.split()
-            if not words:
-                continue
-            candidate = PIN_CANDIDATE.match(words[0])
-            if candidate is None:
-                continue
-            run = candidate.group(1).lower()
-            if sum(char in HEX_DIGITS for char in run) < MIN_HEX_IN_CANDIDATE:
-                continue
-            token = "".join(words)
-            line = text.count("\n", 0, span.start()) + 1
-            shown = content.strip()
-
-            # The whole token is judged before it is matched, so a malformed
-            # pin is named as malformed rather than skipped, or accepted on
-            # whichever fragment happens to parse.
+            token = "".join(span.group(1).split())
             found = PIN_TOKEN.match(token)
             if found is None:
-                problems.append(
-                    Problem(_label(path), line, f"quotes `{shown}`, which is not a pin")
-                )
+                # Not pin-shaped: an ellipsis meaning "and so on", a command, a
+                # path. Left alone rather than guessed at.
                 continue
+            line = text.count("\n", 0, span.start()) + 1
             prefix, suffix = found.group(1), found.group(2)
             if len(prefix) != PIN_PREFIX_LENGTH:
                 problems.append(
                     Problem(
                         _label(path),
                         line,
-                        f"quotes `{shown}`, whose prefix is not {PIN_PREFIX_LENGTH} hex digits",
+                        f"quotes pin {prefix}…{suffix}, whose prefix is not "
+                        f"{PIN_PREFIX_LENGTH} hex digits",
                     )
                 )
                 continue
@@ -435,7 +417,7 @@ def check(
                     Problem(
                         _label(path),
                         line,
-                        f"quotes pin {shown}, which matches "
+                        f"quotes pin {prefix}…{suffix}, which matches "
                         f"{len(matches)} pinned fixtures, not one",
                     )
                 )

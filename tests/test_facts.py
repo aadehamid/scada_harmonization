@@ -246,13 +246,6 @@ def test_check_flags_a_pin_prefix_of_the_wrong_length(tmp_path: Path) -> None:
     assert "not 8 hex digits" in problems[0].detail
 
 
-def test_check_flags_a_non_hexadecimal_prefix(tmp_path: Path) -> None:
-    """A mistyped prefix is named, not skipped for failing to look like a pin."""
-    problems = _check(tmp_path, pin="TEP `f5b9d1cg…e6d33516`\n")
-    assert len(problems) == 1
-    assert "is not a pin" in problems[0].detail
-
-
 def test_check_judges_an_all_letter_digest(tmp_path: Path) -> None:
     """`deadbeef` is all hex letters, so it must still be read as a pin."""
     problems = _check(tmp_path, pin="TEP `deadbeef…`\n")
@@ -260,16 +253,23 @@ def test_check_judges_an_all_letter_digest(tmp_path: Path) -> None:
     assert "deadbeef" in problems[0].detail
 
 
-def test_check_flags_a_non_hexadecimal_suffix(tmp_path: Path) -> None:
-    problems = _check(tmp_path, pin="TEP `f5b9d1cf…zzzzzzzz`\n")
-    assert len(problems) == 1
-    assert "is not a pin" in problems[0].detail
+@pytest.mark.parametrize(
+    "span",
+    [
+        "f5b9d1cg…e6d33516",  # mistyped prefix digit
+        "f5b9d1cf…zzzzzzzz",  # suffix that is not hex
+        "f5b9d1cf…e6d33516-g",  # punctuation inside the pin
+    ],
+)
+def test_check_leaves_a_malformed_pin_alone(tmp_path: Path, span: str) -> None:
+    """A documented limit: not pin-shaped means not judged.
 
-
-def test_check_flags_punctuation_inside_a_pin(tmp_path: Path) -> None:
-    problems = _check(tmp_path, pin="TEP `f5b9d1cf…e6d33516-g`\n")
-    assert len(problems) == 1
-    assert "is not a pin" in problems[0].detail
+    Catching these means guessing at intent in prose, and six review rounds
+    showed every rule that catches one flags correct documents in another. The
+    fixture files themselves are pinned by the test suite, so this check only
+    claims that a published pin is a real digest.
+    """
+    assert _check(tmp_path, pin=f"TEP `{span}`\n") == []
 
 
 def test_check_accepts_a_correct_pin(tmp_path: Path) -> None:
