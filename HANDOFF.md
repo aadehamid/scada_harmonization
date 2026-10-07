@@ -137,7 +137,7 @@ Decisions this session:
 
 1. **Cross-reference only** — no build dependency, no coupling between repos.
 2. **Keep both framings** — the anonymized industry-discovery patterns stay; the
-   named public project joins them.
+   named companion project (private, same owner) joins them.
 3. **Full build scope — a reversal.** The lab **builds the drawing-to-graph
    path**: extract equipment, instruments, valves, pipes, and connectivity from
    the Unit 100 P&ID (vector PDF first, then scanned variants) and publish an
