@@ -10,9 +10,10 @@ It also searches ignoring line breaks. A claim split across two lines is
 invisible to `grep`, and that is how a stale claim survives a sweep: the words
 are there, the pattern is not.
 
-Read-only. It never writes to the repo, and `check` is wired into
-`scripts/check.sh` so a quoted figure that contradicts the source fails the
-build.
+It does not modify tracked files, and `check` is wired into `scripts/check.sh`
+so a quoted figure that contradicts the source fails the build. Collection runs
+with pytest's cache provider and bytecode writing off; ignored caches such as
+`.pytest_cache` and `__pycache__` are outside that guarantee.
 
 Usage:
     scripts/facts.py head            branch and commit
@@ -31,6 +32,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -66,10 +68,13 @@ SKIP_DIRS = frozenset(
 )
 SKIP_PREFIXES = ("reference/", "data/")
 
-# A quoted digest prefix, as the golden pins are written: eight hex digits and
-# an ellipsis. Deliberately narrow — a bare short hash is usually a commit.
-PIN_PATTERN = re.compile(r"\b([0-9a-f]{8})…")
-TEST_COUNT_PATTERN = re.compile(r"\b(\d+)\s+tests?\b")
+# A quoted digest, as the golden pins are written: eight hex digits, an
+# ellipsis, and optionally the trailing digits. Deliberately narrow — a bare
+# short hash is usually a commit.
+PIN_PATTERN = re.compile(r"\b([0-9a-f]{8})…([0-9a-f]{4,8})?")
+# "60 tests" and "60 passed" are both claims about the suite; the second is the
+# wording pytest itself prints.
+TEST_COUNT_PATTERN = re.compile(r"\b(\d+)\s+(?:tests?|passed)\b")
 ROW_COUNT_PATTERN = re.compile(r"\b(\d+)-(?:row|name)\b")
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
@@ -89,27 +94,46 @@ def head() -> dict[str, str]:
 def tests() -> dict[str, object]:
     """Collected tests, total and per file, from pytest itself.
 
-    Runs the project's own command rather than reimplementing discovery, so the
-    figure cannot drift from what the suite actually collects.
+    The total is the number pytest reports, not a sum this tool computes: a
+    count derived from parsing node lines silently undercounts the moment a
+    node does not look the way the parser expects. The per-file breakdown is
+    cross-checked against pytest's own figure, so a parse that misses nodes
+    fails loudly instead of reporting a smaller number as fact.
+
+    Collection is run with the bytecode and cache providers off, so asking the
+    question does not write into the repository.
     """
     result = subprocess.run(
-        ["uv", "run", "pytest", "--collect-only", "-q"],
+        ["uv", "run", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider"],
         cwd=REPO,
         capture_output=True,
         text=True,
         check=False,
+        env={**_env(), "PYTHONDONTWRITEBYTECODE": "1"},
     )
     if result.returncode != 0:
         raise SystemExit(f"pytest --collect-only failed:\n{result.stdout}{result.stderr}")
+
+    reported = re.search(r"(\d+)\s+tests? collected", result.stdout)
+    if reported is None:
+        raise SystemExit(
+            "pytest did not report a collected total; refusing to guess one.\n"
+            f"{result.stdout[-2000:]}"
+        )
+    total = int(reported.group(1))
 
     per_file: Counter[str] = Counter()
     for line in result.stdout.splitlines():
         match = re.match(r"^(tests/\S+?)::", line.strip())
         if match:
             per_file[match.group(1)] += 1
-    total = sum(per_file.values())
-    if total == 0:
-        raise SystemExit("pytest collected nothing; refusing to report a count of zero")
+
+    parsed = sum(per_file.values())
+    if parsed != total:
+        raise SystemExit(
+            f"pytest collected {total} but {parsed} node lines parsed; "
+            "the per-file breakdown is incomplete"
+        )
     return {"total": total, "per_file": dict(sorted(per_file.items()))}
 
 
@@ -254,6 +278,17 @@ class Problem:
     detail: str
 
 
+def _claims(path: Path, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
+    """Every match of `pattern` in a file, with the line each one starts on.
+
+    Matched against the flattened text, so a claim wrapped across two lines is
+    still found. Line-by-line scanning is what lets a stale figure survive a
+    sweep, and that is the failure this whole tool exists to stop.
+    """
+    flat, line_of = flatten(path.read_text(encoding="utf-8"))
+    return [(line_of[match.start()], match.group(1)) for match in pattern.finditer(flat)]
+
+
 def check(
     docs: Sequence[Path] | None = None,
     pin_files: Sequence[Path] | None = None,
@@ -266,31 +301,49 @@ def check(
     by changing what it checks.
     """
     problems: list[Problem] = []
+    found_test_claims = 0
+    found_row_claims = 0
 
     total = int(tests()["total"])  # type: ignore[arg-type]
     row_count = int(names()["rows"])  # type: ignore[arg-type]
-    real_prefixes = {digest[:8] for digest in hashes().values()}
+    digests = hashes()
 
     for path in CURRENT_STATUS_DOCS if docs is None else docs:
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            for quoted in TEST_COUNT_PATTERN.findall(line):
-                if int(quoted) != total:
-                    problems.append(
-                        Problem(
-                            _label(path),
-                            number,
-                            f"says {quoted} tests; the suite collects {total}",
-                        )
+        # Claims are found in the flattened text, so one wrapped across two
+        # lines is still a claim. Scanning line by line is what lets a stale
+        # figure survive, and it is the failure this tool exists to stop.
+        test_claims = _claims(path, TEST_COUNT_PATTERN)
+        row_claims = _claims(path, ROW_COUNT_PATTERN)
+        found_test_claims += len(test_claims)
+        found_row_claims += len(row_claims)
+
+        for number, quoted in test_claims:
+            if int(quoted) != total:
+                problems.append(
+                    Problem(
+                        _label(path),
+                        number,
+                        f"says {quoted} tests; the suite collects {total}",
                     )
-            for quoted in ROW_COUNT_PATTERN.findall(line):
-                if int(quoted) != row_count:
-                    problems.append(
-                        Problem(
-                            _label(path),
-                            number,
-                            f"says {quoted}-row/name; the schedule has {row_count}",
-                        )
+                )
+        for number, quoted in row_claims:
+            if int(quoted) != row_count:
+                problems.append(
+                    Problem(
+                        _label(path),
+                        number,
+                        f"says {quoted}-row/name; the schedule has {row_count}",
                     )
+                )
+
+    # A pattern that matches nothing passes without checking anything. If no
+    # document in the repo quotes one of these figures, the pattern is broken
+    # or the figure went unrecorded, and either way the gate is not doing its
+    # job. Say so rather than reporting success.
+    if found_test_claims == 0:
+        problems.append(Problem("(all documents)", 0, "no test-count claim found to verify"))
+    if found_row_claims == 0:
+        problems.append(Problem("(all documents)", 0, "no row/name claim found to verify"))
 
     # A pin is quoted the same way everywhere, so a wrong one is checkable
     # wherever it appears — including in dated records, where the fixture
@@ -300,12 +353,23 @@ def check(
             continue
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             for quoted in PIN_PATTERN.findall(line):
-                if quoted not in real_prefixes:
+                prefix, suffix = quoted[0], quoted[1] if len(quoted) > 1 else ""
+                # Both ends must belong to the *same* fixture. Checking the
+                # prefix against the union of all fixtures would accept a
+                # swapped pin, because the wrong digest is still a real one.
+                matches = [
+                    name
+                    for name, digest in digests.items()
+                    if digest.startswith(prefix) and (not suffix or digest.endswith(suffix))
+                ]
+                if len(matches) != 1:
+                    shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
                     problems.append(
                         Problem(
                             _label(path),
                             number,
-                            f"quotes pin {quoted}…, which matches no pinned fixture",
+                            f"quotes pin {shown}, which matches "
+                            f"{len(matches)} pinned fixtures, not one",
                         )
                     )
     return problems
@@ -314,6 +378,17 @@ def check(
 # --------------------------------------------------------------------------
 # Plumbing
 # --------------------------------------------------------------------------
+
+
+def _env() -> dict[str, str]:
+    """The environment subprocesses run in, with pytest selection options cleared.
+
+    A `PYTEST_ADDOPTS` in the caller's shell could select a subset, and a subset
+    reported as the suite total is a wrong figure.
+    """
+    env = dict(os.environ)
+    env.pop("PYTEST_ADDOPTS", None)
+    return env
 
 
 def _label(path: Path) -> str:

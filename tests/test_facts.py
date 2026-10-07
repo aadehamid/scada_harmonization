@@ -21,6 +21,11 @@ import pytest
 
 REPO = Path(__file__).resolve().parent.parent
 
+# The published figure. One place, so adding a test here is a one-line change
+# rather than a hunt through the assertions. `scripts/facts.py tests` reports
+# the same number, and `scripts/facts.py check` fails when the docs disagree.
+EXPECTED_TESTS = 66
+
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
 facts = importlib.util.module_from_spec(_spec)
@@ -54,9 +59,9 @@ def _tree_state() -> str:
 
 def test_test_count_is_pinned() -> None:
     collected = facts.tests()
-    assert collected["total"] == 60
+    assert collected["total"] == EXPECTED_TESTS
     assert collected["per_file"] == {
-        "tests/test_facts.py": 19,
+        "tests/test_facts.py": 25,
         "tests/test_package_imports.py": 6,
         "tests/test_phase1_e2e.py": 1,
         "tests/test_phase1_l0_contract.py": 17,
@@ -121,33 +126,82 @@ def test_search_finds_a_phrase_split_across_lines() -> None:
     assert any(hit.path == "design/PROJECT_CHARTER.md" for hit in hits)
 
 
+def _check(tmp_path: Path, *, doc: str = "", pin: str = "") -> list[facts.Problem]:
+    """Check a document and a pin file alongside a baseline.
+
+    The baseline carries the correct figures, so the vacuity guard stays quiet
+    and each test is about the one claim it writes.
+    """
+    baseline = tmp_path / "BASELINE.md"
+    baseline.write_text(
+        f"The suite has {EXPECTED_TESTS} tests and a 59-name schedule.\n", encoding="utf-8"
+    )
+    docs = [baseline]
+    pins: list[Path] = []
+    if doc:
+        subject = tmp_path / "SUBJECT.md"
+        subject.write_text(doc, encoding="utf-8")
+        docs.append(subject)
+    if pin:
+        notes = tmp_path / "NOTES.md"
+        notes.write_text(pin, encoding="utf-8")
+        pins.append(notes)
+    return facts.check(docs=docs, pin_files=pins)
+
+
+STALE = f"says 34 tests; the suite collects {EXPECTED_TESTS}"
+
+
 def test_check_flags_a_stale_test_count(tmp_path: Path) -> None:
-    doc = tmp_path / "STATUS.md"
-    doc.write_text("The suite has 34 tests.\n", encoding="utf-8")
-    problems = facts.check(docs=[doc], pin_files=[])
-    assert len(problems) == 1
-    assert "says 34 tests" in problems[0].detail
+    assert [p.detail for p in _check(tmp_path, doc="The suite has 34 tests.\n")] == [STALE]
+
+
+def test_check_flags_a_count_wrapped_across_lines(tmp_path: Path) -> None:
+    """Scanning line by line is what lets this one through."""
+    assert [p.detail for p in _check(tmp_path, doc="The suite has\n34\ntests.\n")] == [STALE]
+
+
+def test_check_flags_the_passed_wording(tmp_path: Path) -> None:
+    assert [p.detail for p in _check(tmp_path, doc="uv run pytest is 34 passed.\n")] == [STALE]
+
+
+def test_check_accepts_a_correct_count(tmp_path: Path) -> None:
+    assert _check(tmp_path, doc=f"uv run pytest is {EXPECTED_TESTS} passed.\n") == []
+
+
+def test_check_refuses_to_pass_when_no_claim_is_found(tmp_path: Path) -> None:
+    """A pattern that matches nothing must not report success."""
+    empty = tmp_path / "EMPTY.md"
+    empty.write_text("Nothing quotable here.\n", encoding="utf-8")
+    assert [p.detail for p in facts.check(docs=[empty], pin_files=[])] == [
+        "no test-count claim found to verify",
+        "no row/name claim found to verify",
+    ]
 
 
 def test_check_flags_a_wrong_pin(tmp_path: Path) -> None:
-    doc = tmp_path / "NOTES.md"
-    doc.write_text("TEP golden `deadbeef…` (do not change)\n", encoding="utf-8")
-    problems = facts.check(docs=[], pin_files=[doc])
+    problems = _check(tmp_path, pin="TEP golden `deadbeef…` (do not change)\n")
     assert len(problems) == 1
     assert "deadbeef" in problems[0].detail
 
 
+def test_check_flags_a_pin_whose_suffix_belongs_to_another_fixture(tmp_path: Path) -> None:
+    """Both ends must come from one fixture, or a pin can be half-swapped."""
+    problems = _check(tmp_path, pin="TEP golden `f5b9d1cf…2159f0` (do not change)\n")
+    assert len(problems) == 1
+    assert "matches 0 pinned fixtures" in problems[0].detail
+
+
 def test_check_accepts_a_correct_pin(tmp_path: Path) -> None:
-    doc = tmp_path / "NOTES.md"
-    doc.write_text("TEP golden `f5b9d1cf…` (do not change)\n", encoding="utf-8")
-    assert facts.check(docs=[], pin_files=[doc]) == []
+    assert _check(tmp_path, pin="TEP golden `f5b9d1cf…e6d33516` (do not change)\n") == []
 
 
 def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None:
     """A dated record is history: a count in it is not a claim about today."""
     record = tmp_path / "RECORD.md"
     record.write_text("The suite had 21 tests.\n", encoding="utf-8")
-    assert facts.check(docs=[], pin_files=[]) == []
+    problems = facts.check(docs=[], pin_files=[])
+    assert all("RECORD.md" not in problem.path for problem in problems)
 
 
 # --------------------------------------------------------------------------
@@ -168,11 +222,20 @@ def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None
     ],
 )
 def test_tool_does_not_write_to_the_repo(argv: list[str]) -> None:
+    """Tracked content and untracked presence are unchanged.
+
+    Ignored caches are outside this guarantee, and the tool says so.
+    """
     before = _tree_state()
     facts.main(argv)
     assert _tree_state() == before
 
 
-def test_check_exits_non_zero_on_a_problem(tmp_path: Path) -> None:
-    """The exit code is what CI reads, so a finding must reach it."""
+def test_check_exits_zero_on_the_clean_repo() -> None:
     assert facts.main(["check"]) == 0
+
+
+def test_check_exits_non_zero_on_a_problem(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The exit code is what CI reads, so a finding must reach it."""
+    monkeypatch.setattr(facts, "check", lambda *a, **k: [facts.Problem("x.md", 1, "boom")])
+    assert facts.main(["check"]) == 1
