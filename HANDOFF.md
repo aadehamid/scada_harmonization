@@ -34,12 +34,16 @@ conflicts with the charter, the charter wins.
 
 ---
 
-## 2. Current status (2026-08-21)
+## 2. Current status (2026-10-07)
 
-**Phase: Phase 1 L0 is on `main` at `753de7a` (after #40). Warehouse is wide Parquet on R2
+> **This section is the only place the current status lives.** `README.md` and
+> `AGENTS.md` point here rather than restating it, because three copies drifted:
+> they quoted `main` at two different commits while the truth was a third.
+
+**Phase: Phase 1 L0 is on `main` at `5eb122b` (after #46). Warehouse is wide Parquet on R2
 `lagos-chem-l0`. 1 s machine stream landed (#33). Unit 100 Rev B one-pager + 59-row
-tag list landed (#35). Mapping table is unwritten — that is the next build slice.
-Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+tag list landed (#35). The figures tool landed (#46). Mapping table is unwritten — that is
+the next build slice. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
 
 **Do not confuse the two leftovers (Hamid, 2026-08-20).** L0 *data* for Unit 100 is
 done. The unfinished P&ID work is a *drawing book* + a later *DEXPI graph*, not
@@ -83,11 +87,11 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `753de7a` after #40. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | `5eb122b` after #46. Generators still `#33` / `7b6cdd5` |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
-| Tests | **41** (`uv run pytest`); 34 L0 goldens + Unit 100 P&ID; no network, no full warehouse |
+| Tests | **85** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
@@ -555,7 +559,10 @@ hold.**
 - **PR #39** mark #38 merged: **MERGED** (`d37409a`).
 - **PR #40** charter §2 scale fold: **MERGED** (`753de7a`); branch
   `cursor/charter-problem-scale-2910` deleted local + remote.
-- **As of 2026-08-21:** `main` at `753de7a` (#40). Warehouse is R2
+- **PR #44** one check script: **MERGED** (`0368122`).
+- **PR #45** working-tree guard: **MERGED** (`a45e9da`).
+- **PR #46** the figures tool: **MERGED** (`5eb122b`).
+- **As of 2026-10-07:** `main` at `5eb122b` (#46). Warehouse is R2
   `lagos-chem-l0`. `entire/checkpoints/v1` remains on purpose. No leftover
   `cursor/*` remotes.
 

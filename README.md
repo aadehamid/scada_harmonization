@@ -123,33 +123,12 @@ real AWS) without invalidating the design.
 
 ## Status
 
-*Updated 2026-08-20.*
+**Current status is in [`HANDOFF.md`](HANDOFF.md) §2** — the phase, the `main` HEAD, open pull
+requests, what has landed and what is next. This file does not repeat it: three copies of the
+status drifted apart, quoting `main` at two different commits while the truth was a third.
 
-**Design and charter are complete** — all infrastructure decisions resolved (broker, historian, PLC
-realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-architecture review**
-(charter §13) and an **IT/OT best-practice review** (charter §14, N1–N35).
-
-**Phase 1 L0 is on `main`** (`9ffe415` after #38; generators from #28/#29/#31/#33).
-Next build: mapping-table spine (`HANDOFF.md` §3). Extra P&ID pages are a
-later drawing lap, not a gate.
-polars + pydantic are the runtime deps. Warehouse is wide Parquet on R2
-`lagos-chem-l0`. 85 tests (L0 goldens, Unit 100 P&ID, and the figures tool).
-The 1 s fast class is
-a generated machine stream on P-101 and K-201 (Kaggle stays a snapshot; TEP
-stays 180 s). Unit 100 Rev B one-pager + 59-name tag list:
-[`design/UNIT100_PID.md`](design/UNIT100_PID.md). Record:
-[`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
-Datasheet: [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md).
-
-**Scope change (2026-10-07).** The lab now builds the **drawing-to-graph path** as Phase 5b.1:
-extract equipment and connectivity from the Unit 100 P&ID (vector sheet, then scans) and publish an
-engineering graph. This reverses the earlier exclusion of document extraction; see charter §12 #20.
-
-**Phase 0 mapping table is not written yet.** The uv skeleton landed in PR #22.
-The Diagram 1 walkthrough **runs in parallel and does not block build** (cursor:
-`design/WALKTHROUGH_PROGRESS.md`). ISA-95 primer done; Purdue is Hamid's next
-walkthrough step. Diagrams 2–3 are drawn just-in-time. See the charter's build
-sequence (Phases 0–7, per-phase exit criteria, §8.1).
+Figures quoted anywhere in this repo come from `scripts/facts.py`, which `scripts/check.sh` runs.
+Add a gate there, not in CI and not in the pre-push hook.
 
 ## License
 

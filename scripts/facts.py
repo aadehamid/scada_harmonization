@@ -98,9 +98,11 @@ ROW_COUNT_PATTERN = re.compile(r"\b(\d+)(?:-(?:row|name)|\s+plant-data)\b")
 # silent gap: an aggregate "some document quoted it" rule lets one document
 # mask another that has gone stale.
 EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
-    "README.md": ("test count", "row count"),
-    "AGENTS.md": ("test count",),
-    "tests/README.md": ("test count",),
+    # README no longer quotes the test count: it points at this tool instead,
+    # so there is nothing there to go stale.
+    "README.md": ("row count",),
+    "AGENTS.md": ("test count", "row count"),
+    "tests/README.md": ("test count", "row count"),
 }
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
