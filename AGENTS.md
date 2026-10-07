@@ -278,6 +278,20 @@ columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
 
 Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run ty check`
 
+**Checks run through one script: `scripts/check.sh`.** It runs ruff check, ruff
+format `--check`, ty, and pytest, and fails if the checks change the working
+tree. CI calls it; so does the pre-push hook. **Add a gate there, not in
+`ci.yml` and not in the hook**, so a local run and a CI run stay identical.
+
+Install the hook once per clone (it is repo-local config, not committed):
+
+```sh
+git config core.hooksPath scripts/hooks
+```
+
+Git skips a missing or non-executable hook silently, so after installing, prove
+it runs: `git hook run pre-push`.
+
 **Repo layout** (later layers still README-only, per YAGNI):
 
 ```

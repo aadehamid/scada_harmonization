@@ -1,4 +1,7 @@
-# Golden-slice CI — ruff + ty + pytest. No network, no full-dataset jobs.
+# Golden-slice CI — one check script. No network, no full-dataset jobs.
+#
+# The gates live in scripts/check.sh, not here, so CI and a local pre-push hook
+# run the same things. Add a gate there.
 name: ci
 
 on:
@@ -16,9 +19,5 @@ jobs:
           enable-cache: true
       - name: Sync (dev group)
         run: uv sync --group dev
-      - name: Ruff
-        run: uv run ruff check .
-      - name: ty
-        run: uv run ty check
-      - name: Pytest
-        run: uv run pytest
+      - name: Checks
+        run: ./scripts/check.sh
