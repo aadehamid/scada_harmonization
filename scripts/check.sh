@@ -13,22 +13,34 @@ cd "$(git rev-parse --show-toplevel)"
 # disagree about what the repo contains, and a gate could pass by editing the
 # thing it is supposed to be checking.
 #
-# Hash the *contents* of every non-ignored file, tracked and untracked alike.
-# Hashing names alone is not enough: an untracked file that a check rewrites
-# keeps its path, so a name-only snapshot cannot see the change.
+# Four snapshots, because each misses something the others catch:
+#   contents          an edit to any file, tracked or untracked
+#   type and mode     an untracked script that loses its execute bit changes
+#                     neither its contents nor git's status
+#   symlink targets   the content hash follows a link, so a link retargeted to
+#                     a file with identical contents is otherwise invisible
+#   status and index  a staged blob can change while the working file and the
+#                     status wording stay the same
+#
+# Scope: tracked and non-ignored files. Ignored build paths (.venv/,
+# __pycache__/, .pytest_cache/, .ruff_cache/) are outside it.
 #
 # The './' prefix is load-bearing: sha256sum reads a bare '-' operand as
 # standard input even after '--', so a file named '-' would never be read.
-#
-# Known limit: sha256sum follows symlinks, so retargeting a symlink to a file
-# with identical bytes would not be seen. This repo tracks no symlinks and no
-# gate creates one. If that changes, snapshot lstat types here as well.
+tracked_paths() {
+  git ls-files -z --cached --others --exclude-standard
+}
+
 tree_state() {
   {
-    git ls-files -z --cached --others --exclude-standard \
-      | sort -z \
-      | sed -z 's|^|./|' \
-      | xargs -0 -r sha256sum -- 2>/dev/null
+    # Every path goes through './' or a trailing '--', so a file named '--help'
+    # is read as a path rather than as an option to the tool.
+    tracked_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum -- 2>/dev/null
+    # Mode, filesystem type, and — for a symlink — its target, quoted and
+    # escaped by %N, so a target ending in a newline cannot collide with a
+    # different name. One call covers what two would: fewer places to be wrong,
+    # and no command substitution to strip a trailing newline.
+    tracked_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' -- 2>/dev/null
     # Content hashes miss mode changes and index state (an executable bit
     # dropped from the hook, for one), so keep git's own view alongside them.
     git status --porcelain --untracked-files=all
