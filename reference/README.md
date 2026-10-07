@@ -20,12 +20,12 @@ market / sales framing is **not** part of this project. Consult them only for th
 | `engineering_drawing_business_case/` | **EngiGraph** — engineering-drawing knowledge graph | **Plane 3 (Contextualize):** ISO 15926 / DEXPI ontology foundation, multi-level ontology architecture, node/edge vocabulary, GraphRAG pattern, and graph-algorithm use cases (isolation-path, centrality, impact analysis), and P&ID document extraction (in scope again from 2026-10-07). |
 | `enterprise_it_ot_deck/` | **External slide deck** — "Enterprise IT vs Manufacturing/OT" (third-party consulting material; drop the slide images here) | **The end-to-end walkthrough (Thread A):** the ten-handoff order-to-cash flow, the L0–L4 systems vocabulary (CRM/ERP/WMS/MES/SCADA/PLC…), integration pains, and organizational red flags. Used as the *transaction-thread* script in [`../design/E2E_WALKTHROUGH.md`](../design/E2E_WALKTHROUGH.md) — which adds the two threads the deck lacks (telemetry up, decision/control back). |
 
-> **Superseded as the live ET reference (2026-10-07).** The public
-> [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-> project documents both routes to the engineering model — drawing extraction, and a structured
-> path through DEXPI 2.0. This lab builds the drawing route; the structured route is that project's
-> addition. The EngiGraph folder stays as the local-only business-case ancestor; consult it for the
-> original ontology, graph-query, and P&ID-extraction patterns.
+> **Companion project (2026-10-07).** `aadehamid/Engineering_Drawing_to_Graph` is a **private**
+> repo by the same owner. It documents both routes to the engineering model — drawing extraction,
+> and a structured path through DEXPI 2.0. This lab builds the drawing route; the structured route
+> is that project's addition. Because it is private it is not linkable from here, and it does
+> **not** supersede this folder: EngiGraph stays the in-tree ET reference for the ontology,
+> graph-query, and P&ID-extraction patterns.
 
 ## What was deliberately NOT carried forward
 
@@ -36,6 +36,5 @@ market / sales framing is **not** part of this project. Consult them only for th
 - ~~EngiGraph's CV/VLM P&ID-extraction pipeline (symbol detection, OCR, VLM)~~ — **reversed
   2026-10-07.** The extraction pipeline is now in scope: the lab builds the drawing-to-graph path
   from the Unit 100 P&ID (charter §12 #20, §8 Phase 5b.1). Consult EngiGraph for it after all.
-  The structured authoring-backend route stays with the related public
-  [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-  project.
+  The structured authoring-backend route stays with the related private project
+  `aadehamid/Engineering_Drawing_to_Graph`.

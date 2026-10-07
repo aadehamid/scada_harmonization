@@ -35,10 +35,9 @@ does not establish which equipment it identifies, and an intersecting line does 
 pipe connection. A one-time conversion then drifts as tags change, equipment is removed, and
 connections are rerouted. This lab **builds the drawing-to-graph path** from its own Unit 100 P&ID
 — vector sheet first, then scanned variants — publishing an engineering graph with source
-evidence, stable identities, and revision control (Phase 5b.1). The related open-source project
-[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-adds the structured route: pull records from an authoring-system backend and convert them to
-DEXPI 2.0.
+evidence, stable identities, and revision control (Phase 5b.1). A related **private** project by
+the same owner, `aadehamid/Engineering_Drawing_to_Graph`, adds the structured route: pull records
+from an authoring-system backend and convert them to DEXPI 2.0.
 
 ## The four planes
 
@@ -107,7 +106,7 @@ real AWS) without invalidating the design.
 | Document | Role |
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
-| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) | Related public repo — engineering drawings to a maintained engineering graph; adds the structured-backend route |
+| `aadehamid/Engineering_Drawing_to_Graph` *(private — not linkable from here)* | Related project, same owner — engineering drawings to a maintained engineering graph; adds the structured-backend route |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/E2E_WALKTHROUGH.md`](design/E2E_WALKTHROUGH.md) | End-to-end teaching walkthrough script (Threads A/B/C) |
 | [`design/WALKTHROUGH_PROGRESS.md`](design/WALKTHROUGH_PROGRESS.md) | Live walkthrough cursor — resume here |

@@ -146,15 +146,15 @@ treated):
   products) so a model can train once and deploy across a fleet. Closed-loop action stays
   human-gated. *(Pattern only — not a retarget of Plane 4's flagship, which remains yield /
   production-leakage.)*
-- **A related open-source project — engineering drawings to graph:**
-  [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-  covers both routes to the same engineering model: extraction from flat P&IDs, and a structured
-  path from an authoring backend through DEXPI 2.0. It supplies the engineering foundation this
-  lab's Plane 3 consumes — stable object identities, source evidence, revision and publication
-  control, approved-versus-proposed state. Its **structured-backend route is the option this lab
-  does not build**; its flat-file route states the same problem this lab takes on. Same owner,
-  separate scope: it targets one oil-and-gas demonstration facility, this lab targets four
-  chemical-process sites.
+- **A related project — engineering drawings to graph:** `aadehamid/Engineering_Drawing_to_Graph`,
+  a **private** companion repository by the same owner, covers both routes to the same engineering
+  model: extraction from flat P&IDs, and a structured path from an authoring backend through
+  DEXPI 2.0. It states the ET problem this lab takes on and adds the **structured-backend route
+  this lab does not build**. It is private, so it cannot be linked or cited as authority from this
+  repo, and it does not replace the in-tree EngiGraph reference
+  (`reference/engineering_drawing_business_case/`), which stays this repo's ET design reference.
+  Same owner, separate scope: it targets one oil-and-gas demonstration facility, this lab targets
+  four chemical-process sites.
 
 These map onto the lab without changing the thesis — they sharpen *why* it matters:
 
@@ -170,7 +170,7 @@ These map onto the lab without changing the thesis — they sharpen *why* it mat
 | global **and** local requirements | two-tier broker — local site autonomy + central enterprise UNS (§4) |
 | yield improvement / production-leakage; edge + human-in-the-loop feedback | Plane 4 Track A flagship use case (§3, §6, §8) |
 | blend edge + historian + SAP; labs feed predictive models | IT/OT/ET fusion; LIMS as the lab leg of the IT source |
-| engineering records and flat P&IDs give no queryable, current model; tag ≠ asset identity | ET leg of Plane 3; related project `Engineering_Drawing_to_Graph` |
+| engineering records and flat P&IDs give no queryable, current model; tag ≠ asset identity | ET leg of Plane 3; related private project `Engineering_Drawing_to_Graph` |
 
 ---
 
@@ -600,12 +600,12 @@ around them is **discarded**.
   excluded): the ET leg is built from flat files and scanned drawings, so the extraction layers
   are now in scope. Staged build: vector PDF → raster scan → vision-model assist (§8 Phase 5b.1).
 
-> **Superseded as the live reference (2026-10-07).** The public
-> [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-> project documents both routes to the ET model. Consult it for DEXPI 2.0 conversion,
-> stable object identity, source authority, revision and publication control, and
-> approved-versus-proposed state. Keep the local-only EngiGraph folder for the original ontology,
-> graph-query, and P&ID-extraction patterns; it remains the business-case ancestor of that project.
+> **A companion project, not a replacement (2026-10-07).** `Engineering_Drawing_to_Graph` is a
+> **private** repository by the same owner. It documents both routes to the ET model, including
+> DEXPI 2.0 conversion, stable object identity, source authority, and revision and publication
+> control. Because it is private, it cannot be linked or cited as authority from this repo: **the
+> EngiGraph folder stays this repo's in-tree ET reference**, and this charter is the authority
+> here. Consult the companion repo only when you have access to it.
 
 ### Deliberately NOT extracted
 
@@ -768,7 +768,7 @@ beyond ERPNext community.
 | `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
 | `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
 | `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer pipeline |
-| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) *(related public repo)* | Sibling project — engineering drawings and backend records to a maintained engineering graph. The reference for the ET leg (DEXPI 2.0, identity, revision, publication). |
+| `aadehamid/Engineering_Drawing_to_Graph` *(related private repo — not linkable from here)* | Companion project, same owner — engineering drawings and backend records to a maintained engineering graph. Adds the structured-backend route. The in-tree EngiGraph folder stays this repo's ET reference. |
 | `reference/docs/` *(local-only ref)* | Reference: ISHE harmonization patterns (Plane 1) |
 | `reference/engineering_drawing_business_case/` *(local-only ref)* | Reference: EngiGraph ontology/graph patterns (Plane 3) |
 | `reference/README.md` | Index of reference material & what to consult each for |
@@ -876,11 +876,11 @@ beyond ERPNext community.
     exclusion of document extraction (§7, §13.3, §13.7 Tier 3). The reason: most LSC sites are
     brownfield or acquired, so the drawing is often the only engineering record. The
     **structured-backend route**
-    (authoring system → DEXPI 2.0) stays with the related public project
-    [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-    and is not built here. **Open within this decision:** the extraction toolchain (PDF parser,
-    OCR, symbol detection, vision model) is not selected; candidates are listed in that project's
-    stack assessment. Decide at the start of Phase 5b.1.
+    (authoring system → DEXPI 2.0) stays with the related private companion repository
+    `aadehamid/Engineering_Drawing_to_Graph` and is not built here. **Open within this decision:**
+    the extraction toolchain (PDF parser, OCR, symbol detection, vision model) is not selected.
+    The companion repo's stack assessment lists candidates; consult it if you have access. Decide
+    at the start of Phase 5b.1.
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
@@ -940,7 +940,8 @@ milestones (§13.6):
 
 CRM/Salesforce · **separate WMS** (ERPNext stock moves + `material_lot` events cover the warehouse
 semantics — §12 #19) · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
-plants · separate real-time "hot" store · Power BI (Grafana +
+plants · **EDMS** (the ET graph is built from the Unit 100 P&ID, not from a document-management
+system) · separate real-time "hot" store · Power BI (Grafana +
 DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now.
 
 ### 13.4 The three implementation variants (architecture diagrams)

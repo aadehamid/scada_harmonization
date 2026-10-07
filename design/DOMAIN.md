@@ -60,9 +60,8 @@ to, and two crossing lines are not a pipe connection until someone confirms it. 
 connectivity means tracing paths across sheets by hand. Most of these plants are brownfield or
 acquired, so the sheet is often the only engineering record LSC holds. The lab therefore builds
 that graph from the drawings themselves — the Unit 100 P&ID first, then scanned variants. A
-related open-source project,
-[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph),
-adds the other route: pull records straight from an authoring-system backend.
+related private project by the same owner, `aadehamid/Engineering_Drawing_to_Graph`, adds the
+other route: pull records straight from an authoring-system backend.
 
 ---
 

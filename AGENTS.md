@@ -15,9 +15,8 @@ problem mirrors real process/CPG digital-transformation discovery (anonymized in
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
 Its **ET leg** — turning flat files and scanned drawings into a queryable engineering graph — is
 built here, from the Unit 100 P&ID (Phase 5b.1: vector sheet first, then scanned variants). A
-related public repo,
-[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph),
-adds the structured route from an authoring-system backend (charter §2, §7, §12 #20).
+related **private** repo by the same owner, `aadehamid/Engineering_Drawing_to_Graph`, adds the
+structured route from an authoring-system backend (charter §2, §7, §12 #20).
 
 The project is in **Phase 1 L0 on `main` (`9ffe415` after #38, 2026-08-20)**.
 Next build is the mapping-table spine (`HANDOFF.md` §3).
@@ -153,15 +152,16 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 > charter (§7); the business/market framing is discarded. See `reference/README.md`. Do not treat
 > them as current scope.
 >
-> **Related public repo:** [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-> is the current, public treatment of the ET leg and supersedes the EngiGraph folder as the live
-> reference for it. It is a separate project, not a dependency of this one.
+> **Related private repo:** `aadehamid/Engineering_Drawing_to_Graph` (same owner) documents both
+> routes to the ET model. It is **private**, so it is not linkable from here and it does **not**
+> supersede the EngiGraph folder — that stays this repo's in-tree ET reference. It is a separate
+> project, not a dependency of this one.
 
 ## The four planes
 
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
-3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`. The **ET leg is built here**: Phase 5b.1 extracts the Unit 100 P&ID into an engineering graph with evidence, identity, and revision control. The related repo [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) adds the authoring-backend route.)*
+3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`. The **ET leg is built here**: Phase 5b.1 extracts the Unit 100 P&ID into an engineering graph with evidence, identity, and revision control. A related private repo, `aadehamid/Engineering_Drawing_to_Graph`, adds the authoring-backend route.)*
 4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command delivered as a **Sparkplug DCMD** issued by the site-forwarder (as site host application) on the site broker (charter §14 N5) → controller writeback (clamped OpenPLC/OPC-UA) → actuators, confirmed by DDATA read-back (audited, §14 N24) — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).

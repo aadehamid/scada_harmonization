@@ -126,12 +126,12 @@ list columns, not a second naming system.
 
 ### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
-Hamid asked to fold the problem statement from the related public repo
-[`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-(LIONG — engineering drawings to a maintained engineering graph) into this
-repo's problem statement. That project covers two routes to the same
-engineering model. Hamid's framing: **the flat-file / scanned-drawing route is
-this lab's**, and the sibling's **authoring-backend route is the addition**.
+Hamid asked to fold the problem statement from a related **private** repo by the
+same owner, `aadehamid/Engineering_Drawing_to_Graph`, into this repo's problem
+statement. That project's reference organisation is LIONG (Lagos Integrated Oil
+and Gas Company); it covers two routes to the same engineering model. Hamid's
+framing: **the flat-file / scanned-drawing route is this lab's**, and that
+project's **authoring-backend route is the addition**.
 
 Decisions this session:
 
@@ -158,6 +158,15 @@ Branch `docs/et-problem-statement`.
 **Not changed:** the next build is still the mapping-table spine (§3). Phase
 5b.1 is far off. The extraction toolchain (parser, OCR, symbol detection, vision
 model) is not selected — open within §12 #20.
+
+**PR #43 review fixes (same day).** The review automation caught two real
+problems, both fixed on the branch. (1) The companion repo is **private**, not
+public — the diff had called it a public/open-source repo, linked it, and said
+it superseded the EngiGraph folder. All of that is corrected: no links, no
+"public" claim, and EngiGraph stays the in-tree ET reference. (2) The §13.3
+out-of-scope list had lost **EDMS**, which §12 #20 does not adopt — restored.
+Also fixed a leftover contradiction: §2 had said Plane 3 *consumes* the
+companion's foundation, which conflicts with the build decision.
 
 ### This session (2026-08-21): charter §2 scale fold (docs only)
 
