@@ -64,6 +64,7 @@ Say “1 second machine stream on P-101 and K-201”.
 
 **When we return (owner-triggered drawing lap — not the default next build).**
 The 59-row CSV is enough for the mapping table. Extra pages do not unlock
-Phase 0/2. DEXPI / `book.py` wait for Phase 5b; do not rebuild them here.
+Phase 0/2. DEXPI / `book.py` wait for Phase 5b.1, where the drawing-to-graph
+build now lands (charter §12 #20); do not rebuild them here.
 Kickoff prompt lives in `HANDOFF.md` §3. One plant. Do not change L0 names.
 If the book hash changes, update `tests/test_unit100_pid.py` and this file.
