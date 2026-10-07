@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 92
+EXPECTED_TESTS = 94
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -68,6 +69,47 @@ def test_test_count_is_pinned() -> None:
     assert per_file, "no test files reported"
     assert all(name.startswith("tests/") for name in per_file)
     assert sum(per_file.values()) == EXPECTED_TESTS
+
+
+def test_main_reports_main_not_the_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """On a branch these are different commits, and the status needs main.
+
+    `head` answers "what am I on"; pointing a reader at it from a status
+    section hands them the feature branch's commit as main's. Built in a scratch
+    repository so the test does not depend on this clone's refs -- PR CI checks
+    out a merge ref and may not have `origin/main` at all.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@t",
+    }
+
+    def git(*args: str) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, env=env)
+
+    git("init", "-q", "-b", "main")
+    git("commit", "-q", "--allow-empty", "-m", "on main")
+    main_sha = (
+        subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    git("update-ref", "refs/remotes/origin/main", main_sha)
+    git("checkout", "-q", "-b", "feature")
+    git("commit", "-q", "--allow-empty", "-m", "on the branch")
+
+    monkeypatch.setattr(facts, "REPO", repo)
+    result = facts.main_branch()
+    assert result["main"] == main_sha, "it answers for main, not for the checkout"
+    assert result["checked_out"] == "feature"
+    assert result["checkout_is_main"] == "no"
 
 
 def test_tag_schedule_names_are_pinned() -> None:
@@ -399,6 +441,7 @@ def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None
     "argv",
     [
         ["head"],
+        ["main"],
         ["tests"],
         ["names"],
         ["hashes"],
@@ -413,7 +456,12 @@ def test_tool_does_not_write_to_the_repo(argv: list[str]) -> None:
     Ignored caches are outside this guarantee, and the tool says so.
     """
     before = _tree_state()
-    facts.main(argv)
+    try:
+        facts.main(argv)
+    except SystemExit:
+        # `main` exits when this clone has no origin/main; PR CI can be one.
+        # The requirement is that nothing is written either way.
+        pass
     assert _tree_state() == before
 
 

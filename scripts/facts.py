@@ -16,7 +16,8 @@ with pytest's cache provider and bytecode writing off; ignored caches such as
 `.pytest_cache` and `__pycache__` are outside that guarantee.
 
 Usage:
-    scripts/facts.py head            branch and commit
+    scripts/facts.py head            the branch and commit you are on
+    scripts/facts.py main            the tip of main, as this clone last saw it
     scripts/facts.py tests           collected test count, total and per file
     scripts/facts.py names           plant-data names from the tag schedule
     scripts/facts.py hashes          pinned fixture SHA-256 digests
@@ -132,6 +133,22 @@ def head() -> dict[str, str]:
     branch = _git("rev-parse", "--abbrev-ref", "HEAD")
     commit = _git("rev-parse", "HEAD")
     return {"branch": branch, "commit": commit, "short": commit[:7]}
+
+
+def main_branch() -> dict[str, str]:
+    """The tip of `main` as this clone last saw it, and where the checkout is.
+
+    `head` answers "what am I on"; this answers "what is on main", which are
+    different questions on a branch. It reads `origin/main`, the last fetched
+    value, and says so rather than implying a fetch just happened.
+    """
+    origin = _git("rev-parse", "origin/main")
+    return {
+        "main": origin,
+        "main_short": origin[:7],
+        "checked_out": _git("rev-parse", "--abbrev-ref", "HEAD"),
+        "checkout_is_main": "yes" if _git("rev-parse", "HEAD") == origin else "no",
+    }
 
 
 def tests() -> dict[str, object]:
@@ -509,6 +526,11 @@ def _render(command: str, payload: object) -> None:
     if command == "head":
         data = payload
         print(f"{data['branch']} at {data['commit']}")  # type: ignore[index]
+    elif command == "main":
+        data = payload
+        print(f"main is at {data['main_short']} as this clone last saw it")  # type: ignore[index]
+        print(f"  checkout: {data['checked_out']}")  # type: ignore[index]
+        print("  run `git fetch` for a live value; `origin/main` is the last fetched one")
     elif command == "tests":
         data = payload
         print(f"{data['total']} tests collected")  # type: ignore[index]
@@ -541,7 +563,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("head", "tests", "names", "hashes", "status", "check"):
+    for name in ("head", "main", "tests", "names", "hashes", "status", "check"):
         sub.add_parser(name)
     search_parser = sub.add_parser("search")
     search_parser.add_argument("pattern")
@@ -550,6 +572,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "head":
         payload: object = head()
+    elif args.command == "main":
+        payload = main_branch()
     elif args.command == "tests":
         payload = tests()
     elif args.command == "names":

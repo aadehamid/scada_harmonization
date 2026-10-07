@@ -40,10 +40,16 @@ conflicts with the charter, the charter wins.
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
 > they quoted `main` at two different commits while the truth was a third.
 
-**Phase: Phase 1 L0 is on `main` at `5eb122b` (after #46). Warehouse is wide Parquet on R2
-`lagos-chem-l0`. 1 s machine stream landed (#33). Unit 100 Rev B one-pager + 59-row
-tag list landed (#35). The figures tool landed (#46). Mapping table is unwritten — that is
-the next build slice. Walkthrough is a parallel path, not a gate. Cursor remains at §0.2.**
+**Phase: Phase 1 L0 is on `main`. Warehouse is wide Parquet on R2 `lagos-chem-l0`. 1 s machine
+stream landed (#33). Unit 100 Rev B one-pager + 59-row tag list landed (#35). The figures tool
+landed (#46). Mapping table is unwritten — that is the next build slice. Walkthrough is a parallel
+path, not a gate. Cursor remains at §0.2.**
+
+**The `main` tip is deliberately not pinned in this file.** It moves on every merge, and a pin here
+went stale twice — once while this very section was being written. The table below gives the
+command that reports it instead: `scripts/facts.py main`, which answers "what is on main" and not
+"what am I on". `scripts/facts.py status` lists every place a document still claims a commit, so a
+new one is easy to find and remove.
 
 **Do not confuse the two leftovers (Hamid, 2026-08-20).** L0 *data* for Unit 100 is
 done. The unfinished P&ID work is a *drawing book* + a later *DEXPI graph*, not
@@ -87,17 +93,17 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 
 | Fact | Reality |
 |------|---------|
-| `main` HEAD | `5eb122b` after #46. Generators still `#33` / `7b6cdd5` |
+| `main` HEAD | Run `scripts/facts.py main` — not `head`, which reports the branch you are on. Not pinned here: it moves on every merge |
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
-| Tests | **92 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
+| Tests | **94 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
 | Unit 100 L0 join | Rev B PDF + 59-row CSV. **Done for ingestion.** Extra pages + DEXPI are other tracks (§2.1) |
 | Not in repo | mapping-table YAML; DEXPI / `book.py`; Phase 2+ services; Marimo notebooks; R2 melt client |
-| Open PRs | none |
+| Open PRs | Run `gh pr list --state open`. Not listed here, for the same reason |
 | Walkthrough | **parallel, not a build gate.** §0.1 done; Hamid resumes §0.2 Purdue |
 
 **Exact cursor:** `design/WALKTHROUGH_PROGRESS.md` (surface-independent bookmark). §0.1 ISA-95 is
@@ -562,9 +568,12 @@ hold.**
 - **PR #44** one check script: **MERGED** (`0368122`).
 - **PR #45** working-tree guard: **MERGED** (`a45e9da`).
 - **PR #46** the figures tool: **MERGED** (`5eb122b`).
-- **As of 2026-10-07:** `main` at `5eb122b` (#46). Warehouse is R2
-  `lagos-chem-l0`. `entire/checkpoints/v1` remains on purpose. No leftover
-  `cursor/*` remotes.
+- **PR #49** guard blind spots: **MERGED** (`095ab4c`); branch
+  `fix/guard-symlink-targets` deleted local + remote.
+- **As of 2026-10-07:** warehouse is R2 `lagos-chem-l0`. `entire/checkpoints/v1`
+  remains on purpose. No leftover `cursor/*` remotes. Each entry above records
+  the commit its PR merged at, which is history and does not age; the tip of
+  `main` is reported by `scripts/facts.py main`, not written down.
 
 ### Resolved decisions (all in charter §4/§6/§12)
 | # | Decision | Resolution |
