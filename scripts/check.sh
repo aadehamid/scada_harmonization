@@ -56,6 +56,10 @@ echo
 echo "== pytest =="
 uv run pytest
 
+echo
+echo "== quoted figures =="
+uv run python scripts/facts.py check
+
 after="$(tree_state)"
 if [ "$before" != "$after" ]; then
   echo >&2

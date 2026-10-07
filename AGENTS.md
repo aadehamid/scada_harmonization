@@ -279,9 +279,17 @@ columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
 Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run ty check`
 
 **Checks run through one script: `scripts/check.sh`.** It runs ruff check, ruff
-format `--check`, ty, and pytest, and fails if the checks change the working
-tree. CI calls it; so does the pre-push hook. **Add a gate there, not in
-`ci.yml` and not in the hook**, so a local run and a CI run stay identical.
+format `--check`, ty, pytest, and `scripts/facts.py check`, and fails if the
+checks change the working tree. CI calls it; so does the pre-push hook. **Add a
+gate there, not in `ci.yml` and not in the hook**, so a local run and a CI run
+stay identical.
+
+**Figures and searches come from `scripts/facts.py`**, never from counting by
+hand. `head`, `tests`, `names`, `hashes` report the repo's numbers; `search`
+finds text across line breaks, which `grep` cannot; `status` lists every place a
+document claims which commit `main` is at; `check` fails when a quoted figure
+contradicts its source and is wired into the check script. `--json` for
+machine-readable output.
 
 Install the hook once per clone (it is repo-local config, not committed):
 
@@ -305,7 +313,7 @@ config/
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
 data/{raw,cache}    # local scratch only. Not the durable warehouse (R2 lagos-chem-l0)
 notebooks/ # Marimo learning surface, one per component
-tests/     # 41 tests (L0 goldens + Unit 100 P&ID; no network, no full warehouse)
+tests/     # 60 tests (L0 goldens + Unit 100 P&ID + figures tool; no network)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
