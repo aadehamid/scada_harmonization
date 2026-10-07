@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-10-07 (§2 gains the ET problem + related public repo; mapping spine still next)
+**Last updated:** 2026-10-07 (ET leg now in scope — drawing-to-graph build; Phase 5b split; mapping spine still next)
 
 > **RESUME HERE.** Session wrapped 2026-08-20. Next build is the mapping-table
 > spine. Paste the kickoff in **§3** (“Next build session”). Do not start
@@ -110,12 +110,13 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 (`xmeas_*`, `xmv_*`, `P-101/…`, `K-201/…`, `xv_feed`). CI pins the PDF hash
 and the 59-name set. You can continue the OT build without more drawings.
 
-**Track B — drawing book + DEXPI (NOT done; not the next build slice).**
+**Track B — drawing book + DEXPI (NOT done; not the next build slice; now in scope
+for Phase 5b.1, §12 #20).**
 
 | Missing | Kind | When to pick it up |
 |---------|------|--------------------|
 | Index + analyzer (print AT-201..AT-219) + legend | Extra PDF pages. Architect lock: these **before** more process sheets. Titles become sheet N of N, not “1 of 1”. Caption: “1 second machine stream on P-101 and K-201”. | Owner-triggered drawing lap. Packet: `design/UNIT100_PID.md` → Extra pages. Do not invent a second factory. |
-| `models/unit100_dexpi.json`, `tag_schedule.py`, `book.py` | Grok Bot pack. Lost. Graph of equipment / nozzles / lines. | Phase 5b (Neo4j / ET). Do **not** rebuild to unblock mapping or Sparkplug. |
+| `models/unit100_dexpi.json`, `tag_schedule.py`, `book.py` | Grok Bot pack. Lost. Graph of equipment / nozzles / lines. | **Phase 5b.1** (engineering graph — the ET leg is now in scope, §12 #20). Do **not** rebuild to unblock mapping or Sparkplug. |
 | `data/tag_schedule.parquet` | Drawing note 2. | Issued join is the CSV. Do not recreate parquet as a second pin. |
 
 `provenance=drawing` vs `reconstructed` in the CSV is honest: most
@@ -123,22 +124,40 @@ instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
 
-### This session (2026-10-07): ET problem statement + related public repo (docs only)
+### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
 Hamid asked to fold the problem statement from the related public repo
 [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
 (LIONG — engineering drawings to a maintained engineering graph) into this
-repo's problem statement. Decisions: **cross-reference only** (no build
-dependency, no scope change) and **keep both framings** (the anonymized
-industry-discovery patterns stay; the named public project joins them as the
-ET leg). Charter §2 gains two paragraphs — the engineering (ET) problem
-(tag ≠ asset identity; intersecting lines ≠ pipe connection; cross-sheet
-tracing; evidence vs. confirmed) and the change problem (stable identities,
-controlled publication, authoritative source, approved vs. proposed state) —
-plus a fourth discovery bullet, a mapping-table row, and a §7 note that the
-public repo supersedes the local EngiGraph folder as the live ET reference.
-Mirrored into `README.md`, `DOMAIN.md`, `AGENTS.md`, `reference/README.md`.
-No code, no tests, no decision changes. Branch `docs/et-problem-statement`.
+repo's problem statement. That project covers two routes to the same
+engineering model. Hamid's framing: **the flat-file / scanned-drawing route is
+this lab's**, and the sibling's **authoring-backend route is the addition**.
+
+Decisions this session:
+
+1. **Cross-reference only** — no build dependency, no coupling between repos.
+2. **Keep both framings** — the anonymized industry-discovery patterns stay; the
+   named public project joins them.
+3. **Full build scope — a reversal.** The lab **builds the drawing-to-graph
+   path**: extract equipment, instruments, valves, pipes, and connectivity from
+   the Unit 100 P&ID (vector PDF first, then scanned variants) and publish an
+   engineering graph with source evidence, stable identities, review status, and
+   revision control. This **reverses** the document-extraction exclusion (§7,
+   §13.3, §13.7 Tier 3). Reason: most LSC sites are brownfield or acquired, so
+   the drawing is often the only engineering record. Recorded as **charter §12 #20**.
+4. **Phase 5b split** into **5b.1 engineering graph** (the ET leg) and **5b.2
+   context** (ERPNext + Neo4j + order-to-cash). New §8.1 exit criterion for 5b.1.
+
+Charter §2 gains the ET problem (tag ≠ asset identity; intersecting lines ≠ pipe
+connection; evidence vs. confirmed) and the change problem; §6 gains the ET data
+subsection (staged: vector → raster → vision assist); §7, §13.2, §13.3, §13.7
+Tier 3 updated; §8/§8.1 restructured; §12 #20 added. Mirrored into `README.md`,
+`DOMAIN.md`, `AGENTS.md`, `reference/README.md`. Docs only — no code, no tests.
+Branch `docs/et-problem-statement`.
+
+**Not changed:** the next build is still the mapping-table spine (§3). Phase
+5b.1 is far off. The extraction toolchain (parser, OCR, symbol detection, vision
+model) is not selected — open within §12 #20.
 
 ### This session (2026-08-21): charter §2 scale fold (docs only)
 
@@ -562,7 +581,9 @@ Plus the **relational schema layout** (charter §4): two Postgres homes —
 > Pydantic, including the §14 columns. First row is locked: L0 `xmeas_7` =
 > drawing `PT-101` (reactor pressure on R-101). Format is YAML. Explain the
 > three stages and the §14 columns, then write the models + YAML + a small
-> test. Do not dump all 59 rows. Do not start Sparkplug. Do not rebuild DEXPI.
+> test. Do not dump all 59 rows. Do not start Sparkplug. Do not start the
+> Phase 5b.1 drawing extraction (that is a later phase, and its toolchain is not
+> selected).
 > Do not draw extra P&ID pages unless I say so.
 
 **Locked for that session (2026-08-20):**
@@ -598,7 +619,7 @@ Cadence: explain → align (locks above are the align) → build piece by piece 
 > `tests/fixtures/datagen/pid/`. One plant. Rev B process sheet stays. Draw
 > index + analyzer (AT-201..AT-219) + legend **before** any new process page.
 > Titles are sheet N of N. Say “1 second machine stream on P-101 and K-201”.
-> Do not invent a second factory. Do not rebuild DEXPI / `book.py`. Do not
+> Do not invent a second factory. Do not start Phase 5b.1 extraction. Do not
 > change L0 names. Update the PDF pin + `design/UNIT100_PID.md` if the book
 > hash changes.
 
@@ -745,7 +766,7 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 **Next build = mapping-table spine** (`xmeas_7` / `PT-101` × 4 sites, YAML).
 P&ID extra pages are an owner-triggered drawing lap (§2.1 / §3), not a gate
-and not abandoned. DEXPI / `book.py` wait for Phase 5b. Do not invent a
+and not abandoned. DEXPI / `book.py` wait for Phase 5b.1 (now in scope). Do not invent a
 second factory.
 
 Walkthrough stays parallel at §0.2. Completing that pass **locks Diagram 1**

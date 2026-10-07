@@ -13,11 +13,11 @@ architecture prototype**, not a product — the goal is to understand each layer
 industrial data stack before adopting enterprise software that abstracts it away. The simulated
 problem mirrors real process/CPG digital-transformation discovery (anonymized industry pains:
 days-to-data, site-owned fragmentation, govern-and-reuse, yield improvement); see charter §2.
-Its **ET leg** — engineering records and flat P&IDs that give no queryable, current engineering
-model — is the subject of a related public repo,
+Its **ET leg** — turning flat files and scanned drawings into a queryable engineering graph — is
+built here, from the Unit 100 P&ID (Phase 5b.1: vector sheet first, then scanned variants). A
+related public repo,
 [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph),
-whose engineering data product this lab's Plane 3 consumes. This lab still synthesizes its own
-topology (charter §2, §7).
+adds the structured route from an authoring-system backend (charter §2, §7, §12 #20).
 
 The project is in **Phase 1 L0 on `main` (`9ffe415` after #38, 2026-08-20)**.
 Next build is the mapping-table spine (`HANDOFF.md` §3).
@@ -123,7 +123,9 @@ for understanding, not speed.
 8. **Commit history as a learning trail.** Small commits + explanatory messages + the learning log let
    the owner later ask "why is this here?" (the `explain` / `what-happened` skills read provenance).
 
-**Explicit learn-by-building milestones (do NOT shortcut):** **Debezium** (log-based CDC, Phase 5a),
+**Explicit learn-by-building milestones (do NOT shortcut):** **P&ID extraction** (vector text and
+geometry → OCR and symbol detection → vision-model assist; Phase 5b.1) and **DEXPI 2.0** (Phase
+5b.1), **Debezium** (log-based CDC, Phase 5a),
 **Redis** (online feature store, Phase 6), **OPC-UA** (real protocol at Geismar, Phase 4), **Spark**
 (medallion ETL, Phase 6), **Prometheus** (observability, Phase 3), and **MLflow** (model registry,
 Phase 6) are deliberate hands-on goals — build them the real way and explain, even where a simpler
@@ -159,7 +161,7 @@ Iggy** (explore as an alternative streaming engine on a non-Debezium stream; **K
 
 1. **Harmonize (OT)** — synthetic Level 0 → PLC-world disguise → Sparkplug B → UNS; unit/status/timestamp normalization + per-field lineage. *(reference patterns: ISHE / `reference/docs/`)*
 2. **Record (Enterprise)** — curated operational events → ERPNext (SAP-like).
-3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`; ET leg: related public repo [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph))*
+3. **Contextualize (Knowledge)** — UNS + IT transactional + ERP + asset topology → **identity reconciliation** → Neo4j knowledge graph (ISO 15926 / DEXPI-aligned) → GraphRAG. *(reference patterns: EngiGraph / `reference/engineering_drawing_business_case/`. The **ET leg is built here**: Phase 5b.1 extracts the Unit 100 P&ID into an engineering graph with evidence, identity, and revision control. The related repo [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) adds the authoring-backend route.)*
 4. **Apply (Intelligence)** — consumes Planes 1–3; the payoff. **Track A** traditional ML (predictive maintenance, anomaly, time-series forecasting, soft sensors) — **flagship: yield improvement / production-leakage detection**. Runs **per-site edge inference** (real-time, off the local broker) **+ cloud/central training & batch serving**; trains on **three feature planes** (OT historian, IT/`ods_core`, harmonized gold); MLflow deploys the same model to edge + cloud (online Redis / offline gold split). **Closed-loop control with human-in-the-loop**: model → HITL operator console (approve/edit/reject) → approved command delivered as a **Sparkplug DCMD** issued by the site-forwarder (as site host application) on the site broker (charter §14 N5) → controller writeback (clamped OpenPLC/OPC-UA) → actuators, confirmed by DDATA read-back (audited, §14 N24) — the model never actuates, the controller executes (charter §13.5) [Phase 6]. **Track B** LLM/GenAI (retrieval, NL query, summaries, copilot via GraphRAG over Neo4j) [Phase 7]. *Tooling deferred — built so the foundation feeds both.*
 
 Sources span **IT / OT / ET**: OT (SCADA/PLC tags), IT (Postgres transactional: MES/LIMS/CMMS/quality), ET (engineering topology).
@@ -246,7 +248,8 @@ Phase 0 skeleton → 1 Level-0 replay → 2 PLC disguise + Sparkplug (edge Mosqu
 proof (≥2 Python-modeled sites + forwarders + central EMQX + cross-source equivalence suite) → **4b**
 real-protocol sites (**OpenPLC Beaumont & OPC-UA Geismar**) + full roster → **4c** resilience & zoning
 (store-and-forward + Docker IT/OT segmentation + historian-less site) → 5a IT source + CDC
-(Python→Debezium milestone) → 5b context
+(Python→Debezium milestone) → **5b.1** engineering graph (Unit 100 P&ID → extraction → validated
+engineering model → Neo4j) → **5b.2** context
 (ERPNext + Neo4j) → 6 loop closure (**medallion + Spark ETL + MLflow + offline/online feature store** +
 ML/inference + floci) → 7 reasoning (GraphRAG) → later: re-platform the forwarder/bridge/streaming
 leg onto **UMH Core** (charter §12 #16; Timescale + Grafana stay).

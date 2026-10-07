@@ -57,10 +57,12 @@ The same is true of the drawings. Every site's P&IDs describe the same Unit 100 
 engineering truth sits in two places at once — the authoring databases and the flat sheets. A tag
 on a sheet names an instrument; it does not by itself say which equipment that instrument belongs
 to, and two crossing lines are not a pipe connection until someone confirms it. Rebuilding that
-connectivity means tracing paths across sheets by hand. That engineering leg is the subject of a
+connectivity means tracing paths across sheets by hand. Most of these plants are brownfield or
+acquired, so the sheet is often the only engineering record LSC holds. The lab therefore builds
+that graph from the drawings themselves — the Unit 100 P&ID first, then scanned variants. A
 related open-source project,
 [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph),
-which builds the maintained engineering graph this lab's Plane 3 draws on.
+adds the other route: pull records straight from an authoring-system backend.
 
 ---
 

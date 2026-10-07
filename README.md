@@ -29,15 +29,16 @@ different names per site), then proves it can be conformed to one namespace, **g
 reusable data product**, and enriched into connected context. The problem mirrors real process /
 CPG / Energy & Chemicals discovery (anonymized industry pains); see charter §2.
 
-The **engineering (ET) leg** carries the same disease. P&IDs and backend engineering records hold
-equipment, pipe, valve, instrument, and connection information, but neither shape is directly
-queryable: a recognized tag does not establish which equipment it identifies, and an intersecting
-line does not establish a pipe connection. A one-time conversion then drifts as tags change,
-equipment is removed, and connections are rerouted. The sibling open-source project
+The **engineering (ET) leg** carries the same disease. P&IDs hold equipment, pipe, valve,
+instrument, and connection information, but the meaning has to be interpreted: a recognized tag
+does not establish which equipment it identifies, and an intersecting line does not establish a
+pipe connection. A one-time conversion then drifts as tags change, equipment is removed, and
+connections are rerouted. This lab **builds the drawing-to-graph path** from its own Unit 100 P&ID
+— vector sheet first, then scanned variants — publishing an engineering graph with source
+evidence, stable identities, and revision control (Phase 5b.1). The related open-source project
 [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-treats that leg in full — DEXPI 2.0 conversion, stable object identities, source evidence, and
-revision control. This lab consumes its engineering data product as Plane 3's ET input while
-continuing to synthesize its own topology.
+adds the structured route: pull records from an authoring-system backend and convert them to
+DEXPI 2.0.
 
 ## The four planes
 
@@ -106,7 +107,7 @@ real AWS) without invalidating the design.
 | Document | Role |
 |----------|------|
 | [`design/PROJECT_CHARTER.md`](design/PROJECT_CHARTER.md) | **Authoritative project definition** |
-| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) | Related public repo — engineering drawings to a maintained engineering graph (the ET leg) |
+| [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph) | Related public repo — engineering drawings to a maintained engineering graph; adds the structured-backend route |
 | [`design/DOMAIN.md`](design/DOMAIN.md) | Domain narrative — Lagos Specialty Chemicals backstory |
 | [`design/E2E_WALKTHROUGH.md`](design/E2E_WALKTHROUGH.md) | End-to-end teaching walkthrough script (Threads A/B/C) |
 | [`design/WALKTHROUGH_PROGRESS.md`](design/WALKTHROUGH_PROGRESS.md) | Live walkthrough cursor — resume here |
@@ -139,6 +140,10 @@ stays 180 s). Unit 100 Rev B one-pager + 59-name tag list:
 [`design/UNIT100_PID.md`](design/UNIT100_PID.md). Record:
 [`design/PHASE1_SYNTHETIC_DATA.md`](design/PHASE1_SYNTHETIC_DATA.md).
 Datasheet: [`design/PHASE1_DATASHEET.md`](design/PHASE1_DATASHEET.md).
+
+**Scope change (2026-10-07).** The lab now builds the **drawing-to-graph path** as Phase 5b.1:
+extract equipment and connectivity from the Unit 100 P&ID (vector sheet, then scans) and publish an
+engineering graph. This reverses the earlier exclusion of document extraction; see charter §12 #20.
 
 **Phase 0 mapping table is not written yet.** The uv skeleton landed in PR #22.
 The Diagram 1 walkthrough **runs in parallel and does not block build** (cursor:

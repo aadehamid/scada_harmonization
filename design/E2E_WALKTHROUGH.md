@@ -176,7 +176,7 @@ practice the deck never shows.*
 |---|---|---|---|
 | CRM | owns customers/pipeline; hands sales orders to ERP | §13.1 L3.1 — no customer domain in a 4-site process lab | ERPNext Sales Order is the entry point |
 | WMS | bins, waves, pick paths, dock scheduling | §12 #19 — warehouse *events* suffice for the lessons | ERPNext stock moves + `material_lot` staging |
-| PLM | product/BOM lifecycle, engineering change | §7 — ET topology is synthesized directly | ISO 15926/DEXPI ontology + Neo4j topology |
+| PLM | product/BOM lifecycle, engineering change | §7, §8 Phase 5b.1 — the ET graph is built from the Unit 100 P&ID, not from a PLM | ISO 15926/DEXPI ontology + Neo4j engineering graph |
 | EAM (vs CMMS) | enterprise-wide asset registry/finance view | lab's asset scope is 4 sites | `asset_master` + CMMS + ERPNext assets |
 | EMS/BMS | energy/building management | §13 L3.2-adjacent; no building domain | 30 s "environmental" scan class + TEP utility loops |
 | Batch execution (ISA-88) | recipes/phases for batch plants | §14 N13 — LSC is continuous (ISA-106) | lot windows; golden operating window |

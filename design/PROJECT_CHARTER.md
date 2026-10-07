@@ -4,8 +4,9 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-10-07 (§2 gains the engineering (ET) problem and the related
-`Engineering_Drawing_to_Graph` project; decisions otherwise unchanged since 2026-07-06)
+**Last updated:** 2026-10-07 (§2 gains the engineering (ET) problem; the lab now **builds** the
+drawing-to-graph path — Phase 5b split into 5b.1 engineering graph / 5b.2 context, reversing the
+document-extraction exclusion; §12 #20. Other decisions unchanged since 2026-07-06)
 
 ---
 
@@ -79,17 +80,26 @@ The three recurring challenges across these domains:
   named owners ("data creators as gatekeepers") and per-field lineage — the lab's lightweight answer to
   "a unified approach for contextualizing *and governing* data, reusable for all users" (see §4).
 
-The **engineering (ET) leg** carries the same disease. Piping and instrumentation diagrams
-describe equipment, pipes, valves, instruments, and their connections, but that meaning lives in
-two shapes: structured records in authoring databases, and flat files such as PDFs, scans, and
-drawing exports. Neither shape is directly queryable. Database tables need mappings that preserve
-the meaning of their objects and relationships. Flat drawings encode that meaning in text, symbols,
-lines, and conventions — and recognizing a tag does not establish which equipment it identifies,
-just as detecting intersecting lines does not establish a pipe connection. Answering one
-engineering question can mean tracing paths across several sheets and reconciling records by hand.
-A useful representation must preserve connection points, branches, bypasses, and cross-sheet
-references, show the evidence for each relationship, and distinguish a confirmed connection from
-an unresolved interpretation.
+The **engineering (ET) leg** carries the same disease. Piping and instrumentation diagrams describe
+equipment, pipes, valves, instruments, and their connections, and the goal is to turn those
+drawings into a queryable knowledge graph. The information arrives in two shapes. Flat files — PDFs,
+scans, drawing exports — encode meaning in text, symbols, lines, and conventions. Authoring-system
+records hold the same objects as structured rows. Neither shape is directly queryable. Drawing
+meaning has to be interpreted: recognizing a tag does not establish which equipment it identifies,
+and detecting intersecting lines does not establish a pipe connection. Backend records need
+mappings that preserve the meaning of their objects and relationships. Answering one engineering
+question can mean tracing paths across several sheets and reconciling records by hand. A useful
+representation must preserve connection points, branches, bypasses, and cross-sheet references,
+show the evidence for each relationship, and distinguish a confirmed connection from an unresolved
+interpretation.
+
+This lab takes the **flat-file route**: build the knowledge graph from the drawings themselves.
+That is the only route available when a plant is brownfield or was acquired and its engineering
+records are paper and PDF — the position most LSC sites are in (Beaumont is legacy, Geismar and
+Corpus Christi came by acquisition; Rotterdam is the greenfield exception). The structured route,
+pulling records
+straight from the authoring system backend and converting them to DEXPI, is the addition
+contributed by the related project below.
 
 Engineering change adds a second problem. A one-time conversion drifts from its source: tags
 change, equipment is removed, connections are rerouted. Without stable identities and controlled
@@ -138,14 +148,13 @@ treated):
   production-leakage.)*
 - **A related open-source project — engineering drawings to graph:**
   [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-  states the ET problem in full: engineering information sits in backend records and flat P&IDs,
-  neither is directly queryable, and a one-time conversion drifts as the plant changes. That
-  project builds the engineering foundation — DEXPI 2.0 conversion, stable object identities,
-  source evidence, revision and publication control, approved-versus-proposed state — which this
-  lab's Plane 3 consumes as its ET input. This lab still synthesizes its own topology; the sibling
-  project is the real implementation of that leg, and its problem statement is the reference for
-  the ET paragraphs above. Same owner, separate scope: it targets one oil-and-gas demonstration
-  facility, this lab targets four chemical-process sites.
+  covers both routes to the same engineering model: extraction from flat P&IDs, and a structured
+  path from an authoring backend through DEXPI 2.0. It supplies the engineering foundation this
+  lab's Plane 3 consumes — stable object identities, source evidence, revision and publication
+  control, approved-versus-proposed state. Its **structured-backend route is the option this lab
+  does not build**; its flat-file route states the same problem this lab takes on. Same owner,
+  separate scope: it targets one oil-and-gas demonstration facility, this lab targets four
+  chemical-process sites.
 
 These map onto the lab without changing the thesis — they sharpen *why* it matters:
 
@@ -529,6 +538,26 @@ contain feedstock lot X*).
 canonical-identity mapping → UNS events and/or Neo4j. This reuses the existing Kafka layer rather
 than adding a new path.
 
+### Synthetic engineering data (the ET leg)
+
+The ET source is the **Unit 100 P&ID** already in the repo: the Rev B vector sheet
+(`tests/fixtures/datagen/pid/LSC-U100-PID-001_revB.pdf`) and the 59-row drawing-name to
+plant-data-name schedule beside it. The lab extracts equipment, instruments, valves, pipes, and
+connectivity from that sheet, then publishes them as an engineering graph.
+
+The build is staged by input difficulty, because each stage needs different techniques:
+
+| Stage | Input | Method |
+|-------|-------|--------|
+| 1 | Vector PDF (Unit 100 Rev B) | Text and line-geometry extraction — no ML |
+| 2 | Scanned raster | OCR plus classical computer vision for symbols and lines |
+| 3 | Degraded or hard sheets | Vision-language model assist, with human review |
+
+Scanned and degraded variants are generated from the vector sheet, so the lab holds labeled ground
+truth to score extraction against. Every extracted relationship carries its evidence and a review
+status, so a confirmed connection is distinguishable from an unresolved one. Extraction quality on
+public drawings is evaluated separately from quality reached through manual review.
+
 ---
 
 ## 7. Design assets extracted from the archived docs
@@ -566,13 +595,17 @@ around them is **discarded**.
 - **Graph-algorithm use cases** — shortest-path (isolation routing), centrality (critical nodes),
   impact analysis. These are the demo queries that prove the graph is worth building.
 - **Digital-thread framing** — topology ↔ SCADA tag ↔ ERP FLOC ↔ work order linkage.
+- **P&ID document extraction** — symbol detection, OCR, line and connectivity inference, and
+  human review of ambiguous results (EngiGraph's CV/VLM pipeline). **Adopted 2026-10-07** (was
+  excluded): the ET leg is built from flat files and scanned drawings, so the extraction layers
+  are now in scope. Staged build: vector PDF → raster scan → vision-model assist (§8 Phase 5b.1).
 
 > **Superseded as the live reference (2026-10-07).** The public
 > [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
-> project is now the documented treatment of the ET leg. Consult it for DEXPI 2.0 conversion,
+> project documents both routes to the ET model. Consult it for DEXPI 2.0 conversion,
 > stable object identity, source authority, revision and publication control, and
-> approved-versus-proposed state. Keep the local-only EngiGraph folder for the original ontology
-> and graph-query patterns; it remains the business-case ancestor of that project.
+> approved-versus-proposed state. Keep the local-only EngiGraph folder for the original ontology,
+> graph-query, and P&ID-extraction patterns; it remains the business-case ancestor of that project.
 
 ### Deliberately NOT extracted
 
@@ -580,11 +613,9 @@ around them is **discarded**.
   clients, and ER&I-challenge framing.
 - The narrow O&G-only scope (Well/ESP; CygNet/Wonderware/Ignition specifics) — keep the *patterns*,
   swap the *examples* for manufacturing/multi-site assets.
-- EngiGraph's CV/VLM P&ID-extraction pipeline (symbol detection, OCR, VLM). The home lab
-  *synthesizes* graph topology directly, so it keeps only EngiGraph's **ontology + graph + query**
-  layers, not the document-extraction layers. Document extraction is not dropped as a problem — it
-  belongs to the sibling `Engineering_Drawing_to_Graph` project, which owns the drawing-to-DEXPI
-  path. This lab consumes the engineering data product, not the extraction machinery.
+- ~~EngiGraph's CV/VLM P&ID-extraction pipeline~~ — **reversed 2026-10-07.** The extraction
+  pipeline moved into the kept list above; this lab now builds the drawing-to-graph path. Only the
+  *scanned-image* half stays deferred in time: the vector-PDF stage comes first (§8 Phase 5b.1).
 
 ---
 
@@ -600,7 +631,8 @@ around them is **discarded**.
 | **4b** | Real protocols + full roster | Swap in the **real OpenPLC site** (Beaumont, Modbus TCP → Sparkplug, publishing **raw counts** scaled via §14 N17) and the **real OPC-UA site** (Geismar, `asyncua` → Sparkplug, §13 L1.1) behind the already-proven forwarder seam; add sites 3–4 |
 | **4c** | Resilience & zoning | **Store-and-forward** buffer + outage drill (§13 L1.2, §14 N12); **Docker-network IT/OT segmentation** with zone labels + conduit inventory (§13 L1.3, §14 N21); one **historian-less site** (§13 L1.4); deliberate clock-skew site exercise (§14 N9) |
 | **5a** | IT transactional source | Seed synthetic MES/LIMS/CMMS tables into Postgres (role A); CDC → Kafka; reconcile IT keys ↔ OT/ISA-95 identities (CDC milestone below) |
-| **5b** | Context | Context-export → ERPNext events + Neo4j graph (asset↔tag↔event↔work-order↔lot↔material↔lab-result); **order-to-cash thin thread** (Sales Order → MRP → Work Order → `production_lot` → Delivery Note + Invoice, §12 #18) |
+| **5b.1** | Engineering graph — the **ET leg** | Extract equipment, instruments, valves, pipes, and connectivity from the **Unit 100 P&ID** (vector PDF first, then scanned variants) → validated engineering model → **Neo4j** engineering graph. Evidence-first: stable object identities, source evidence per relationship, review status, approved-versus-proposed state, and a failed revision leaving the last accepted state available |
+| **5b.2** | Context | Context-export → ERPNext events + Neo4j context (asset↔tag↔event↔work-order↔lot↔material↔lab-result); **order-to-cash thin thread** (Sales Order → MRP → Work Order → `production_lot` → Delivery Note + Invoice, §12 #18) |
 | **6** | Loop closure — **Plane 4 Track A (ML)** | Stand up the **medallion lakehouse** (Bronze/Silver/Gold) via **Spark ETL** + **batch/file-drop ingestion** (§13 L4); traditional ML (predictive maintenance / anomaly / forecasting; **flagship: yield-improvement / production-leakage detection** over TEP product streams) over historian + gold features; **MLflow** registry/tracking (§13 L6.1); **offline (gold) + online (Redis) feature store** (§13 L6.2); **human-in-the-loop, edge-executed** predictions published back into Sparkplug; floci cloud landing |
 | **7** | Reasoning — **Plane 4 Track B (LLM)** | LLM/GenAI: GraphRAG over Neo4j for retrieval / troubleshooting / lineage / impact / genealogy; operator-engineer copilot |
 | **Later** | Abstraction | Re-platform the forwarder/bridge/streaming leg onto **UMH Core** (§12 #16); Timescale + Grafana stay |
@@ -654,7 +686,8 @@ Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (det
 | **4b** | All 4 sites conformed, including both real-protocol sites; Beaumont raw counts scale correctly end-to-end (§14 N17) |
 | **4c** | Kill EMQX/WAN for N minutes → the site keeps operating locally; on reconnect the forwarder backfills with `is_historical`, **no gaps and no duplicates** in Timescale, rollups correct (§14 N11/N12); the skewed-clock site is detected and corrected (§14 N9) |
 | **5a** | Python CDC and Debezium emit `ChangeEvent`s passing the **same contract tests**, including a hard-delete case the Python poller provably misses; Apicurio schema-evolution exercise done (§14 N26/N29) |
-| **5b** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations; **the order-to-cash thread closes end-to-end** — Sales Order → plan → work order → lot → Delivery Note → Invoice, with genealogy linking every hop (§12 #18) |
+| **5b.1** | The extraction pipeline reads the Unit 100 Rev B sheet and publishes an engineering graph whose connectivity matches the P&ID's, with every relationship carrying source evidence and a review status; a scanned variant of the same sheet runs through the confidence and review flow, and the two results reconcile; an unresolved interpretation is visible as such, not silently merged; a rejected revision leaves the previous published state queryable |
+| **5b.2** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations; **the order-to-cash thread closes end-to-end** — Sales Order → plan → work order → lot → Delivery Note → Invoice, with genealogy linking every hop (§12 #18) |
 | **6** | A model climbs L0→L1 through defined gates (§14 N30); one recommendation with SHAP + TTL is approved in the console → DCMD → clamped write → DDATA read-back → `command_audit` row (§14 N5/N24/N32); drift dashboard live (§14 N31); T²/SPE catches a TEP fault univariate EWMA misses (§14 N33) |
 | **7** | The copilot answers a cross-domain question (fault → lot → work order → lab result) grounded in graph citations |
 
@@ -836,6 +869,18 @@ beyond ERPNext community.
     (bins, waves, pick paths, dock scheduling) is *described* in walkthroughs at its proper place
     (Thread A steps 3 & 9, `design/E2E_WALKTHROUGH.md`) but adds no harmonization/contextualization
     lesson the lab doesn't already teach. Joins the §13.3 conscious-out list.
+20. **ET leg — synthesized topology vs. extracted drawings** — **DECIDED (2026-10-07):** the lab
+    **builds the drawing-to-graph path**. The ET source is the Unit 100 P&ID (vector PDF, then
+    scanned variants), and the engineering graph is published with source evidence, stable
+    identities, review status, and revision control (Phase 5b.1). This **reverses** the earlier
+    exclusion of document extraction (§7, §13.3, §13.7 Tier 3). The reason: most LSC sites are
+    brownfield or acquired, so the drawing is often the only engineering record. The
+    **structured-backend route**
+    (authoring system → DEXPI 2.0) stays with the related public project
+    [`Engineering_Drawing_to_Graph`](https://github.com/aadehamid/Engineering_Drawing_to_Graph)
+    and is not built here. **Open within this decision:** the extraction toolchain (PDF parser,
+    OCR, symbol detection, vision model) is not selected; candidates are listed in that project's
+    stack assessment. Decide at the start of Phase 5b.1.
 
 **Tooling (DECIDED 2026-05-30):** **`uv`** is the package/project manager for everything — `uv add` /
 `uv sync` / `uv run`, `pyproject.toml` + committed `uv.lock`, uv-pinned Python version. No pip/poetry.
@@ -882,17 +927,20 @@ self-hosted OSS.
 **Net-new components** (beyond pre-review charter): OPC-UA server (Geismar) · edge store-and-forward ·
 Docker-network segmentation · historian-less site · real-time alerting node · medallion lakehouse +
 Spark ETL · batch/file-drop ingestion · MLflow · online/offline feature store · Prometheus+Grafana
-observability · `ods_core` named the MDM analog.
+observability · `ods_core` named the MDM analog · **P&ID drawing extraction** (vector text and
+geometry → OCR and symbol detection → vision-model assist) · **engineering-graph publication**
+(review status, stable identity, revision control).
 
 **New hands-on learning milestones** (join Debezium + Redis): **OPC-UA · Spark · observability
-(Prometheus) · MLflow.** Optional *later* "graduate-to / explore" milestones (§13.6):
+(Prometheus) · MLflow · P&ID extraction · DEXPI 2.0.** Optional *later* "graduate-to / explore"
+milestones (§13.6):
 **Databricks Free Edition** (managed lakehouse) · **Apache Iggy** (alternative streaming).
 
 ### 13.3 Deliberately out of scope
 
 CRM/Salesforce · **separate WMS** (ERPNext stock moves + `material_lot` events cover the warehouse
 semantics — §12 #19) · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
-plants · EDMS (ET topology is synthesized) · separate real-time "hot" store · Power BI (Grafana +
+plants · separate real-time "hot" store · Power BI (Grafana +
 DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now.
 
 ### 13.4 The three implementation variants (architecture diagrams)
@@ -978,7 +1026,9 @@ refine, not replace, prior decisions.
 | P9 | **Golden-batch / golden-run reference** | Persist the best-performing historical reference; models (and operators) compare the live run against it for drift and yield. **For the continuous TEP process this is a *golden operating window* per (asset, operating mode / product grade)** — steady-state statistics + the PCA baseline from §14 N33, not a time-aligned batch profile (an ISA-88 concept with no trajectory to align here; §14 N13). Batch-style golden profiles can still be demonstrated on IIoT machine run cycles. |
 
 **Tier 3 — conscious scope decisions (noted, not adopted):**
-- **Machine vision / CNN modality** — *out* (charter §7 already dropped CV/VLM); our anchors are time-series.
+- ~~**Machine vision / CNN modality** — out~~ — **reversed 2026-10-07.** Vision is back in scope,
+  but only for the **ET leg**: reading P&ID drawings (§8 Phase 5b.1). Plane 1's anchors stay
+  time-series; no vision is applied to the OT telemetry itself.
 - **Connected-worker / manual-operation digitization** (pick-to-light, AR, connected-worker apps) — *out* (no human operators in a synthetic lab); transferable bit kept: **operator/shift/lot as ML covariates**.
 - **Broker topology divergence** — the reference uses **no central broker** (per-plant brokers → cloud gateway); we **keep the central EMQX UNS cluster** as a *conscious* choice (the "central UNS broker" school; richer for the cross-site harmonization thesis). Both are valid.
 
