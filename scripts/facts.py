@@ -69,13 +69,25 @@ SKIP_DIRS = frozenset(
 SKIP_PREFIXES = ("reference/", "data/")
 
 # A quoted digest, as the golden pins are written: eight hex digits, an
-# ellipsis, and optionally the trailing digits. Deliberately narrow — a bare
-# short hash is usually a commit.
-PIN_PATTERN = re.compile(r"\b([0-9a-f]{8})…([0-9a-f]{4,8})?")
+# ellipsis, and the trailing digits. The trailing group is greedy and must not
+# be followed by another hex digit, so a truncated or extended suffix is read
+# whole and then rejected, rather than being silently shortened to fit.
+PIN_PATTERN = re.compile(r"\b([0-9a-f]{8})…\s*([0-9a-f]+)?(?![0-9a-f])")
 # "60 tests" and "60 passed" are both claims about the suite; the second is the
 # wording pytest itself prints.
 TEST_COUNT_PATTERN = re.compile(r"\b(\d+)\s+(?:tests?|passed)\b")
-ROW_COUNT_PATTERN = re.compile(r"\b(\d+)-(?:row|name)\b")
+# "59-row", "59-name" and "59 plant-data names" all state the same figure.
+ROW_COUNT_PATTERN = re.compile(r"\b(\d+)(?:-(?:row|name)|\s+plant-data)\b")
+
+# Which figure each current-status document is expected to quote. Named per
+# document so a document that quietly drops a claim is a failure rather than a
+# silent gap: an aggregate "some document quoted it" rule lets one document
+# mask another that has gone stale.
+EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
+    "README.md": ("test count", "row count"),
+    "AGENTS.md": ("test count",),
+    "tests/README.md": ("test count",),
+}
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
 
@@ -169,12 +181,17 @@ def hashes() -> dict[str, str]:
 # --------------------------------------------------------------------------
 
 
-def flatten(text: str) -> tuple[str, list[int]]:
+def flatten(text: str, *, markdown: bool = False) -> tuple[str, list[int]]:
     """Collapse whitespace runs to single spaces, keeping a map back to lines.
 
     Returns the flattened text and, for each character in it, the 1-based line
     of the original file it came from.
+
+    With ``markdown``, emphasis and code marks are treated as whitespace too,
+    so ``**34** tests`` reads as ``34 tests``. Substitutions are one character
+    for one, which keeps every offset, and so the line map, valid.
     """
+    marks = "*_`" if markdown else ""
     chars: list[str] = []
     line_of: list[int] = []
     line = 1
@@ -187,7 +204,7 @@ def flatten(text: str) -> tuple[str, list[int]]:
                 line_of.append(line - 1)
             pending_space = True
             continue
-        if char.isspace():
+        if char.isspace() or char in marks:
             if not pending_space and chars:
                 chars.append(" ")
                 line_of.append(line)
@@ -285,7 +302,7 @@ def _claims(path: Path, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
     still found. Line-by-line scanning is what lets a stale figure survive a
     sweep, and that is the failure this whole tool exists to stop.
     """
-    flat, line_of = flatten(path.read_text(encoding="utf-8"))
+    flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
     return [(line_of[match.start()], match.group(1)) for match in pattern.finditer(flat)]
 
 
@@ -301,8 +318,6 @@ def check(
     by changing what it checks.
     """
     problems: list[Problem] = []
-    found_test_claims = 0
-    found_row_claims = 0
 
     total = int(tests()["total"])  # type: ignore[arg-type]
     row_count = int(names()["rows"])  # type: ignore[arg-type]
@@ -314,8 +329,14 @@ def check(
         # figure survive, and it is the failure this tool exists to stop.
         test_claims = _claims(path, TEST_COUNT_PATTERN)
         row_claims = _claims(path, ROW_COUNT_PATTERN)
-        found_test_claims += len(test_claims)
-        found_row_claims += len(row_claims)
+
+        # Each document is asked for the figures it is expected to carry. A
+        # document that stops quoting one is a gap, not a pass.
+        expected = EXPECTED_CLAIMS.get(_label(path), ())
+        if "test count" in expected and not test_claims:
+            problems.append(Problem(_label(path), 0, "quotes no test count to verify"))
+        if "row count" in expected and not row_claims:
+            problems.append(Problem(_label(path), 0, "quotes no row/name count to verify"))
 
         for number, quoted in test_claims:
             if int(quoted) != total:
@@ -336,42 +357,33 @@ def check(
                     )
                 )
 
-    # A pattern that matches nothing passes without checking anything. If no
-    # document in the repo quotes one of these figures, the pattern is broken
-    # or the figure went unrecorded, and either way the gate is not doing its
-    # job. Say so rather than reporting success.
-    if found_test_claims == 0:
-        problems.append(Problem("(all documents)", 0, "no test-count claim found to verify"))
-    if found_row_claims == 0:
-        problems.append(Problem("(all documents)", 0, "no row/name claim found to verify"))
-
     # A pin is quoted the same way everywhere, so a wrong one is checkable
     # wherever it appears — including in dated records, where the fixture
     # digest does not age.
     for path in tracked_text_files() if pin_files is None else pin_files:
         if path.suffix != ".md":
             continue
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            for quoted in PIN_PATTERN.findall(line):
-                prefix, suffix = quoted[0], quoted[1] if len(quoted) > 1 else ""
-                # Both ends must belong to the *same* fixture. Checking the
-                # prefix against the union of all fixtures would accept a
-                # swapped pin, because the wrong digest is still a real one.
-                matches = [
-                    name
-                    for name, digest in digests.items()
-                    if digest.startswith(prefix) and (not suffix or digest.endswith(suffix))
-                ]
-                if len(matches) != 1:
-                    shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
-                    problems.append(
-                        Problem(
-                            _label(path),
-                            number,
-                            f"quotes pin {shown}, which matches "
-                            f"{len(matches)} pinned fixtures, not one",
-                        )
+        flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
+        for match in PIN_PATTERN.finditer(flat):
+            prefix, suffix = match.group(1), match.group(2) or ""
+            # Both ends must belong to the *same* fixture. Checking the prefix
+            # against the union of all fixtures would accept a swapped pin,
+            # because the wrong digest is still a real one.
+            matches = [
+                name
+                for name, digest in digests.items()
+                if digest.startswith(prefix) and (not suffix or digest.endswith(suffix))
+            ]
+            if len(matches) != 1:
+                shown = f"{prefix}…{suffix}" if suffix else f"{prefix}…"
+                problems.append(
+                    Problem(
+                        _label(path),
+                        line_of[match.start()],
+                        f"quotes pin {shown}, which matches "
+                        f"{len(matches)} pinned fixtures, not one",
                     )
+                )
     return problems
 
 

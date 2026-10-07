@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 66
+EXPECTED_TESTS = 74
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -60,14 +60,14 @@ def _tree_state() -> str:
 def test_test_count_is_pinned() -> None:
     collected = facts.tests()
     assert collected["total"] == EXPECTED_TESTS
-    assert collected["per_file"] == {
-        "tests/test_facts.py": 25,
-        "tests/test_package_imports.py": 6,
-        "tests/test_phase1_e2e.py": 1,
-        "tests/test_phase1_l0_contract.py": 17,
-        "tests/test_phase1_machine_stream.py": 10,
-        "tests/test_unit100_pid.py": 7,
-    }
+    # The breakdown is not pinned file by file: adding a test to an existing
+    # file would then need this line edited too, for no gain. What matters is
+    # that every collected file is under tests/ and the parts sum to the total
+    # pytest reported.
+    per_file = collected["per_file"]
+    assert per_file, "no test files reported"
+    assert all(name.startswith("tests/") for name in per_file)
+    assert sum(per_file.values()) == EXPECTED_TESTS
 
 
 def test_tag_schedule_names_are_pinned() -> None:
@@ -169,13 +169,41 @@ def test_check_accepts_a_correct_count(tmp_path: Path) -> None:
     assert _check(tmp_path, doc=f"uv run pytest is {EXPECTED_TESTS} passed.\n") == []
 
 
-def test_check_refuses_to_pass_when_no_claim_is_found(tmp_path: Path) -> None:
-    """A pattern that matches nothing must not report success."""
+def test_check_flags_markdown_emphasis(tmp_path: Path) -> None:
+    """`**34** tests` is the same claim as `34 tests`."""
+    assert [p.detail for p in _check(tmp_path, doc="The suite has **34** tests.\n")] == [STALE]
+
+
+def test_check_flags_the_plant_data_wording(tmp_path: Path) -> None:
+    """`34 plant-data names` states the schedule figure without a hyphen."""
+    problems = _check(tmp_path, doc="The tag list has 34 plant-data names.\n")
+    assert [p.detail for p in problems] == ["says 34-row/name; the schedule has 59"]
+
+
+def test_check_accepts_the_plant_data_wording(tmp_path: Path) -> None:
+    assert _check(tmp_path, doc="The tag list has 59 plant-data names.\n") == []
+
+
+def test_check_does_not_let_one_document_mask_another(tmp_path: Path) -> None:
+    """A correct baseline must not excuse a stale document beside it."""
+    good = tmp_path / "GOOD.md"
+    good.write_text(f"The suite has {EXPECTED_TESTS} tests and a 59-name schedule.\n")
+    stale = tmp_path / "STALE.md"
+    stale.write_text("The suite has 34 tests.\n")
+    problems = facts.check(docs=[good, stale], pin_files=[])
+    assert [p.detail for p in problems] == [STALE]
+
+
+def test_check_requires_the_claims_a_document_is_expected_to_carry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A document that stops quoting a figure is a gap, not a pass."""
     empty = tmp_path / "EMPTY.md"
     empty.write_text("Nothing quotable here.\n", encoding="utf-8")
+    monkeypatch.setitem(facts.EXPECTED_CLAIMS, str(empty), ("test count", "row count"))
     assert [p.detail for p in facts.check(docs=[empty], pin_files=[])] == [
-        "no test-count claim found to verify",
-        "no row/name claim found to verify",
+        "quotes no test count to verify",
+        "quotes no row/name count to verify",
     ]
 
 
@@ -192,8 +220,32 @@ def test_check_flags_a_pin_whose_suffix_belongs_to_another_fixture(tmp_path: Pat
     assert "matches 0 pinned fixtures" in problems[0].detail
 
 
+def test_check_flags_a_truncated_pin_suffix(tmp_path: Path) -> None:
+    problems = _check(tmp_path, pin="TEP golden `f5b9d1cf…000` (do not change)\n")
+    assert len(problems) == 1
+    assert "matches 0 pinned fixtures" in problems[0].detail
+
+
+def test_check_flags_an_over_long_pin_suffix(tmp_path: Path) -> None:
+    """The suffix must be read whole, not shortened to fit."""
+    problems = _check(tmp_path, pin="TEP golden `f5b9d1cf…e6d335160` (do not change)\n")
+    assert len(problems) == 1
+    assert "matches 0 pinned fixtures" in problems[0].detail
+
+
+def test_check_flags_a_pin_wrapped_mid_token(tmp_path: Path) -> None:
+    problems = _check(tmp_path, pin="TEP golden `f5b9d1cf…\n00000000` (do not change)\n")
+    assert len(problems) == 1
+    assert "matches 0 pinned fixtures" in problems[0].detail
+
+
 def test_check_accepts_a_correct_pin(tmp_path: Path) -> None:
     assert _check(tmp_path, pin="TEP golden `f5b9d1cf…e6d33516` (do not change)\n") == []
+
+
+def test_check_accepts_a_prefix_only_pin(tmp_path: Path) -> None:
+    """LEARNING_LOG quotes one this way, and a lone prefix is unambiguous."""
+    assert _check(tmp_path, pin="machine stream `84b9f088…`\n") == []
 
 
 def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None:

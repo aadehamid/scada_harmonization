@@ -133,7 +133,7 @@ realism, sites/enterprise, Postgres deployment, CDC), plus a **reference-archite
 Next build: mapping-table spine (`HANDOFF.md` §3). Extra P&ID pages are a
 later drawing lap, not a gate.
 polars + pydantic are the runtime deps. Warehouse is wide Parquet on R2
-`lagos-chem-l0`. 66 tests (L0 goldens, Unit 100 P&ID, and the figures tool).
+`lagos-chem-l0`. 74 tests (L0 goldens, Unit 100 P&ID, and the figures tool).
 The 1 s fast class is
 a generated machine stream on P-101 and K-201 (Kaggle stays a snapshot; TEP
 stays 180 s). Unit 100 Rev B one-pager + 59-name tag list:
