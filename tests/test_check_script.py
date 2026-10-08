@@ -80,6 +80,9 @@ CHECK_ENV_ALLOWED = (
     "LC_ALL",
     "LC_CTYPE",
     "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_COUNT",
+    "GIT_CONFIG_KEY_0",
+    "GIT_CONFIG_VALUE_0",
 )
 BASH_OWN_NAMES = ("PWD", "SHLVL", "OLDPWD", "_")
 
@@ -94,7 +97,6 @@ HOSTILE_CALLER_ENV = (
     "GIT_COMMON_DIR",
     "GIT_NAMESPACE",
     "GIT_CONFIG_PARAMETERS",
-    "GIT_CONFIG_COUNT",
     "GIT_CONFIG_SYSTEM",
     "PYTEST_ADDOPTS",
     "PYTEST_PLUGINS",
@@ -536,6 +538,12 @@ if [ "${{GIT_CONFIG_GLOBAL:-}}" != /dev/null ]; then
   echo >&2 "git's global configuration was not fixed"
   exit 8
 fi
+if [ "${{GIT_CONFIG_COUNT:-}}" != 1 ] || \
+   [ "${{GIT_CONFIG_KEY_0:-}}" != core.excludesFile ] || \
+   [ "${{GIT_CONFIG_VALUE_0:-}}" != /dev/null ]; then
+  echo >&2 "git's excludes file was not fixed"
+  exit 9
+fi
 for name in PATH HOME; do
   if [ -z "${{!name:-}}" ]; then
     echo >&2 "the guard did not pass on $name"
@@ -562,6 +570,9 @@ exit 0
             **_path_env(stub_dir),
             **dict.fromkeys(HOSTILE_CALLER_ENV, "/nowhere"),
             "GIT_CONFIG_GLOBAL": "/nowhere",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.excludesFile",
+            "GIT_CONFIG_VALUE_0": "/nowhere",
         },
     )
 
@@ -592,8 +603,13 @@ def test_a_check_that_edits_the_tree_is_refused(tmp_path: Path) -> None:
     assert "the checks changed the working tree" in result.stderr, result.stderr
 
 
-def test_a_check_cannot_hide_its_edit_with_the_callers_home(tmp_path: Path) -> None:
-    """A global ignore in HOME must not hide a check's untracked-file edit."""
+@pytest.mark.parametrize(
+    "ignore_source", ["global-config", "default-home", "local-config", "system-config"]
+)
+def test_a_check_cannot_hide_its_edit_with_the_callers_home(
+    tmp_path: Path, ignore_source: str
+) -> None:
+    """User and configured excludes must not hide a check's untracked-file edit."""
     repo = _repo(tmp_path, "repo")
     probe = repo / "other"
     probe.write_text("original\n")
@@ -601,20 +617,51 @@ def test_a_check_cannot_hide_its_edit_with_the_callers_home(tmp_path: Path) -> N
     home.mkdir()
     ignore = home / "ignore"
     ignore.write_text("other\n")
-    (home / ".gitconfig").write_text(f"[core]\n\texcludesFile = {ignore}\n")
+    if ignore_source == "global-config":
+        (home / ".gitconfig").write_text(f"[core]\n\texcludesFile = {ignore}\n")
+    elif ignore_source == "default-home":
+        default = home / ".config" / "git" / "ignore"
+        default.parent.mkdir(parents=True)
+        default.write_text("other\n")
+    elif ignore_source == "local-config":
+        subprocess.run(
+            ["git", "config", "core.excludesFile", str(ignore)],
+            cwd=repo,
+            env=_scratch_env(),
+            check=True,
+        )
     stub_dir = _stub(tmp_path, "uv", 'echo "leaked" >> other\nexit 0\n')
+    path_env = _path_env(stub_dir)
+    if ignore_source == "system-config":
+        system_config = tmp_path / "system.gitconfig"
+        system_config.write_text(f"[core]\n\texcludesFile = {ignore}\n")
+        # Use an isolated system config without modifying /etc/gitconfig.
+        git_stub = _git_stub(tmp_path, "", f'export GIT_CONFIG_SYSTEM="{system_config}"')
+        path_env["PATH"] = f"{stub_dir}:{git_stub}:{_scratch_env()['PATH']}"
 
     result = subprocess.run(
         [BASH, str(repo / "scripts" / "check.sh")],
         capture_output=True,
         text=True,
         cwd=repo.parent,
-        env={**_scratch_env(), **_path_env(stub_dir), "HOME": str(home)},
+        env={**_scratch_env(), **path_env, "HOME": str(home)},
     )
 
     assert "leaked" in probe.read_text(), "the check did not perform the planted edit"
     assert result.returncode != 0, result.stdout
     assert "the checks changed the working tree" in result.stderr, result.stderr
+
+
+def test_repository_ignores_still_exclude_build_outputs(tmp_path: Path) -> None:
+    """Fixing core.excludesFile preserves the guard's repository ignore scope."""
+    repo = _repo(tmp_path, "repo")
+    (repo / ".gitignore").write_text(".venv/\n")
+    (repo / ".git" / "info" / "exclude").write_text("local-output\n")
+    before = _state(_tree_state(repo))
+    (repo / ".venv").mkdir()
+    (repo / ".venv" / "generated").write_text("build output\n")
+    (repo / "local-output").write_text("local output\n")
+    assert _state(_tree_state(repo)) == before
 
 
 def test_a_named_config_outranks_the_type_check_variable(tmp_path: Path) -> None:

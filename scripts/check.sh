@@ -44,7 +44,9 @@ set -euo pipefail
 # Git's global configuration is fixed separately. A core.excludesFile in
 # HOME/.gitconfig hid an untracked file that a check edited, so both snapshots
 # omitted it and the guard passed (PR #53). HOME remains available to uv.
-# Repository and system ignore rules still define the non-ignored scope below.
+# Git also defaults core.excludesFile to HOME/.config/git/ignore without a
+# global config file. Fix that setting at command scope, above config files.
+# Repository .gitignore and .git/info/exclude still define the scope below.
 #
 # Two defences live past this, because no environment reaches them. Every
 # `uv run` below carries `--no-env-file`: a `pyproject.toml` or a `uv.toml` can
@@ -64,7 +66,9 @@ if [ "${1:-}" != "--env-built" ]; then
   # The `cd` runs in a subshell, so it names this script without moving the
   # shell that is about to be replaced by it.
   self="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
-  fixed=(env -i "PATH=$PATH" "GIT_CONFIG_GLOBAL=/dev/null")
+  fixed=(env -i "PATH=$PATH" "GIT_CONFIG_GLOBAL=/dev/null"
+    "GIT_CONFIG_COUNT=1" "GIT_CONFIG_KEY_0=core.excludesFile"
+    "GIT_CONFIG_VALUE_0=/dev/null")
   # Only a name that is set is passed on: an empty `HOME` is worse than none,
   # since uv would then look for its cache under the filesystem root.
   for name in HOME TMPDIR LANG LC_ALL LC_CTYPE; do
