@@ -159,9 +159,13 @@ environment, so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the
 it looks at. The same file holds both, so they belong in one change. Every review round so far
 deferred them to keep this work to its own concern.
 
-Outside this repository: **#11** in `aadehamid/personal-agent-skills` (`docs/working-tree-guard-detail`)
-was rebased onto that repo's `main` this session; it keeps this branch's detail on the working-tree
-guard and takes `main`'s wording for where the hook's install line goes.
+Outside this repository, in `aadehamid/personal-agent-skills`: **#11**
+(`docs/working-tree-guard-detail`) **merged** this session, keeping this project's detail on the
+working-tree guard and that repo's wording for where the hook's install line goes. Its branch is
+deleted, along with three other merged branches that were still in the local clone. **#13** is
+open there, carrying two rules this session paid for: an incident in a standards file is a claim
+about the past, so read the commit before writing it, and a conflict resolved by a script is a
+conflict still there.
 
 ### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
