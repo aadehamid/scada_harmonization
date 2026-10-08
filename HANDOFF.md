@@ -152,16 +152,23 @@ at 02:45 — closing the pull requests the note still called open, while the tex
 
 GitHub's review records for #50 hold six submissions: four blocked on a finding, one approved, one
 recorded nothing blocking. Eight commits, and the adversarial runs between them left no record
-there. Every finding was the same defect in a different sentence: a claim whose truth depends on
-when the file is read rather than on a moment the sentence names. "This note's last edit" moved
-with every commit that touched the file; "every review round so far" was that cutoff; the opening
-pair was anchored to the cutoff although its two pull requests were open at the ask; and the head
-sentence claimed the cutoff governed each sentence below it, which the session rewrote before a
-review could find it. Each was reproduced before it was fixed.
+there.
 
-No rule in `REVIEW_STANDARDS.md` covered that defect when #50 merged: the rule there separates a
-status claim from a record, and does not reach a reference point that moves under the document's
-own hand. The home for it — a rule there, or a check — was left to the retro on this session.
+Of the six findings, four were one defect: a claim measured against a moment the sentence does not
+name — either the moment the file is read, or a moment other than the one the claim is about. "This
+note's last edit" moved with every commit that touched the file; "every review round so far" was
+that cutoff; the opening pair was anchored to the cutoff although its two pull requests were open
+at the ask; and the head sentence claimed the cutoff governed each sentence below it, which the
+session rewrote before a review could find it.
+
+The other two were different. One was a live status claim a dated note should not carry. One was a
+plain contradiction between two sentences about the same past moment: the note said #47 merged
+during the session and, three sentences later, that both pull requests were still open when it
+ended. Each of the six was reproduced before it was fixed.
+
+No rule in `REVIEW_STANDARDS.md` covered that moving reference point when #50 merged: the rule
+there separates a status claim from a record, and does not reach a moment the document's own edits
+move. The home for it — a rule there, or a check — was left to the retro on this session.
 
 **Left open when #50 merged: the guard's environment.** The change was to run `scripts/check.sh`'s
 gates under a fixed environment (`env -i` plus only what the checks need), in place of the drop
