@@ -131,7 +131,7 @@ The batch scope, reference revision, evidence, and next action are in
 The actual-checkout `scripts/check.sh` and pre-push hook passed. The hook also
 rejected a deliberately incorrect schedule figure, which was restored. Working-tree
 review findings were corrected. A separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
-#53's base. The branch was pushed and PR #54 opened. Cursor feedback and
+PR #53's then-head, `0b7a5a2`. The branch was pushed and PR #54 opened. Cursor feedback and
 reviewer merge remain pending for #54. Keep the branch fully pushed before
 reporting readiness. Reconcile #52's session record before releasing the draft.
 
@@ -144,7 +144,7 @@ The owner clarified that the PR reviewer merges; agents watch and address feedba
 PR #53 has reproduced Cursor findings involving HOME-based Git ignores. Its
 fix was independently cleared at `d4cb05d`, pushed, and merged by Cursor. Its
 regression tests are now on main. PR #52 has a remaining time-reference finding
-under repair on its own branch. The reviewer owns merging. No agent has merged a PR.
+under repair on its own branch. The PR reviewer owns merging. The documentation author does not merge PRs.
 
 ### Decision authority
 

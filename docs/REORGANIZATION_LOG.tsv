@@ -29,3 +29,4 @@ step	action	reason	evidence	state
 28	Fix and push PR #52 source quotations	Address current Cursor feedback using actual historical sources	4e18bee independently cleared and pushed; 125 tests on that older branch; exact source statements restored	done
 29	Observe reviewer merge of PR #53 and retarget #54	Remove the completed parent dependency	Cursor merged #53 at 2026-10-08 04:56:35 UTC; fetched main c8c5cea; PR #54 now targets main	done
 30	Address the next PR #52 review finding	Name the cutoff rather than the earlier PR opening	Cursor comment 4214896207; 02:14:33 and 02:15:07 reviews happened after the 02:05:14 opening	in progress
+31	Correct PR #54 review-scope and attribution wording	Distinguish PR53 head from its main base and acknowledge targeted rewrites	Cursor current-head findings reproduced; handoff names 0b7a5a2 as then-head; record separates rewritten LSC002/003 from reference-only LSC004-010	pending review

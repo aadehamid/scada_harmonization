@@ -71,7 +71,8 @@ working assumption because way-of-working cites it. PPC supersedes that assumpti
 | `AGENTS.md` | Agent entry point | Startup, boundaries, checks, and pointers |
 | `docs/LSC-000_Master_Index.md` | Package navigation | Document register, architecture reading map, and authority |
 | `docs/LSC-001_Problem_Statement_and_Project_Charter.md` | Governing project definition | Move intact; preserve numbered sections and decisions |
-| `docs/LSC-002` through `LSC-010` | Existing domain, strategy, contracts, records, and learning | Move by existing responsibility; retain document bodies except references |
+| `docs/LSC-002` and `LSC-003` | Existing domain narrative and data strategy | Move by responsibility; rewrite the narrative and strategy introduction |
+| `docs/LSC-004` through `LSC-010` | Existing contracts, records, and learning | Move by responsibility; retain document bodies except references |
 | `docs/LSC-REG-001_Decision_Index.md` | Decision navigation | Point at original IDs rather than duplicate their resolutions |
 | `docs/WORKING_CONVENTIONS.md` | Collaboration method | Relocate existing rules and preserve unique handoff conventions |
 | `docs/DEVELOPMENT.md` | Development commands | Relocate setup and shared-tool instructions |
