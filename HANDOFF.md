@@ -144,8 +144,8 @@ The documentation checks now include local links, assets, heading targets, and
 whole-file migration-map consistency through `scripts/facts.py links`. The
 development guide defines the supported markup and limits. The historical-source
 review rule remains in `REVIEW_STANDARDS.md`. The mapping slice in section 3
-remains the next build task. This follow-up is pending its PR merge; use
-`gh pr list --state open` for the live review state.
+remains the next build task. This follow-up uses PR #55; run `gh pr view 55`
+for its live review and merge state.
 
 ### Decision authority
 
