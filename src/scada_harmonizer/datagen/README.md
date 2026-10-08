@@ -3,8 +3,8 @@
 Only **Level 0 (the physical world) is synthetic**; everything above behaves like real
 software. This package produces that Level 0 world from benchmark datasets (TEP, Industrial
 IoT) plus Phase 1 OT extras, in six layers
-(`design/synthetic_data_generation_notes.md`). The L0 record and replay identity live in
-`design/PHASE1_L0_CONTRACT.md`. Lots, work-order, and material IDs stay Phase 5
+(`docs/LSC-003_Synthetic_Data_Generation_Strategy.md`). The L0 record and replay identity live in
+`docs/LSC-004_Level_0_Contract.md`. Lots, work-order, and material IDs stay Phase 5
 (`context_export`).
 
 | Layer | Subpackage | Role | Phase |

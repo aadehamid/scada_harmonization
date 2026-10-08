@@ -1,7 +1,7 @@
 # Home Lab Notes for a Sparkplug B / UNS / SCADA Harmonization Project
 
 > **⚠️ Archived vision note (pre-decision).** Options discussed here as open choices are now
-> **DECIDED** in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13 — e.g. the broker topology is
+> **DECIDED** in [`../LSC-001_Problem_Statement_and_Project_Charter.md`](../LSC-001_Problem_Statement_and_Project_Charter.md) §4/§12/§13 — e.g. the broker topology is
 > **two-tier Mosquitto (edge) + EMQX (central)**, not either/or; the historian is **TimescaleDB**;
 > **two** sites run real protocols (OpenPLC/Modbus + OPC-UA). Read this file only for narrative
 > background and original rationale. The charter governs.

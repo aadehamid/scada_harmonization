@@ -59,8 +59,8 @@ PINNED_FIXTURES: tuple[Path, ...] = (
 # record states what was true when it was written, so a figure in one is
 # history, not a claim about today, and `check` does not read it.
 #
-# HANDOFF.md is mostly dated session notes, so only its current-status section
-# is read — but it *is* read, because since the status was consolidated there,
+# HANDOFF.md owns current status; dated session notes live in docs/history.
+# Only its current-status section is read. Since status was consolidated there,
 # it is the one document that can go stale in a way the owner would act on.
 CURRENT_STATUS_DOCS: tuple[tuple[Path, str | None], ...] = (
     (REPO / "README.md", None),
@@ -111,7 +111,6 @@ EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
     # README no longer quotes the test count: it points at this tool instead,
     # so there is nothing there to go stale.
     "README.md": ("row count",),
-    "AGENTS.md": ("test count", "row count"),
     "tests/README.md": ("test count", "row count"),
     # Keyed by the section as well as the file, because the two HANDOFF
     # sections carry different figures. Requiring the wrong one would ask a

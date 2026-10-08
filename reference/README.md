@@ -2,7 +2,7 @@
 
 Superseded source documents and external references kept **for consultation, not as current scope**.
 The active, authoritative project definition is
-[`../design/PROJECT_CHARTER.md`](../design/PROJECT_CHARTER.md).
+[`../docs/LSC-001_Problem_Statement_and_Project_Charter.md`](../docs/LSC-001_Problem_Statement_and_Project_Charter.md).
 
 The two business-case folders originated as separate ER&I AI Innovation Challenge business cases. The
 reusable **technical patterns** in them have been extracted into the charter (§7); the business /
@@ -18,7 +18,7 @@ market / sales framing is **not** part of this project. Consult them only for th
 |--------|-----------|-----------------------------------------|
 | `docs/` | **ISHE** — Industrial Semantic Harmonization Engine (SCADA tag harmonization) | **Plane 1 (Harmonize):** canonical Pydantic model hierarchy, ISA-95 identity model, per-field lineage, transform primitives (unit/status/timestamp), and the in-memory UNS semantics used as a **reference spec / test oracle** for the real Sparkplug B UNS. |
 | `engineering_drawing_business_case/` | **EngiGraph** — engineering-drawing knowledge graph | **Plane 3 (Contextualize):** ISO 15926 / DEXPI ontology foundation, multi-level ontology architecture, node/edge vocabulary, GraphRAG pattern, and graph-algorithm use cases (isolation-path, centrality, impact analysis), and P&ID document extraction (in scope again from 2026-10-07). |
-| `enterprise_it_ot_deck/` | **External slide deck** — "Enterprise IT vs Manufacturing/OT" (third-party consulting material; drop the slide images here) | **The end-to-end walkthrough (Thread A):** the ten-handoff order-to-cash flow, the L0–L4 systems vocabulary (CRM/ERP/WMS/MES/SCADA/PLC…), integration pains, and organizational red flags. Used as the *transaction-thread* script in [`../design/E2E_WALKTHROUGH.md`](../design/E2E_WALKTHROUGH.md) — which adds the two threads the deck lacks (telemetry up, decision/control back). |
+| `enterprise_it_ot_deck/` | **External slide deck** — "Enterprise IT vs Manufacturing/OT" (third-party consulting material; drop the slide images here) | **The end-to-end walkthrough (Thread A):** the ten-handoff order-to-cash flow, the L0–L4 systems vocabulary (CRM/ERP/WMS/MES/SCADA/PLC…), integration pains, and organizational red flags. Used as the *transaction-thread* script in [`../docs/LSC-008_End_to_End_Walkthrough.md`](../docs/LSC-008_End_to_End_Walkthrough.md) — which adds the two threads the deck lacks (telemetry up, decision/control back). |
 
 > **Companion project (2026-10-07).** `aadehamid/Engineering_Drawing_to_Graph` is a **private**
 > repo by the same owner. It documents both routes to the engineering model — drawing extraction,

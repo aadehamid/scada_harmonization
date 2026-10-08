@@ -1,7 +1,7 @@
 # Python-Centric Sparkplug B UNS Notes
 
 > **⚠️ Archived vision note (pre-decision).** Superseded on decided items by
-> [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13 — e.g. historian = **TimescaleDB Community**
+> [`../LSC-001_Problem_Statement_and_Project_Charter.md`](../LSC-001_Problem_Statement_and_Project_Charter.md) §4/§12/§13 — e.g. historian = **TimescaleDB Community**
 > (not InfluxDB/QuestDB); broker = two-tier Mosquitto + EMQX; **PySparkplug is a candidate, not a
 > decided dependency** (Pre-Alpha status — verified in Phase 2, see charter §4.1 pinned stack).
 > The Python-centric *philosophy* itself remains adopted (charter §5/§9). The charter governs.

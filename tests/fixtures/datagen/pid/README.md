@@ -13,4 +13,4 @@ the row was rebuilt from the drawing + existing L0 names (TEP `xmeas_*` /
 `xmv_*`, `P-101`/`K-201` machine points, `xv_feed`). The Grok Bot
 `unit100_dexpi.json` / `tag_schedule.py` pack was not recovered.
 
-Record: `design/UNIT100_PID.md`.
+Record: `docs/LSC-007_Unit_100_Engineering_Record.md`.

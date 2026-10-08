@@ -1,0 +1,34 @@
+step	action	reason	evidence	state
+1	Read project rules and skills	Preserve project authority and batch scope	AGENTS, HANDOFF, charter, review standards, check script, project-discovery references	done
+2	Run baseline checks	Verify the starting checkout	scripts/check.sh: passed, including pytest and quoted figures	done
+3	Create docs/reorganize-project-documents	Keep authorized reorganization separate from existing guard work	git status and branch output	done
+4	Separate working rules and session history	Keep methods and dated evidence out of entry points	docs/WORKING_CONVENTIONS.md; docs/history/SESSION_LOG.md	done
+5	Inspect PPC at pinned revision	Use the owner-selected reference	01027a84be5d453cbb4e2ea091e4884729918b15; gh api tree and document reads	done
+6	Move existing documents and assets to docs	Keep a numbered package with archives separated	DOCUMENT_PATHS.md; charter numbering preserved	done
+7	Shorten entry points and create master and decision indexes	Replace copied definitions with ownership and navigation	README, AGENTS, LSC-000, LSC-REG-001	done
+8	Update links and figure-check expectations	Keep current references valid without mutable AGENTS counts	Package docstrings, tests, scripts/facts.py	done
+9	Verify paths, preserved records, and checks	Prove the reorganization is usable	Actual scripts/check.sh and hook passed; all local links resolve; charter changes are references only	done
+10	Review and open PR	Give the owner a concrete result to review	gpt-6-sol cleared ffc2c00; PR #54 opened on #53 base; local branch matches remote	done
+11	Pause and resume at owner request	Let the owner change execution permissions	Goal paused twice, then resumed with full filesystem access	done
+12	Verify a staged temporary checkout	Separate Git tracking failures from document defects while source metadata was read-only	/tmp/scada-doc-verification-8meu17cx/scripts/check.sh passed with writable uv cache	done
+13	Correct session-log migration provenance	Name the original HANDOFF source rather than an intermediate local path	Working-tree reviewer finding reproduced against git ls-tree HEAD	done
+14	Correct date-dependent handoff links and HTML labels	Keep navigation stable across status updates and names consistent	Independent working-tree review; local links and heading targets checked	done
+15	Prove hook rejection and restore input	A passing hook alone does not prove enforcement	README 58-name figure rejected, hook exit 1; original bytes restored	done
+16	Complete committed review	Review the exact branch before pushing	gpt-6-sol cleared ffc2c00 against 0b7a5a2; no material findings	done
+17	Push branch and open PR #54	Publish the authorized reviewable change without merging	https://github.com/aadehamid/scada_harmonization/pull/54; remote HEAD ffc2c00; clean tree	done
+18	Watch Cursor feedback and owner merge	Address findings and maintain the dependency on #53	PR #54 open; #52 and #53 also open at this entry	in progress
+19	Record content and stack clarifications	Reuse existing records and evaluate PPC choices before substitutes	Owner instructions quoted in DOCUMENTATION_REORGANIZATION.md	done
+20	Audit proposed subject guides for overlap	Avoid duplicating the approved charter	Two author agents recommended omitting seven redundant guide drafts	done
+21	Add source register and reference stack assessment	Fill interface/capture and component-comparison gaps	REG-002 and REF-001; cited primary sources; no installed components	done
+22	Rewrite domain narrative with clear-writing	Explain site divergence and distinguish fiction from implementation	LSC-002; same site roster and project boundaries	done
+23	Clarify PR merge responsibility	Apply latest owner instruction	PR reviewer merges; agents watch, fix, review, and push; no merges performed	done
+24	Reproduce PR #53 Cursor finding	Green checks do not supersede a substantive review blocker	Hostile HOME Git ignore hides untracked mutation; final fix d4cb05d independently cleared and pushed	done
+25	Address PR #54 Cursor history findings	Correct provenance and historical path policy	History header covers selected sections; code spans retain original paths; current links and pickup refer to HANDOFF	done
+26	Reconcile the reviewed guard fix into documentation branch	Keep parent fixes and relocated records without duplicated instructions	PR #53 head d4cb05d reviewed by gpt-6-sol and pushed; conflicts resolved by preserving short entry points and guard preparation history	done
+27	Push the independently reviewed documentation package	Deliver existing-doc organization and the two missing records	PR #54 head 4ee38f6; gpt-6-sol clear; 132 tests and pre-push hook pass; no unpushed commits at shipping	done
+28	Fix and push PR #52 source quotations	Address current Cursor feedback using actual historical sources	4e18bee independently cleared and pushed; 125 tests on that older branch; exact source statements restored	done
+29	Observe reviewer merge of PR #53 and retarget #54	Remove the completed parent dependency	Cursor merged #53 at 2026-10-08 04:56:35 UTC; fetched main c8c5cea; PR #54 now targets main	done
+30	Address the next PR #52 review finding	Name the cutoff rather than the earlier PR opening	Timing correction f4bd9ce independently cleared and pushed; Cursor merged PR #52 at 2026-10-08 05:06:14 UTC	done
+31	Correct PR #54 review-scope and attribution wording	Distinguish PR53 head from its main base and acknowledge targeted rewrites	Cursor current-head findings reproduced; handoff names 0b7a5a2 as then-head; record separates rewritten LSC002/003 from reference-only LSC004-010	done
+32	Record the repeated historical-review lesson in one home	Prevent quotations and relative time phrases from naming the wrong evidence	REVIEW_STANDARDS links actual PR #52 quotation and time-reference findings; code guard lessons remain in regression tests	done
+33	Reconcile the merged PR #52 session record	Preserve reviewed history while keeping current status short	Main 9755be9 fetched; exact f4bd9ce added session text relocated to docs/history/SESSION_LOG.md; HANDOFF conflict resolved by retained responsibilities	done

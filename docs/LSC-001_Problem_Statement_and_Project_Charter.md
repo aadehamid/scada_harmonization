@@ -160,13 +160,13 @@ These map onto the lab without changing the thesis — they sharpen *why* it mat
 
 | Real-world signal | Where it lives in the lab |
 |---|---|
-| same reality / different names; site & integrator variance | Plane 1 harmonization · `DOMAIN.md` divergence roster |
+| same reality / different names; site & integrator variance | Plane 1 harmonization · `LSC-002_Domain_Model.md` divergence roster |
 | fragmented, site-"owned" data; govern + reuse; data-marketplace/gatekeepers | governed data-product catalog — `metric_registry` (§4) |
 | days-to-data, manual historian pulls | automated pipelines (Phases 1–5) — the cost of *not* harmonizing |
 | pilots die at site two; models break when tags change | mapping table / `metric_registry` as the scaling mechanism; Phase 4a cross-source equivalence |
 | contextualize before models | Phase 0 spine before Sparkplug / Plane 4 |
 | HITL so expertise does not atrophy on novel failures | graded HITL §14 N30; model never actuates |
-| M&A footprint; ongoing SAP migration | acquisition backstory (`DOMAIN.md`); ERP-in-flux realism |
+| M&A footprint; ongoing SAP migration | acquisition backstory (`LSC-002_Domain_Model.md`); ERP-in-flux realism |
 | global **and** local requirements | two-tier broker — local site autonomy + central enterprise UNS (§4) |
 | yield improvement / production-leakage; edge + human-in-the-loop feedback | Plane 4 Track A flagship use case (§3, §6, §8) |
 | blend edge + historian + SAP; labs feed predictive models | IT/OT/ET fusion; LIMS as the lab leg of the IT source |
@@ -460,7 +460,7 @@ ISA-95 topics exist on the **enterprise tier as retained plain-MQTT republish**;
 tier is pure Sparkplug (`spBv1.0/...`, `group_id = lagos-chem:<site>`) — Sparkplug's fixed topic
 namespace cannot carry `lagos-chem/...` directly.
 
-> **Backstory:** see [`DOMAIN.md`](DOMAIN.md) — a Lagos-HQ specialty-chemicals firm that grew by
+> **Backstory:** see [`LSC-002_Domain_Model.md`](LSC-002_Domain_Model.md) — a Lagos-HQ specialty-chemicals firm that grew by
 > acquisition, which is *why* each site runs a different SCADA lineage. The narrative makes every
 > technical quirk below trace to a business event.
 
@@ -511,7 +511,7 @@ N17), a **per-site quality mapping** (N10), **`source_cadence`** (N8), **`interp
 (step | linear, N11), and **UNECE Rec 20 unit codes** (N18) — all frozen into the Phase 0 schema.
 **Build this table well and the rest is plumbing.**
 
-**Six implementation layers** (from `synthetic_data_generation_notes.md`):
+**Six implementation layers** (from `LSC-003_Synthetic_Data_Generation_Strategy.md`):
 1. Ingestion · 2. Augmentation · 3. PLC mapping · 4. Sparkplug · 5. Context export · 6. Replay/orchestration
 
 ### Synthetic transactional data (the IT leg)
@@ -670,15 +670,15 @@ runtime deps) plus the README-only directory structure landed early (PR #22,
 gated on the walkthrough. §8.1's Phase-0 exit criterion is still **not met**: Phase 0
 is open until that table validates.
 
-Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in design/PHASE1_L0_CONTRACT.md.
+Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (deterministic sequence + N8 clock). It does not require the mapping table or a `source_cadence` column. The Phase 1 L0 record and replay identity live in docs/LSC-004_Level_0_Contract.md.
 
-**Reality note (2026-08-19):** Phase 1 L0 code is on `main` (PR #28 wiring; #29 generators; #31 Polars; #33 1 s machine stream; #34 status sync; #35 Unit 100 one-pager; #36 mark). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). Hamid persist: warehouse is wide Parquet compressed with zstd on R2 `lagos-chem-l0` (ENAM), including the 9,600,000-row Faulty Testing native (758,943,582 bytes) and the rest of the warehouse (1,283,524,595 bytes). Raw stays on R2 (1,419,880,076 bytes, no csv). A history JSONL of 330,920,000 rows / 58,661,861,866 bytes was written and then deleted. 96 GiB was an estimate, never the warehouse. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series; the ~1 s class is the generated P-101 / K-201 stream. Land record: `design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`. Unit 100 P&ID Rev B one-pager + 59-name tag list: `design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build. This note does not rewrite N8.
+**Reality note (2026-08-19):** Phase 1 L0 code is on `main` (PR #28 wiring; #29 generators; #31 Polars; #33 1 s machine stream; #34 status sync; #35 Unit 100 one-pager; #36 mark). Runtime deps are polars + pydantic (Hamid lock: Polars replaces pandas for every tabular job). Hamid persist: warehouse is wide Parquet compressed with zstd on R2 `lagos-chem-l0` (ENAM), including the 9,600,000-row Faulty Testing native (758,943,582 bytes) and the rest of the warehouse (1,283,524,595 bytes). Raw stays on R2 (1,419,880,076 bytes, no csv). A history JSONL of 330,920,000 rows / 58,661,861,866 bytes was written and then deleted. 96 GiB was an estimate, never the warehouse. The Kaggle IIoT file is snapshot-per-machine, not a 1 s time series; the ~1 s class is the generated P-101 / K-201 stream. Land record: `docs/LSC-005_Phase_1_Data_Record.md`. Datasheet: `docs/LSC-006_Phase_1_Datasheet.md`. Unit 100 P&ID Rev B one-pager + 59-name tag list: `docs/LSC-007_Unit_100_Engineering_Record.md`. Walkthrough is parallel and does not gate build. This note does not rewrite N8.
 
 ### 8.1 Exit criteria (definition of done, per phase)
 
 | Phase | Done when |
 |-------|-----------|
-| **0** | Mapping-table YAML validates via Pydantic **including the §14 columns** (scaling N17, quality N10, `source_cadence` N8, `interpolation_type` N11, UNECE units N18); one measurement defined across all 4 sites; `LEARNING_LOG.md` growing |
+| **0** | Mapping-table YAML validates via Pydantic **including the §14 columns** (scaling N17, quality N10, `source_cadence` N8, `interpolation_type` N11, UNECE units N18); one measurement defined across all 4 sites; `LSC-010_Learning_Log.md` growing |
 | **1** | Deterministic replay (same seed → identical sequence); §14 N8 clock (simulated clock, speed factor, rebasing). L0 cache stores the friendly name (`source_column` is side metadata). Physical meaning and mapping-table `source_cadence` stay on Phase 0. |
 | **2** | `mosquitto_sub` shows NBIRTH/DBIRTH/NDATA matching the mapping table; Sparkplug library verified against spec behaviors incl. Templates (§4.1, §14 N7); Mosquitto authn + ACL enforced (a mis-scoped publish is rejected — §14 N22) |
 | **3** | Telemetry lands in the hypertable **idempotently** (double-replay proves no duplicates, §14 N9); Grafana reads continuous-aggregate rollups (§14 N11); alerting node implements the ISA-18.2 state machine and a TEP fault demonstrates a flood + shelving (§14 N20); Prometheus scraping the OT zone |
@@ -754,20 +754,20 @@ beyond ERPNext community.
 
 | Document | Role |
 |----------|------|
-| `design/PROJECT_CHARTER.md` | **This file — authoritative project definition** |
-| `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
-| `design/LEARNING_LOG.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
-| `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity (authoritative for ingest/augment/replay) |
-| `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin + assets) |
-| `design/PHASE1_DATASHEET.md` | Phase 1 local vs R2 datasheet (HTML twin) |
-| `design/UNIT100_PID.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
-| `design/E2E_WALKTHROUGH.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
-| `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — per-step status + resume prompt (not a design source) |
-| `design/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
-| `design/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
-| `design/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
-| `design/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
-| `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer pipeline |
+| `docs/LSC-001_Problem_Statement_and_Project_Charter.md` | **This file — authoritative project definition** |
+| `docs/LSC-002_Domain_Model.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the sites diverge) |
+| `docs/LSC-010_Learning_Log.md` | Learning log & glossary — durable concepts land here when teaching scaffolding is pruned |
+| `docs/LSC-004_Level_0_Contract.md` | Phase 1 L0 record + replay identity (authoritative for ingest/augment/replay) |
+| `docs/LSC-005_Phase_1_Data_Record.md` | Phase 1 land / persist / disk record (HTML twin + assets) |
+| `docs/LSC-006_Phase_1_Datasheet.md` | Phase 1 local vs R2 datasheet (HTML twin) |
+| `docs/LSC-007_Unit_100_Engineering_Record.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
+| `docs/LSC-008_End_to_End_Walkthrough.md` | End-to-end walkthrough guide — three threads (order · telemetry · control-back), deck coverage, describe-anyway list for consciously-omitted systems |
+| `docs/LSC-009_Walkthrough_Progress.md` | Live walkthrough cursor — per-step status + resume prompt (not a design source) |
+| `docs/archive/uns_home_lab_notes.md` | Vision & high-level scope *(archived vision note — superseded on decided items; see §4/§12/§13)* |
+| `docs/archive/hand_built_sparkplug_uns_notes.md` | Architecture option: hand-built *(archived — superseded on decided items)* |
+| `docs/archive/umh_anchored_sparkplug_uns_notes.md` | Architecture option: UMH-anchored (abstraction phase) *(archived — describes UMH Classic; adopted target = UMH Core, §12 #16)* |
+| `docs/archive/python_centric_uns_notes.md` | Implementation philosophy: Python-centric *(archived — superseded on decided items)* |
+| `docs/LSC-003_Synthetic_Data_Generation_Strategy.md` | Data strategy & the 6-layer pipeline |
 | `aadehamid/Engineering_Drawing_to_Graph` *(related private repo — not linkable from here)* | Companion project, same owner — engineering drawings and backend records to a maintained engineering graph. Adds the structured-backend route. The in-tree EngiGraph folder stays this repo's ET reference. |
 | `reference/docs/` *(local-only ref)* | Reference: ISHE harmonization patterns (Plane 1) |
 | `reference/engineering_drawing_business_case/` *(local-only ref)* | Reference: EngiGraph ontology/graph patterns (Plane 3) |
@@ -861,13 +861,13 @@ beyond ERPNext community.
     Work Order**, synced into `mes.production_order` (the plant's own key space — still deliberately
     misaligned), driving one `production_lot`; the thread closes with an ERPNext **Delivery Note +
     Sales Invoice**. Gives the lab all ten handoffs of the industry order thread (Thread A,
-    `design/E2E_WALKTHROUGH.md`) and makes ISA-95 L3↔L4 *schedule-down + performance-up*. Phase 5b
+    `docs/LSC-008_End_to_End_Walkthrough.md`) and makes ISA-95 L3↔L4 *schedule-down + performance-up*. Phase 5b
     scope (ERPNext-native, ~a day); §8.1 exit criteria updated. CRM stays out — the Sales Order is
     the lab's entry point.
 19. **No separate WMS** — **DECIDED (2026-07-06):** warehouse semantics are represented as **ERPNext
     stock movements + `mes.material_lot` staging/consumption events**, not a WMS system. A real WMS
     (bins, waves, pick paths, dock scheduling) is *described* in walkthroughs at its proper place
-    (Thread A steps 3 & 9, `design/E2E_WALKTHROUGH.md`) but adds no harmonization/contextualization
+    (Thread A steps 3 & 9, `docs/LSC-008_End_to_End_Walkthrough.md`) but adds no harmonization/contextualization
     lesson the lab doesn't already teach. Joins the §13.3 conscious-out list.
 20. **ET leg — synthesized topology vs. extracted drawings** — **DECIDED (2026-10-07):** the lab
     **builds the drawing-to-graph path**. The ET source is the Unit 100 P&ID (vector PDF, then

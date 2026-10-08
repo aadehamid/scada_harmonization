@@ -1,7 +1,7 @@
 # Learning Log — Industrial Data Harmonization Home Lab
 
 Durable concepts, gotchas, and glossary entries captured as the lab is designed and built.
-Per the build cadence (AGENTS.md → "How we work"), when a component's teaching scaffolding is
+Per the build cadence ([working conventions](WORKING_CONVENTIONS.md)), when a component's teaching scaffolding is
 pruned, the durable learning lands **here** so nothing is lost.
 
 **How to use:** add entries as concepts appear (walkthroughs, build sessions, debugging).
@@ -13,7 +13,7 @@ One `##` section per component/theme; glossary at the bottom, alphabetized, plai
 
 ### E2E walkthrough §0.1 — ISA-95 / IEC 62264 (the function & data lens; the lab's spine)
 
-*Captured 2026-07-11 during the Diagram 1 v2 walkthrough opener (E2E_WALKTHROUGH.md §0.1).*
+*Captured 2026-07-11 during the Diagram 1 v2 walkthrough opener ([LSC-008](LSC-008_End_to_End_Walkthrough.md) §0.1).*
 
 **What it is / isn't.** ISA-95 (US) = IEC 62264 (international twin, identical content) is the
 **enterprise–control-system integration standard**: a *functional and data* model for how business
@@ -67,8 +67,8 @@ performance up) — nothing about networks or security; those are Purdue and 624
 ### Phase 1 L0 — melt, cache, persist (2026-08-18)
 
 *Captured after PRs #28 (`8564fed`), #29 (`3039710`), #30, and #31 (`7da1621`).
-Full write-up: `design/PHASE1_SYNTHETIC_DATA.md`. Datasheet:
-`design/PHASE1_DATASHEET.md`. Contract: `design/PHASE1_L0_CONTRACT.md`.*
+Full write-up: `docs/LSC-005_Phase_1_Data_Record.md`. Datasheet:
+`docs/LSC-006_Phase_1_Datasheet.md`. Contract: `docs/LSC-004_Level_0_Contract.md`.*
 
 **What landed.** Polars melts wide Parquet on read into long L0 rows. pydantic
 freezes the L0 boundary. Replay identity is
@@ -91,7 +91,7 @@ melt fallback. N8 is not rewritten.
 `{machine_id}/{pv}`; identity is not an L0 PV. `uv run pytest` is 41 after the
 Unit 100 one-pager. TEP golden SHA unchanged. Machine-stream golden
 `84b9f088…2159f0`. Unit 100 P&ID Rev B one-pager + 59-name tag list:
-`design/UNIT100_PID.md`. Walkthrough is parallel and does not gate build.
+`docs/LSC-007_Unit_100_Engineering_Record.md`. Walkthrough is parallel and does not gate build.
 
 **Teach-back:** *"Phase 1 stores wide natives on R2 and melts them on read with
 Polars. The 1 s class is a generated machine stream. Hamid persists raw and
