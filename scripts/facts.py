@@ -190,8 +190,13 @@ def tests() -> dict[str, object]:
             # A config file's `addopts` are selection arguments too, and a local
             # `pytest.ini` naming one node id would make the suite total one.
             # `-o` overrides the ini option from the command line, where nothing
-            # in the file can outrank it. `testpaths` and the other settings
-            # still apply.
+            # in the file can outrank it.
+            #
+            # The discovery settings a repository keeps for itself — `testpaths`,
+            # `python_files` — are left alone: they are the repository's own
+            # definition of its suite, and `check` compares this figure against
+            # every document that quotes it, so a config that disagrees with the
+            # documents stops the push rather than passing quietly.
             "-o",
             "addopts=",
         ],

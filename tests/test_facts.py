@@ -84,6 +84,11 @@ def _scratch_env() -> dict[str, str]:
     author and a committer, and a developer whose git config has none — or a CI
     runner with none — would fail the test for a reason that has nothing to do
     with what it checks.
+
+    Signing is turned off for the same reason: a machine configured to sign
+    commits, and without the key, fails these throwaway commits. Configuration
+    given this way outranks the config files and replaces what the shell
+    injected, since `GIT_CONFIG_COUNT` cannot be appended to.
     """
     return {
         **facts._env(),
@@ -91,6 +96,9 @@ def _scratch_env() -> dict[str, str]:
         "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t",
         "GIT_COMMITTER_EMAIL": "t@t",
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "commit.gpgsign",
+        "GIT_CONFIG_VALUE_0": "false",
     }
 
 
@@ -264,20 +272,14 @@ def test_a_selection_in_the_config_cannot_shrink_the_suite(
     )
     (scratch / "pyproject.toml").write_text(
         '[project]\nname = "scratch"\nversion = "0"\nrequires-python = ">=3.13"\n'
-        '[dependency-groups]\ndev = ["pytest"]\n'
         '[tool.pytest.ini_options]\naddopts = "tests/test_a.py::test_one"\n',
         encoding="utf-8",
     )
-    # `--offline` because the wheel is in uv's cache already — the suite this
-    # test is part of is running on it — and a test that reaches the network is
-    # a test that fails when the network does.
-    subprocess.run(
-        ["uv", "sync", "--offline"],
-        cwd=scratch,
-        check=True,
-        capture_output=True,
-        env=facts._env(),
-    )
+    # The project has no dependencies on purpose. uv creates it an environment
+    # holding nothing, and `pytest` is the one this suite is running under, found
+    # on `PATH`; a project that depended on pytest would have uv resolve and
+    # install it, which needs a package cache and sometimes a network, and a test
+    # that needs either is a test that fails where they are absent.
 
     monkeypatch.setattr(facts, "REPO", scratch)
 
