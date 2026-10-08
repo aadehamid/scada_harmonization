@@ -12,14 +12,15 @@ an incident is a guess, and this file does not carry guesses.
 
 **Incident:** #43, #46, #47. `README.md`, `AGENTS.md` and `HANDOFF.md` each restated the current
 status, and drifted: they quoted `main` at two different commits while the truth was a third, and
-`HANDOFF.md`'s status table claimed 41 tests while the suite collected 85 on `main`. The 41 was
-correct before the figures tool added tests of its own (#46) and was never updated.
+`HANDOFF.md`'s status table still claimed 41 after the suite had grown past it: it collected 60
+when the figures tool was first written, 85 when #46 merged, and nothing updated the 41.
 
-The tool did not catch it. Its first run reported **34 tests**, read from a dated session note, and
-left the 41 in the status table untouched, because `scripts/facts.py check` did not treat
-`HANDOFF.md` as a current-status document. The pattern found a record and walked past the claim,
-which is why telling the two apart is this rule's job rather than the script's. #47 closes the hole
-from the other side: it makes §2 the status the check reads.
+The tool did not catch it, for two independent reasons. Its test-count comparison read three
+documents — `README.md`, `AGENTS.md` and `tests/README.md` — and not `HANDOFF.md`, which it read only
+for fixture pins, so the table's figure was compared with nothing. And its pattern wants a number
+followed by `tests` or `passed`, which the cell `| Tests | **41** (`uv run pytest`) |` is not, so the
+same stale figure would have survived being read. #47 closes the first of those: it points the count
+comparison at §2 of `HANDOFF.md`, and rewrites the cell into a form the pattern sees.
 
 #47 consolidates the status into `HANDOFF.md` §2 and points the other documents at it. **It is
 open, not merged** — treat the consolidation as pending until it lands, and read the copies on
@@ -49,22 +50,31 @@ missing, extend the tool — never count by hand, and never write a script for t
 
 ## A check that has never failed has not been tested
 
-**Incident:** #44 and #45. The working-tree guard passed all four of its stated claims while missing
-untracked file rewrites, a file named `-` (which `sha256sum` read as standard input), a dropped
-executable bit, and an index change. Each was found by breaking it on purpose after the fact, not
-before. A test can also pass for the wrong reason: one written `! docker compose up …` proved
-nothing, because the leading `!` is what kept it from being read as a digest, while the same command
-without the `!` was welded into `dockercomposeup…`, judged a pin, and failed the build
-(#46, `edcb364`).
+**Incident:** #44 and #45. The working-tree guard passed its stated claims while missing three
+changes: an untracked file rewritten, which the status line reports by path while its bytes were
+never hashed; a file named `-`, which `sha256sum` read as standard input even after `--`; and a
+staged blob swapped with the working file untouched, where the status string stayed `MM`. Each was
+found by breaking the guard on purpose after the fact, not before, and the first repair brought a
+fourth of its own — the next rule. A test can also pass for the wrong reason: one written
+`! docker compose up …` proved nothing, because the leading `!` is what kept it from being read as a
+digest, while the same command without the `!` was welded into `dockercomposeup…`, judged a pin, and
+failed the build (#46, `edcb364`).
 
 ## Fixing a finding can introduce the next one
 
-**Incident:** #45. Fixing the untracked-file hole in the working-tree guard introduced two more:
-dropping git's status snapshot hid mode changes, and the replacement lost index blob ids. Both were
-caught only by re-reviewing the fixed diff. Re-run the independent review after a fix, before
-pushing it.
+**Incident:** #45. The first repair of the untracked-file hole dropped git's status line from the
+snapshot, which hid mode changes: removing the execute bit from `scripts/hooks/pre-push` left every
+content hash unchanged, and git skips a non-executable hook without a word. The second pass put the
+status line back and added `git ls-files --stage`, which the guard had never stored, so a staged
+blob could change with the worktree untouched. Both were caught by re-reviewing the fixed diff.
+Re-run the independent review after a fix, before pushing it.
 
 ## Done when
 
 Every finding in a review is either fixed or answered on the pull request, and the answer says which
 it is. A finding accepted without reproducing it is a guess, and becomes a wrong change.
+
+**Incident:** #48, on this file's first draft. Three of its incidents were written from memory and
+attributed the wrong evidence: the tool was blamed for a record it never read, the guard for a blind
+spot its own status line already covered, and the repair for losing blob ids it had never stored.
+Each was rewritten only after running the command that showed what happened.
