@@ -149,7 +149,8 @@ merge:
   the incident that taught it. It was open when this note was last edited.
 
 Every finding from every review round on both branches was fixed, or answered on the pull request,
-and the reply says which. One check stayed unproven, and #47 records it:
+and the reply says which, as of this note's last edit. Both were still open when the session ended,
+and an open pull request takes findings after the note that describes it. One check stayed unproven, and #47 records it:
 `PYTEST_DISABLE_PLUGIN_AUTOLOAD` changes nothing unless the environment installs a pytest plugin,
 so no test could exercise it.
 
