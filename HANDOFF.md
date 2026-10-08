@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-10-07 (ET leg now in scope — drawing-to-graph build; Phase 5b split; mapping spine still next)
+**Last updated:** 2026-10-08 (documentation batch; mapping spine remains the next build slice)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
@@ -13,7 +13,7 @@ The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
 [The project charter](docs/LSC-001_Problem_Statement_and_Project_Charter.md)
 defines the project. This file owns continuity and current status.
 
-## 2. Current status (2026-10-07)
+## 2. Current status (2026-10-08)
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
@@ -134,10 +134,9 @@ PR #53's then-head `0b7a5a2`. Later exact-commit verdicts are posted on #54.
 Checks and the pre-push hook passed; a planted incorrect schedule figure also
 proved hook rejection before restoration.
 
-PR #53's reviewed Git-ignore fix is on main. PR #52's historical session record
-is being reviewed separately; `gh pr view 52` reports its current state. Reconcile
-that record into session history before releasing #54's draft. The PR reviewer
-owns merging. The documentation author watches reviews and pushes checked fixes.
+PR #53's reviewed Git-ignore fix is on main. Cursor merged PR #52 at 2026-10-08
+05:06:14 UTC. Its reviewed session note is preserved in session history. The PR
+reviewer owns merging. The documentation author watches reviews and pushes checked fixes.
 
 ### Decision authority
 
