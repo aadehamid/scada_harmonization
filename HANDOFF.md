@@ -113,38 +113,31 @@ instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
 
-### Documentation reorganization in progress
+### Documentation reorganization
 
-The owner authorized batch reorganization and document streamlining. Work is
-on `docs/reorganize-project-documents`, based on the existing guard-fix
-branch. PRs #52 and #53 were open at inspection. The reorganization is pending in
-[PR #54](https://github.com/aadehamid/scada_harmonization/pull/54), initially based
-on #53. Cursor merged #53 at 2026-10-08 04:56:35 UTC; PR #54 now targets main.
+The documentation batch is tracked in
+[PR #54](https://github.com/aadehamid/scada_harmonization/pull/54).
+It used `docs/reorganize-project-documents`, initially based on PR #53.
+Cursor merged #53 at 2026-10-08 04:56:35 UTC, and #54 was retargeted to main.
+Use `gh pr view 54` for its current review and merge state.
 
-The original collaboration rules now live in
-[docs/WORKING_CONVENTIONS.md](docs/WORKING_CONVENTIONS.md). Dated session notes
-and their recorded Git state were extracted into
-[docs/history/SESSION_LOG.md](docs/history/SESSION_LOG.md).
-The batch scope, reference revision, evidence, and next action are in
-[docs/DOCUMENTATION_REORGANIZATION.md](docs/DOCUMENTATION_REORGANIZATION.md).
+The [master index](docs/LSC-000_Master_Index.md) owns navigation. Working rules
+are in [working conventions](docs/WORKING_CONVENTIONS.md), and dated sessions
+are in [session history](docs/history/SESSION_LOG.md). The charter remains the
+governing design. Two new records fill source/interface and technology-reuse gaps;
+redundant subject guides were omitted after an overlap audit.
 
-The actual-checkout `scripts/check.sh` and pre-push hook passed. The hook also
-rejected a deliberately incorrect schedule figure, which was restored. Working-tree
-review findings were corrected. A separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
-PR #53's then-head, `0b7a5a2`. The branch was pushed and PR #54 opened. Cursor feedback and
-reviewer merge remain pending for #54. Keep the branch fully pushed before
-reporting readiness. Reconcile #52's session record before releasing the draft.
+The [batch record](docs/DOCUMENTATION_REORGANIZATION.md) and
+[running log](docs/REORGANIZATION_LOG.tsv) hold authorization, evidence, and
+review history. The separate gpt-6-sol reviewer first cleared `ffc2c00` against
+PR #53's then-head `0b7a5a2`. Later exact-commit verdicts are posted on #54.
+Checks and the pre-push hook passed; a planted incorrect schedule figure also
+proved hook rejection before restoration.
 
-The owner expanded the documentation batch to sensible PPC stack reuse, targeted
-rewrites, and missing documents. The branch now includes a source/integration
-register and a technology reuse assessment. Redundant subject guides were omitted
-after an overlap audit. These follow-up changes are proposed for PR #54; its review records identify
-the reviewed version.
-The owner clarified that the PR reviewer merges; agents watch and address feedback.
-PR #53 has reproduced Cursor findings involving HOME-based Git ignores. Its
-fix was independently cleared at `d4cb05d`, pushed, and merged by Cursor. Its
-regression tests are now on main. PR #52 has a remaining time-reference finding
-under repair on its own branch. The PR reviewer owns merging. The documentation author does not merge PRs.
+PR #53's reviewed Git-ignore fix is on main. PR #52's historical session record
+is being reviewed separately; `gh pr view 52` reports its current state. Reconcile
+that record into session history before releasing #54's draft. The PR reviewer
+owns merging. The documentation author watches reviews and pushes checked fixes.
 
 ### Decision authority
 

@@ -1,7 +1,8 @@
 # Documentation reorganization record
 
-Status: reorganization proposed in [PR #54](https://github.com/aadehamid/scada_harmonization/pull/54). Not merged.
-Review and shipping evidence is recorded below as it becomes available.
+Status: documentation batch developed in [PR #54](https://github.com/aadehamid/scada_harmonization/pull/54).
+GitHub records its current review and merge state. New component proposals remain
+phase-gated. Review and shipping evidence is recorded below.
 
 ## Authorization
 
