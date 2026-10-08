@@ -1,0 +1,193 @@
+"""The working-tree guard in scripts/check.sh.
+
+The guard is what stops a check from passing by editing the tree it checks, so
+its own failure modes need proving. Each test below fails when the line that
+answers it is removed from the script:
+
+* a path the guard could not read was skipped instead of stopping the snapshot,
+  so a file at mode 000 could be rewritten under it and the state never moved;
+* the guard inherited the caller's environment, so `GIT_DIR` with `GIT_WORK_TREE`
+  pointed it at another repository, where its snapshot collapsed to the hash of
+  the empty string, while the checks still ran here.
+
+The script is copied into a throwaway repository rather than run in this one: it
+runs uv, ruff and pytest, which a test cannot start from inside the suite.
+`--tree-state` asks the guard for its snapshot and stops before any check.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from tests.test_facts import _scratch_env
+
+REPO = Path(__file__).resolve().parent.parent
+CHECK_SH = REPO / "scripts" / "check.sh"
+STATE = re.compile(r"^tree_state: ([0-9a-f]{64})$", re.MULTILINE)
+
+
+def _repo(tmp_path: Path, name: str) -> Path:
+    """A throwaway repository holding a copy of the real check script.
+
+    Copied rather than written out here, so the tests follow the script itself
+    instead of a paraphrase of it that drifts from it.
+    """
+    repo = tmp_path / name
+    (repo / "scripts").mkdir(parents=True)
+    shutil.copy2(CHECK_SH, repo / "scripts" / "check.sh")
+    env = _scratch_env()
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, env=env)
+
+    git("init", "-q", "-b", "main")
+    git("add", "-A")
+    git("commit", "-q", "-m", "the scratch repo")
+    return repo
+
+
+def _tree_state(
+    repo: Path, extra_env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Ask the guard for its snapshot, run from outside the repository.
+
+    The environment starts from the tests' own git environment, which already
+    has the redirecting names cleared, so what a test sets here is the only
+    redirection in play.
+    """
+    return subprocess.run(
+        ["bash", str(repo / "scripts" / "check.sh"), "--tree-state"],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={**_scratch_env(), **(extra_env or {})},
+    )
+
+
+def _state(result: subprocess.CompletedProcess[str]) -> str:
+    found = STATE.search(result.stdout)
+    assert found, f"no snapshot in stdout: {result.stdout!r} stderr: {result.stderr!r}"
+    return found.group(1)
+
+
+def test_the_guard_snapshots_the_tree_it_is_run_in(tmp_path: Path) -> None:
+    """The harness, and the property the rest rests on: the value moves."""
+    repo = _repo(tmp_path, "repo")
+    result = _tree_state(repo)
+    assert result.returncode == 0, result.stderr
+    before = _state(result)
+
+    (repo / "new-file").write_text("written after the snapshot\n")
+    assert _state(_tree_state(repo)) != before, "an edit left the snapshot where it was"
+
+
+def test_a_path_the_guard_cannot_read_stops_it(tmp_path: Path) -> None:
+    """A skipped read is worse than a failed one: the path leaves both snapshots.
+
+    A path missing from the before and after snapshots compares equal, so a check
+    that rewrote a file the guard could not read would still pass.
+    """
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 file, so the read cannot fail")
+
+    repo = _repo(tmp_path, "repo")
+    secret = repo / "secret"
+    secret.write_text("first\n")
+    secret.chmod(0)
+    try:
+        result = _tree_state(repo)
+    finally:
+        secret.chmod(0o600)
+
+    assert result.returncode != 0
+    assert "could not be hashed" in result.stderr
+
+
+def test_a_caller_cannot_point_the_guard_at_another_repository(tmp_path: Path) -> None:
+    """`GIT_DIR` and `GIT_WORK_TREE` are what an inherited environment gives it.
+
+    Under both, the snapshot is the hash of nothing at all, and the guard passes
+    for any change to this tree.
+    """
+    here = _repo(tmp_path, "here")
+    (here / "here-only").write_text("one\n")
+    elsewhere = _repo(tmp_path, "elsewhere")
+    (elsewhere / "there-only").write_text("two\n")
+
+    clean = _state(_tree_state(here))
+    assert clean != _state(_tree_state(elsewhere)), "the two scratch trees are not different"
+
+    redirected = _tree_state(
+        here, {"GIT_DIR": str(elsewhere / ".git"), "GIT_WORK_TREE": str(elsewhere)}
+    )
+    assert redirected.returncode == 0, redirected.stderr
+    assert _state(redirected) == clean
+
+
+def test_a_caller_cannot_hide_a_path_with_injected_config(tmp_path: Path) -> None:
+    """`GIT_CONFIG_PARAMETERS` outranks every config file, and can set an ignore.
+
+    `core.excludesFile` from the environment takes an untracked path out of
+    `--exclude-standard`, so the path leaves both snapshots and an edit to it
+    would compare equal.
+    """
+    repo = _repo(tmp_path, "repo")
+    (repo / "probe").write_text("content\n")
+    ignore = tmp_path / "ignore"
+    ignore.write_text("probe\n")
+    clean = _state(_tree_state(repo))
+
+    hidden = _tree_state(
+        repo,
+        {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.excludesFile",
+            "GIT_CONFIG_VALUE_0": str(ignore),
+        },
+    )
+    assert hidden.returncode == 0, hidden.stderr
+    assert _state(hidden) == clean
+
+
+def test_a_caller_cannot_answer_for_git(tmp_path: Path) -> None:
+    """The drop list is not the whole defence, and this is what the rest is for.
+
+    A shell function exported as `git` answers every command the guard runs, and
+    no list of variable names covers it. So the guard asks git which repository
+    it is reading, and refuses when the answer is some other one.
+    """
+    repo = _repo(tmp_path, "repo")
+    result = _tree_state(repo, {"BASH_FUNC_git%%": "() { echo /elsewhere; }"})
+
+    assert result.returncode != 0
+    assert "points git elsewhere" in result.stderr
+
+
+def test_the_guard_names_the_variables_it_dropped(tmp_path: Path) -> None:
+    """The uv names need this test: a snapshot runs no check, so nothing else reaches them.
+
+    `UV_WORKING_DIR` takes `uv run` out of the project altogether and
+    `PYTEST_ADDOPTS` selects part of the suite, so both are dropped before a
+    check runs.
+    """
+    repo = _repo(tmp_path, "repo")
+    result = _tree_state(
+        repo,
+        {
+            "UV_WORKING_DIR": "/nowhere",
+            "UV_PROJECT": "/nowhere",
+            "PYTEST_ADDOPTS": "-k nothing",
+            "PYTHONPATH": "/nowhere",
+        },
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "ignoring from the caller's environment" in result.stderr
+    for name in ("UV_WORKING_DIR", "UV_PROJECT", "PYTEST_ADDOPTS", "PYTHONPATH"):
+        assert name in result.stderr
