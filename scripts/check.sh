@@ -35,12 +35,16 @@ set -euo pipefail
 #
 # Kept, because no check can find them for itself: `PATH`, which is how the
 # tools are found; `HOME`, under which uv keeps its cache and its Python
-# installs and git reads its user configuration; `TMPDIR`, which a check may
+# installs; `TMPDIR`, which a check may
 # write through; and the locale, which decides how output is encoded. A CI run
-# has those four as well, so a local run and a CI run see the same things.
+# supplies those four too. Their values can differ between machines.
 # Anything else a check needs belongs in the repository's own configuration —
 # `pyproject.toml`, `uv.toml`, `ty.toml` — which both runs read, and not in the
 # caller's shell, which only one of them has.
+# Git's global configuration is fixed separately. A core.excludesFile in
+# HOME/.gitconfig hid an untracked file that a check edited, so both snapshots
+# omitted it and the guard passed (PR #53). HOME remains available to uv.
+# Repository and system ignore rules still define the non-ignored scope below.
 #
 # Two defences live past this, because no environment reaches them. Every
 # `uv run` below carries `--no-env-file`: a `pyproject.toml` or a `uv.toml` can
@@ -60,7 +64,7 @@ if [ "${1:-}" != "--env-built" ]; then
   # The `cd` runs in a subshell, so it names this script without moving the
   # shell that is about to be replaced by it.
   self="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
-  fixed=(env -i "PATH=$PATH")
+  fixed=(env -i "PATH=$PATH" "GIT_CONFIG_GLOBAL=/dev/null")
   # Only a name that is set is passed on: an empty `HOME` is worse than none,
   # since uv would then look for its cache under the filesystem root.
   for name in HOME TMPDIR LANG LC_ALL LC_CTYPE; do

@@ -79,6 +79,7 @@ CHECK_ENV_ALLOWED = (
     "LANG",
     "LC_ALL",
     "LC_CTYPE",
+    "GIT_CONFIG_GLOBAL",
 )
 BASH_OWN_NAMES = ("PWD", "SHLVL", "OLDPWD", "_")
 
@@ -94,7 +95,6 @@ HOSTILE_CALLER_ENV = (
     "GIT_NAMESPACE",
     "GIT_CONFIG_PARAMETERS",
     "GIT_CONFIG_COUNT",
-    "GIT_CONFIG_GLOBAL",
     "GIT_CONFIG_SYSTEM",
     "PYTEST_ADDOPTS",
     "PYTEST_PLUGINS",
@@ -137,9 +137,8 @@ def _tree_state(
 
     What is passed in `env` is a caller's environment, and the guard rebuilds it
     before doing anything: only `PATH`, `HOME`, `TMPDIR` and the locale survive.
-    `HOME` is one of those and git reads the user's configuration under it, so it
-    is pointed at an empty directory. Without that, the machine's own git
-    configuration would decide what the scratch snapshots hold.
+    The guard fixes GIT_CONFIG_GLOBAL to /dev/null, so HOME remains available
+    to uv without letting the user's global ignores decide the snapshot.
     """
     home = repo.parent / "home"
     home.mkdir(exist_ok=True)
@@ -533,6 +532,10 @@ for name in {" ".join(HOSTILE_CALLER_ENV)}; do
     exit 3
   fi
 done
+if [ "${{GIT_CONFIG_GLOBAL:-}}" != /dev/null ]; then
+  echo >&2 "git's global configuration was not fixed"
+  exit 8
+fi
 for name in PATH HOME; do
   if [ -z "${{!name:-}}" ]; then
     echo >&2 "the guard did not pass on $name"
@@ -558,6 +561,7 @@ exit 0
             **_scratch_env(),
             **_path_env(stub_dir),
             **dict.fromkeys(HOSTILE_CALLER_ENV, "/nowhere"),
+            "GIT_CONFIG_GLOBAL": "/nowhere",
         },
     )
 
@@ -584,6 +588,31 @@ def test_a_check_that_edits_the_tree_is_refused(tmp_path: Path) -> None:
         env={**_scratch_env(), **_path_env(stub_dir)},
     )
 
+    assert result.returncode != 0, result.stdout
+    assert "the checks changed the working tree" in result.stderr, result.stderr
+
+
+def test_a_check_cannot_hide_its_edit_with_the_callers_home(tmp_path: Path) -> None:
+    """A global ignore in HOME must not hide a check's untracked-file edit."""
+    repo = _repo(tmp_path, "repo")
+    probe = repo / "other"
+    probe.write_text("original\n")
+    home = tmp_path / "hostile-home"
+    home.mkdir()
+    ignore = home / "ignore"
+    ignore.write_text("other\n")
+    (home / ".gitconfig").write_text(f"[core]\n\texcludesFile = {ignore}\n")
+    stub_dir = _stub(tmp_path, "uv", 'echo "leaked" >> other\nexit 0\n')
+
+    result = subprocess.run(
+        [BASH, str(repo / "scripts" / "check.sh")],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={**_scratch_env(), **_path_env(stub_dir), "HOME": str(home)},
+    )
+
+    assert "leaked" in probe.read_text(), "the check did not perform the planted edit"
     assert result.returncode != 0, result.stdout
     assert "the checks changed the working tree" in result.stderr, result.stderr
 

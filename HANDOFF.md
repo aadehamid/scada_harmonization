@@ -97,7 +97,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
-| Tests | **127 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
+| Tests | **128 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
@@ -829,6 +829,18 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 ---
 
 ## 6. No open blocking questions
+
+### Guard review follow-up, 2026-10-08
+
+PR #53 remains pending review. Cursor reproduced a global ignore under the caller's
+HOME hiding an untracked file that a check edited. The fixed environment now sets
+GIT_CONFIG_GLOBAL=/dev/null while preserving HOME for uv. The regression first
+failed because the guard printed "All checks passed" after the planted edit.
+It now requires the guard to refuse that same run. The original PR records Hamid's
+authorization, "go ahead with the follow-up"; this repair stays within that concern.
+Repository and system ignore rules still define the guard's non-ignored scope.
+The next action is independent review of this commit, then a checked push to the
+existing PR. The Cursor reviewer owns merging. No runtime or phase decision changes.
 
 **Next build = mapping-table spine** (`xmeas_7` / `PT-101` × 4 sites, YAML).
 P&ID extra pages are an owner-triggered drawing lap (§2.1 / §3), not a gate
