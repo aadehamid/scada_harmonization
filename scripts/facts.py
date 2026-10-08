@@ -585,83 +585,64 @@ class _HTMLNavigation(HTMLParser):
                 self.links.append((self.getpos()[0], value))
 
 
-def _without_markdown_code(text: str) -> str:
-    """Mask examples, preserving offsets and line numbers for diagnostics."""
-    lines = text.splitlines(keepends=True)
-    fence: str | None = None
-    for index, line in enumerate(lines):
-        marker = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
-        in_fence = fence is not None
-        if marker:
-            token = marker.group(1)
-            if fence is None:
-                fence = token
-            elif (
-                token[0] == fence[0]
-                and len(token) >= len(fence)
-                and not line[marker.end() :].strip()
-            ):
-                fence = None
-        if marker or in_fence or line.startswith("    ") or line.startswith("\t"):
-            lines[index] = re.sub(r"[^\n]", " ", line)
-    masked = "".join(lines)
-    masked = re.sub(r"(`+)(.*?)\1", lambda m: re.sub(r"[^\n]", " ", m[0]), masked, flags=re.DOTALL)
-    return re.sub(r"<!--.*?-->", lambda m: re.sub(r"[^\n]", " ", m[0]), masked, flags=re.DOTALL)
-
-
 def _markdown_links(text: str) -> list[tuple[int, str]]:
-    """Inline and reference links/images in the repository's Markdown dialect."""
-    visible = _without_markdown_code(text)
+    """Read navigation from parsed tokens, keeping HTML attributes separate."""
+    from markdown_it import MarkdownIt
+
+    environment: dict = {}
+    tokens = MarkdownIt("commonmark").enable("table").parse(text, environment)
     links: list[tuple[int, str]] = []
-    # A destination needs a real label, with paired, unescaped brackets.
-    # Skipping escaped characters also preserves even backslash parity.
-    label_depth = 0
-    closers: set[int] = set()
-    index = 0
-    while index < len(visible):
-        char = visible[index]
-        if char == "\\":
-            index += 2
-            continue
-        if char == "[":
-            label_depth += 1
-        elif char == "]" and label_depth:
-            label_depth -= 1
-            closers.add(index)
-        index += 1
-    # Balanced parentheses allow file names and external URLs with parentheses.
-    inline = re.compile(r"\]\(\s*(<[^>\n]+>|(?:[^\s()\\]|\\.|\([^()]*\))+)")
-    for match in inline.finditer(visible):
-        if match.start() not in closers:
-            continue
-        target = match[1].strip("<>")
-        target = re.sub(r"\\([\\() ])", r"\1", target)
-        links.append((visible.count("\n", 0, match.start()) + 1, target))
-    # Definitions are checked directly, including unused ones; the renderer may
-    # turn a later reference into a link without changing the definition.
-    for match in re.finditer(r"^ {0,3}\[[^]\n]+\]:\s*(<[^>\n]+>|\S+)", visible, re.MULTILINE):
-        links.append((visible.count("\n", 0, match.start()) + 1, match[1].strip("<>")))
-    html = _HTMLNavigation()
-    html.feed(visible)
-    return links + html.links
+    for token in tokens:
+        line = token.map[0] + 1 if token.map else 1
+        if token.type == "html_block":
+            parser = _HTMLNavigation()
+            parser.feed(token.content)
+            links.extend((line + n - 1, target) for n, target in parser.links)
+        elif token.type == "inline":
+            for child in token.children or []:
+                if child.type in {"link_open", "image"}:
+                    target = child.attrGet("href" if child.type == "link_open" else "src")
+                    if isinstance(target, str):
+                        links.append((line, target))
+                elif child.type == "html_inline":
+                    parser = _HTMLNavigation()
+                    parser.feed(child.content)
+                    links.extend((line + n - 1, target) for n, target in parser.links)
+                if child.type in {"softbreak", "hardbreak"}:
+                    line += 1
+                else:
+                    line += child.content.count("\n")
+    # A definition may become navigation when a later reference is added.
+    for reference in environment.get("references", {}).values():
+        links.append((reference["map"][0] + 1, reference["href"]))
+    return list(dict.fromkeys(links))
 
 
 def _anchors(path: Path) -> set[str]:
     text = path.read_text(encoding="utf-8")
-    html = _HTMLNavigation()
-    html.feed(text if path.suffix.lower() == ".html" else _without_markdown_code(text))
-    anchors = html.anchors
-    if path.suffix.lower() != ".md":
-        return anchors
-    # Preserve inline code text in headings: GitHub includes it in the slug.
-    visible = _without_markdown_code(text)
+    parser = _HTMLNavigation()
+    if path.suffix.lower() == ".html":
+        parser.feed(text)
+        return parser.anchors
+    from markdown_it import MarkdownIt
+
+    markdown = MarkdownIt("commonmark").enable("table")
+    parser.feed(markdown.render(text))
+    anchors = parser.anchors
     used: set[str] = set()
-    for original, masked in zip(text.splitlines(), visible.splitlines(), strict=True):
-        if not re.match(r"^ {0,3}#{1,6}\s", masked):
+    tokens = markdown.parse(text)
+    for index, token in enumerate(tokens):
+        if token.type != "heading_open":
             continue
-        title = re.sub(r"^ {0,3}#{1,6}\s+|\s+#+\s*$", "", original)
-        title = re.sub(r"\[([^]]+)\]\([^)]*\)", r"\1", title)
-        title = unescape(re.sub(r"<[^>]+>", "", title)).lower()
+        # Inline text/code carries heading words; markup and HTML tags do not.
+        title = "".join(
+            child.content
+            if child.type in {"text", "code_inline", "image"}
+            else " "
+            if child.type in {"softbreak", "hardbreak"}
+            else ""
+            for child in tokens[index + 1].children or []
+        ).lower()
         slug = "".join(c for c in title if c in "-_ " or unicodedata.category(c)[0] in "LN")
         slug = slug.replace(" ", "-")
         candidate = slug

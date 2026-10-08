@@ -20,6 +20,8 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    # markdown-it-py: parse document navigation instead of guessing Markdown syntax.
+    "markdown-it-py>=4.2.0",
     "pytest>=9.1.1",
     "ruff>=0.15.20",
     "ty>=0.0.72",

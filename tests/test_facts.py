@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 165
+EXPECTED_TESTS = 172
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -919,6 +919,7 @@ def test_check_exits_non_zero_on_a_problem(monkeypatch: pytest.MonkeyPatch, comm
     [
         ("[target](target.md#hello-world)\n", None),
         ("[duplicate](target.md#hello-world-1)\n", None),
+        ("[setext](target.md#setext-heading)\n", None),
         ("[code heading](target.md#metric-id)\n", None),
         ("[unicode](target.md#déjà-vu)\n", None),
         ("![asset](image.png)\n", None),
@@ -940,7 +941,9 @@ def test_check_exits_non_zero_on_a_problem(monkeypatch: pytest.MonkeyPatch, comm
 def test_document_navigation(tmp_path: Path, body: str, expected: str | None) -> None:
     source = tmp_path / "source.md"
     source.write_text(body)
-    (tmp_path / "target.md").write_text("# Hello world\n# Hello world\n# `Metric` ID\n# Déjà vu\n")
+    (tmp_path / "target.md").write_text(
+        "# Hello world\n# Hello world\n# `Metric` ID\n# Déjà vu\n\nSetext heading\n---\n"
+    )
     (tmp_path / "target.html").write_text('<h1 id="explicit">Heading</h1>')
     (tmp_path / "image.png").write_bytes(b"image")
     (tmp_path / "file with spaces.md").write_text("# Space")
@@ -1024,3 +1027,27 @@ def test_navigation_preserves_real_links_with_label_punctuation(tmp_path: Path, 
     problems = facts.links([source], root=tmp_path)
     assert len(problems) == 1
     assert problems[0].detail == "missing local target: missing.md"
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        ('<span title="[example](missing.md)">shown</span>', None),
+        ('<span title="![example](missing.md)">shown</span>', None),
+        ('<span title="literal">[example](missing.md)</span>', "missing local target"),
+        ("<code>[example](missing.md)</code>", "missing local target"),
+        ('<a href="missing.md" title="[example](missing.md)">shown</a>', "missing local target"),
+        ('<img src="missing.md" alt="[example](missing.md)">', "missing local target"),
+    ],
+)
+def test_navigation_separates_html_attributes_and_markdown_content(
+    tmp_path: Path, body: str, expected: str | None
+) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    problems = facts.links([source], root=tmp_path)
+    if expected is None:
+        assert problems == []
+    else:
+        assert len(problems) == 1
+        assert problems[0].detail == "missing local target: missing.md"
