@@ -16,15 +16,17 @@ status, and drifted: they quoted `main` at two different commits while the truth
 when the figures tool was first written, 85 when #46 merged, and nothing updated the 41.
 
 The tool did not catch it, for two independent reasons. Its test-count comparison read three
-documents — `README.md`, `AGENTS.md` and `tests/README.md` — and not `HANDOFF.md`, which it read only
-for fixture pins, so the table's figure was compared with nothing. And its pattern wants a number
-followed by `tests` or `passed`, which the cell `| Tests | **41** (`uv run pytest`) |` is not, so the
-same stale figure would have survived being read. #47 closes the first of those: it points the count
-comparison at §2 of `HANDOFF.md`, and rewrites the cell into a form the pattern sees.
+documents — `README.md`, `AGENTS.md` and `tests/README.md` — and not `HANDOFF.md`, so the table's
+figure was compared with nothing. The tool did open that file: `status_claims()` and the pin scan
+both walk every tracked Markdown file, and `HANDOFF.md` is in both. Neither of them judges a test
+count inside it, which is the part that matters. And its pattern wants a number followed by `tests`
+or `passed`, which the cell `| Tests | **41** (`uv run pytest`) |` is not, so the same stale figure
+would have survived being read. #47 closed the first of those: it points the count comparison at
+§2 of `HANDOFF.md`, and rewrites the cell into a form the pattern sees.
 
-#47 consolidates the status into `HANDOFF.md` §2 and points the other documents at it. **It is
-open, not merged** — treat the consolidation as pending until it lands, and read the copies on
-`main` as still authoritative until then.
+**#47 landed the consolidation.** `HANDOFF.md` §2 is the only place the status lives, and
+`README.md` and `AGENTS.md` point at it rather than restating it. `scripts/facts.py check` reads
+that section, so a stale figure in the one place a reader acts on now fails the build.
 
 A dated session note or a phase record that names the commit it was written at is **history**, and
 is correct as written. Do not "fix" it. `scripts/facts.py status` lists every such claim; deciding
