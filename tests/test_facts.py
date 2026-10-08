@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 85
+EXPECTED_TESTS = 107
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -39,7 +40,7 @@ def _tree_state() -> str:
     """Content hash of every tracked file, plus untracked presence."""
     parts: list[str] = []
     for name in subprocess.run(
-        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True
+        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True, env=facts._env()
     ).stdout.splitlines():
         parts.append(hashlib.sha256((REPO / name).read_bytes()).hexdigest())
     status = subprocess.run(
@@ -48,6 +49,7 @@ def _tree_state() -> str:
         capture_output=True,
         text=True,
         check=True,
+        env=facts._env(),
     ).stdout
     return hashlib.sha256(("".join(parts) + status).encode()).hexdigest()
 
@@ -68,6 +70,477 @@ def test_test_count_is_pinned() -> None:
     assert per_file, "no test files reported"
     assert all(name.startswith("tests/") for name in per_file)
     assert sum(per_file.values()) == EXPECTED_TESTS
+
+
+def _scratch_env() -> dict[str, str]:
+    """The environment for git commands the tests run on throwaway repositories.
+
+    `facts._env()` drops the variables that tell git which repository to use.
+    Inherited, `GIT_DIR` outranks `cwd`, so a helper's commands would commit to,
+    move `origin/main` in, and branch *that* repository instead, and the scratch
+    directory would never become a repository at all.
+
+    The identity is set here rather than read from the machine. A commit needs an
+    author and a committer, and a developer whose git config has none — or a CI
+    runner with none — would fail the test for a reason that has nothing to do
+    with what it checks.
+
+    Configuration is turned off for the same reason: a machine configured to sign
+    commits without having the key fails these throwaway commits, and one whose
+    `core.hooksPath` runs a hook that rejects a commit — a lint gate over the
+    owner's work, say — fails them too. The two files are not read at all, which
+    leaves the shell's `GIT_CONFIG_PARAMETERS`, the one source that outranks them;
+    `facts._env()` drops that.
+    """
+    return {
+        **facts._env(),
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@t",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_SYSTEM": os.devnull,
+    }
+
+
+def _scratch_repo(tmp_path: Path) -> tuple[Path, str]:
+    """A repository on `feature`, whose `origin/main` is one commit behind it.
+
+    Built from scratch so the test does not depend on this clone's refs: PR CI
+    checks out a merge ref and may not have `origin/main` at all. Returns the
+    path and the commit `origin/main` names.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    env = _scratch_env()
+
+    def git(*args: str) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, env=env)
+
+    git("init", "-q", "-b", "main")
+    git("commit", "-q", "--allow-empty", "-m", "on main")
+    main_sha = (
+        subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, env=env
+        )
+        .stdout.decode()
+        .strip()
+    )
+    git("update-ref", "refs/remotes/origin/main", main_sha)
+    git("checkout", "-q", "-b", "feature")
+    git("commit", "-q", "--allow-empty", "-m", "on the branch")
+    return repo, main_sha
+
+
+def test_main_reports_main_not_the_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """On a branch these are different commits, and the status needs main.
+
+    `head` answers "what am I on"; pointing a reader at it from a status
+    section hands them the feature branch's commit as main's.
+    """
+    repo, main_sha = _scratch_repo(tmp_path)
+
+    monkeypatch.setattr(facts, "REPO", repo)
+    result = facts.main_branch()
+    assert result["main"] == main_sha, "it answers for main, not for the checkout"
+    assert result["checked_out"] == "feature"
+    assert result["checkout_is_main"] == "no"
+
+
+def test_scratch_repo_ignores_a_redirected_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`GIT_DIR` in the caller's shell must not move the test's work elsewhere.
+
+    Without `facts._env()` the helper's `init`, `commit`, `update-ref` and
+    `checkout -b` all ran against the repository `GIT_DIR` names -- adding a
+    commit, moving its `origin/main` onto it, and leaving it on `feature` -- and
+    the scratch directory stayed empty. The test above then passed anyway,
+    against the other repository's refs, which is what makes this worth pinning
+    separately: it passed for the wrong reason.
+
+    `scripts/check.sh` cannot see this. Its tree hash covers file contents,
+    `git status --porcelain` and `git ls-files --stage`, none of which record
+    the current branch or `origin/main`.
+    """
+    other = tmp_path / "other"
+    other.mkdir()
+    clean = _scratch_env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "-m", "other"], cwd=other, check=True, env=clean
+    )
+    head = (
+        subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=other, check=True, capture_output=True, env=clean
+        )
+        .stdout.decode()
+        .strip()
+    )
+    subprocess.run(
+        ["git", "update-ref", "refs/remotes/origin/main", head], cwd=other, check=True, env=clean
+    )
+
+    # What a wrapper, direnv or `git --git-dir` leaves behind. `cwd` does not
+    # override it, so every git command the helper runs would use this.
+    monkeypatch.setenv("GIT_DIR", str(other / ".git"))
+    repo, _ = _scratch_repo(tmp_path)
+
+    def ask(*args: str) -> str:
+        return (
+            subprocess.run(["git", *args], cwd=other, check=True, capture_output=True, env=clean)
+            .stdout.decode()
+            .strip()
+        )
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert ask("rev-parse", "HEAD") == head, "the other repository's HEAD must not move"
+    assert ask("rev-parse", "refs/remotes/origin/main") == head, (
+        "its origin/main must not be moved onto a commit the test made"
+    )
+    assert ask("rev-parse", "--abbrev-ref", "HEAD") == "main", (
+        "it must not be left on the test's feature branch"
+    )
+    assert ask("rev-list", "--count", "--all") == "1", "no commit may be added to it"
+
+
+def test_a_machines_git_config_cannot_change_what_the_scratch_repo_does(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The machine's git configuration files must not reach the helper's commands.
+
+    A `core.hooksPath` there is one instance. A developer who gates every commit
+    through a lint hook — or through a hook that checks a ticket number, or signs
+    with a key held in a hardware token — has that hook run on the scratch
+    repository's commits, and the test fails for a reason that has nothing to do
+    with what it checks.
+
+    Both files are set to the same hostile config, so each line of `_scratch_env`
+    is load-bearing: dropping either one lets git read the config and the commit
+    fails.
+    """
+    hooks = tmp_path / "hooks"
+    hooks.mkdir()
+    reject = hooks / "pre-commit"
+    reject.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    reject.chmod(0o755)
+    machine = tmp_path / "machine.gitconfig"
+    machine.write_text(f"[core]\n\thooksPath = {hooks}\n", encoding="utf-8")
+
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(machine))
+    monkeypatch.setenv("GIT_CONFIG_SYSTEM", str(machine))
+
+    repo, main_sha = _scratch_repo(tmp_path)
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert len(main_sha) == 40, "the commit it made must be a commit"
+
+
+def test_a_shell_that_signs_its_commits_cannot_break_the_scratch_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`GIT_CONFIG_PARAMETERS` outranks the files the helper turns off.
+
+    It is how git passes `-c` down to the processes it starts, and it beats
+    every other source, so a shell holding it turns commit signing back on over
+    `_scratch_env`'s empty configuration. What it names is a signer that does not
+    exist, so `_scratch_repo`'s commits raise. A machine signing with an SSH key
+    would ignore that program and sign anyway, which is why the format is named
+    too; without it this test would pass against the tool it is meant to fail.
+    """
+    monkeypatch.setenv(
+        "GIT_CONFIG_PARAMETERS",
+        "'commit.gpgsign=true' 'gpg.format=openpgp' 'gpg.program=/nonexistent-signer'",
+    )
+
+    repo, main_sha = _scratch_repo(tmp_path)
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert len(main_sha) == 40, "the commit it made must be a commit"
+
+
+def test_uv_working_dir_cannot_move_which_tests_are_collected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A `UV_WORKING_DIR` in the caller's shell must not be collected instead.
+
+    uv takes the directory to run in from `UV_WORKING_DIR`, and it outranks the
+    `cwd` the tool passes, so `tests()` collected the other project's suite. That
+    figure is not an error: it comes back with a total, a per-file breakdown, and
+    a zero exit status, and lands in whatever document quotes it.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "pyproject.toml").write_text(
+        '[project]\nname = "other"\nversion = "0"\nrequires-python = ">=3.13"\n',
+        encoding="utf-8",
+    )
+    (other / "tests" / "test_other.py").write_text("def test_only_one(): pass\n", encoding="utf-8")
+
+    monkeypatch.setenv("UV_WORKING_DIR", str(other))
+    monkeypatch.setenv("UV_PROJECT", str(other))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_dotenv_file_cannot_put_a_cleared_redirect_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """uv loads a file into the child's environment, after `_env()` has cleared it.
+
+    `UV_ENV_FILE` names a dotenv file uv reads, and `.env` beside the project is
+    read too, so a file can set `PYTEST_ADDOPTS` again once this tool has removed
+    it from the environment it passes. A `--rootdir` from there collects the
+    other project's suite, and the flags that name the directory do not stop it:
+    pytest is running in `REPO`, asked to read its tests from somewhere else.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "pyproject.toml").write_text(
+        '[project]\nname = "other"\nversion = "0"\nrequires-python = ">=3.13"\n',
+        encoding="utf-8",
+    )
+    (other / "tests" / "test_other.py").write_text("def test_only_one(): pass\n", encoding="utf-8")
+    dotenv = tmp_path / "redirect.env"
+    dotenv.write_text(f'PYTEST_ADDOPTS="--rootdir={other} {other}/tests"\n', encoding="utf-8")
+
+    monkeypatch.setenv("UV_ENV_FILE", str(dotenv))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_selection_in_the_config_cannot_shrink_the_suite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A config file's `addopts` are selection arguments, like `PYTEST_ADDOPTS`.
+
+    `PYTEST_ADDOPTS` is cleared from the child's environment so a `-k` there
+    cannot report a subset as the suite total. An `addopts` in a `pytest.ini`, or
+    in the project's own `pyproject.toml`, does the same thing through pytest's
+    configuration, and it is honoured by default.
+    """
+    scratch = tmp_path / "scratch"
+    (scratch / "tests").mkdir(parents=True)
+    (scratch / "tests" / "test_a.py").write_text(
+        "def test_one(): pass\n\n\ndef test_two(): pass\n", encoding="utf-8"
+    )
+    (scratch / "pyproject.toml").write_text(
+        '[project]\nname = "scratch"\nversion = "0"\nrequires-python = ">=3.13"\n'
+        '[tool.pytest.ini_options]\naddopts = "tests/test_a.py::test_one"\n',
+        encoding="utf-8",
+    )
+    # The project has no dependencies on purpose. uv creates it an environment
+    # holding nothing, and `pytest` is the one this suite is running under, found
+    # on `PATH`; a project that depended on pytest would have uv resolve and
+    # install it, which needs a package cache and sometimes a network, and a test
+    # that needs either is a test that fails where they are absent.
+
+    monkeypatch.setattr(facts, "REPO", scratch)
+
+    assert facts.tests()["total"] == 2, "both tests in the project are the suite"
+
+
+def test_a_selection_in_the_shell_cannot_shrink_the_suite(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`PYTEST_ADDOPTS` is a selection argument, and the shell outranks a file.
+
+    A developer who keeps a `-k` or a `-m` there to shorten local runs — or a
+    wrapper that adds `--lf` — has it applied to the child, whose report of the
+    subset is then quoted as the suite total.
+    """
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-k test_test_count_is_pinned")
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_module_on_the_path_cannot_change_what_the_child_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`PYTHONPATH` is on the child's path before the child's own code runs.
+
+    An interpreter imports `sitecustomize` from anywhere on the path at start-up,
+    so a directory left in the caller's shell — a stale checkout, another project,
+    a wrapper's scratch directory — runs code inside the child. The answer must be
+    this repository's suite whether that code is there or not.
+    """
+    hostile = tmp_path / "hostile"
+    hostile.mkdir()
+    (hostile / "sitecustomize.py").write_text(
+        'raise SystemExit("a module on the path reached the child")\n', encoding="utf-8"
+    )
+    reaches = subprocess.run(
+        ["uv", "run", "python", "-c", "print('ran')"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PYTHONPATH": str(hostile)},
+    )
+    assert reaches.returncode != 0, (
+        "the module must reach a child uv starts, or this test proves nothing"
+    )
+
+    monkeypatch.setenv("PYTHONPATH", str(hostile))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_an_inherited_plugin_cannot_add_to_the_collection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A plugin pytest loads can append arguments after the flags have been read.
+
+    `PYTEST_PLUGINS` names a module pytest imports before it collects, and
+    `PYTHONPATH` says where to find it. This hook appends one node id, so the run
+    reports a single test — and reports it as `tests/test_facts.py`, this
+    repository's own file, because collected names are relative to pytest's
+    rootdir. The check on the collected names cannot tell that apart; only not
+    loading the plugin can.
+    """
+    (tmp_path / "collect_one.py").write_text(
+        "def pytest_load_initial_conftests(early_config, parser, args):\n"
+        '    args.append("tests/test_facts.py::test_test_count_is_pinned")\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path))
+    monkeypatch.setenv("PYTEST_PLUGINS", "collect_one")
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_collected_test_from_outside_the_repository_is_refused(tmp_path: Path) -> None:
+    """The flags being right is an argument; this is the check on the answer.
+
+    Whatever puts pytest somewhere else — a flag dropped from the command line, a
+    variable nobody has listed — the names that come back are the evidence. A node
+    that is not a file under `REPO` is another project's suite, and no figure may
+    be reported from it.
+    """
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({"tests/test_other.py": 3})
+
+    # A traversal out of the repository is not inside it either, even when the
+    # name starts the way the parser requires. The name is built from where the
+    # parser leaves the search — a `tests` directory under `REPO` — so that it
+    # reaches the file; built from `REPO` it would land a directory too high, on
+    # a path that does not exist, and the test would pass on the existence check
+    # without ever testing containment.
+    outside = tmp_path / "outside"
+    (outside / "tests").mkdir(parents=True)
+    target = outside / "tests" / "test_other.py"
+    target.write_text("def test_only_one(): pass\n", encoding="utf-8")
+    escaping = f"tests/{os.path.relpath(target, facts.REPO / 'tests')}"
+    assert (facts.REPO / escaping).resolve() == target.resolve(), (
+        "the escaping name must reach the file that was created, outside the repository"
+    )
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({escaping: 1})
+
+    # Nothing collected at all is not an answer either.
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({})
+
+    assert facts._require_collected_here({"tests/test_facts.py": 1}) is None
+
+
+def test_a_suite_collected_elsewhere_stops_the_tool(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The names that come back are the evidence, not the flags that were passed.
+
+    The two flags pin the directory and the project, and no environment variable
+    outranks an explicit uv flag. That is an argument about the flags being right,
+    and it stops being true the day one of them is dropped. So hand the tool
+    another project's answer — a real one, captured from a real pytest run — and
+    it must stop rather than report that count as this repository's.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "tests" / "test_other.py").write_text(
+        "def test_one(): pass\n\n\ndef test_two(): pass\n\n\ndef test_three(): pass\n",
+        encoding="utf-8",
+    )
+    elsewhere = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "-o",
+            "addopts=",
+        ],
+        cwd=other,
+        capture_output=True,
+        text=True,
+        check=True,
+        env=facts._env(),
+    ).stdout
+    assert "3 tests collected" in elsewhere, "the answer fed in must be one pytest really prints"
+
+    monkeypatch.setattr(
+        facts.subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(args, 0, elsewhere, ""),
+    )
+
+    with pytest.raises(SystemExit, match="did not collect this repository's tests"):
+        facts.tests()
+
+
+def test_a_linked_worktree_is_this_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A linked worktree keeps its git directory outside the checkout.
+
+    `git worktree add` puts the metadata in `<main>/.git/worktrees/<name>` and
+    leaves a `gitdir:` pointer in the checkout, and a submodule does the same
+    under `<parent>/.git/modules`. Comparing git's answer against `REPO/.git`
+    would refuse both, which fails a correct case, so the check compares against
+    what this checkout's own `.git` names.
+    """
+    main = tmp_path / "main"
+    main.mkdir()
+    clean = _scratch_env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=main, check=True, env=clean)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "-m", "x"], cwd=main, check=True, env=clean
+    )
+    linked = tmp_path / "linked"
+    subprocess.run(
+        ["git", "worktree", "add", "-q", "--detach", str(linked), "HEAD"],
+        cwd=main,
+        check=True,
+        env=clean,
+    )
+
+    monkeypatch.setattr(facts, "REPO", linked)
+    facts._require_this_repo()
+
+
+def test_the_tool_stops_when_a_redirect_it_does_not_know_about_is_in_play(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The env list is a list, so the guarantee has to come from elsewhere.
+
+    `_env()` covers the variables that are known to point git at another
+    repository. Anything it misses would be silent: the figures would describe
+    that repository and look like ordinary numbers. Here the filter is made to
+    pass the environment through, standing in for a variable nobody has written
+    down yet, and the tool must refuse rather than report.
+    """
+    other = tmp_path / "other"
+    other.mkdir()
+    clean = _scratch_env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
+
+    monkeypatch.setattr(facts, "_env", lambda: dict(os.environ))
+    monkeypatch.setenv("GIT_DIR", str(other / ".git"))
+
+    with pytest.raises(SystemExit, match="points git elsewhere"):
+        facts.main(["head"])
 
 
 def test_tag_schedule_names_are_pinned() -> None:
@@ -297,6 +770,91 @@ def test_check_leaves_ordinary_ellipsis_alone(tmp_path: Path, text: str) -> None
     assert _check(tmp_path, pin=text) == []
 
 
+def test_section_stops_at_a_subsection(tmp_path: Path) -> None:
+    """A dated note filed below a status section is not status."""
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        "## 2. Current status\n\nThe suite has 85 tests.\n\n### This session (2024-01-01)\n\n"
+        "The suite had 34 tests.\n",
+        encoding="utf-8",
+    )
+    body, first_line = facts._section(doc, "## 2. Current status")
+    assert "85 tests" in body
+    assert "34 tests" not in body
+    assert first_line == 1, "the heading is the first line of this file"
+
+
+def test_section_reports_the_file_line_of_its_heading(tmp_path: Path) -> None:
+    """A finding must point at a line the reader can go to, not a slice line."""
+    doc = tmp_path / "H.md"
+    doc.write_text(f"intro\nintro\nintro\n{HEADING}\n\nThe suite has 34 tests.\n")
+    body, first_line = facts._section(doc, HEADING)
+    assert first_line == 4
+    claims = facts._claims(body, facts.TEST_COUNT_PATTERN)
+    assert [first_line - 1 + n for n, _ in claims] == [6]
+
+
+def test_section_stops_at_a_shallower_heading(tmp_path: Path) -> None:
+    """Reading a subsection must not run on into the next top-level section."""
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        "## 2. Current status\n\nThe suite has 91 tests.\n\n"
+        "### 2.1\n\nA 59-name schedule.\n\n"
+        "### This session\n\nThe suite had 34 tests.\n\n"
+        "## 3. Next\n\nHistorical: 21 tests.\n",
+        encoding="utf-8",
+    )
+    sub, _ = facts._section(doc, "### 2.1")
+    assert "59-name" in sub
+    assert "34 tests" not in sub, "the dated note below is history"
+    assert "21 tests" not in sub, "the next top-level section is outside"
+
+
+def test_section_raises_when_the_heading_is_gone(tmp_path: Path) -> None:
+    """A renamed heading must be noticed, not silently left unchecked."""
+    doc = tmp_path / "H.md"
+    doc.write_text("## Something else\n", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        facts._section(doc, "## 2. Current status")
+
+
+HEADING = "## 2. Current status"
+
+
+def test_check_flags_a_stale_count_inside_a_named_section(tmp_path: Path) -> None:
+    doc = tmp_path / "H.md"
+    doc.write_text(f"{HEADING}\n\nThe suite has 34 tests.\n", encoding="utf-8")
+    problems = facts.check(docs=[(doc, HEADING)], pin_files=[])
+    assert [p.detail for p in problems] == [STALE]
+    assert problems[0].path == f"{doc} {HEADING}"
+
+
+def test_check_requires_a_readable_test_count_in_a_named_section(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A count the parser cannot read is a gap, not a pass.
+
+    Without this, a figure could be reformatted out of the pattern and the
+    section would stop being checked while the gate still reported success.
+    """
+    doc = tmp_path / "H.md"
+    doc.write_text(f"{HEADING}\n\nThe suite has **34**.\n", encoding="utf-8")
+    monkeypatch.setitem(facts.EXPECTED_CLAIMS, f"{doc} {HEADING}", ("test count", "row count"))
+    details = [p.detail for p in facts.check(docs=[(doc, HEADING)], pin_files=[])]
+    assert "quotes no test count to verify" in details
+    assert "quotes no row/name count to verify" in details
+
+
+def test_check_ignores_history_below_a_named_section(tmp_path: Path) -> None:
+    doc = tmp_path / "H.md"
+    doc.write_text(
+        f"{HEADING}\n\nThe suite has {EXPECTED_TESTS} tests.\n\n"
+        "### This session\n\nThe suite had 34 tests.\n",
+        encoding="utf-8",
+    )
+    assert facts.check(docs=[(doc, HEADING)], pin_files=[]) == []
+
+
 def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None:
     """A dated record is history: a count in it is not a claim about today."""
     record = tmp_path / "RECORD.md"
@@ -314,6 +872,7 @@ def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None
     "argv",
     [
         ["head"],
+        ["main"],
         ["tests"],
         ["names"],
         ["hashes"],
@@ -328,7 +887,12 @@ def test_tool_does_not_write_to_the_repo(argv: list[str]) -> None:
     Ignored caches are outside this guarantee, and the tool says so.
     """
     before = _tree_state()
-    facts.main(argv)
+    try:
+        facts.main(argv)
+    except SystemExit:
+        # `main` exits when this clone has no origin/main; PR CI can be one.
+        # The requirement is that nothing is written either way.
+        pass
     assert _tree_state() == before
 
 

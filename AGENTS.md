@@ -18,19 +18,25 @@ built here, from the Unit 100 P&ID (Phase 5b.1: vector sheet first, then scanned
 related **private** repo by the same owner, `aadehamid/Engineering_Drawing_to_Graph`, adds the
 structured route from an authoring-system backend (charter §2, §7, §12 #20).
 
-The project is in **Phase 1 L0 on `main` (`9ffe415` after #38, 2026-08-20)**.
-Next build is the mapping-table spine (`HANDOFF.md` §3).
-Warehouse is wide Parquet on R2 `lagos-chem-l0`. Phase 0 mapping-table YAML is
-not written yet. The Diagram 1 walkthrough **runs in parallel and does not
-block build** (cursor: `design/WALKTHROUGH_PROGRESS.md`). Phase 1 record:
-`design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`.
-Unit 100 P&ID Rev B one-pager + 59-name tag list: `design/UNIT100_PID.md`.
+**Current status is in [`HANDOFF.md`](HANDOFF.md) §2** — the phase, the `main` HEAD, open pull
+requests, what has landed and what is next. It is not repeated here, because three copies of it
+drifted apart.
+
+Key documents: Phase 1 record `design/PHASE1_SYNTHETIC_DATA.md` · datasheet
+`design/PHASE1_DATASHEET.md` · Unit 100 P&ID `design/UNIT100_PID.md` · walkthrough cursor
+`design/WALKTHROUGH_PROGRESS.md`.
 
 ## Picking up the work
 
 **New here? Read [`HANDOFF.md`](HANDOFF.md) first** — it captures current status (decisions resolved,
 open PRs, what's done vs. next), the working conventions, and the open streams. Then read the
 charter below.
+
+**Status has exactly one home: [`HANDOFF.md`](HANDOFF.md) §2.** The phase, the `main` HEAD, and
+what is next live there and nowhere else. This file, `README.md` and any other document point at
+it rather than restating it. Three copies drifted apart once — they quoted `main` at two different
+commits while the truth was a third — and the duplication is what caused it. A dated session note
+or phase record is history and may name the commit it was written at; a *status* claim may not.
 
 ## Authoritative source of truth
 
@@ -268,7 +274,7 @@ Add each dependency *when needed*, with a one-line justification (raw-mechanism-
 **API framework:** FastAPI is the *intended* choice for the Plane 3 query/GraphRAG/copilot API — not
 adopted yet; decide when that layer is built (~Phase 5b/7). The core pipeline needs no HTTP backend.
 
-**Current state (Phase 1 L0 on `main`, 2026-08-20, `9ffe415`; generators #28/#29/#31/#33):**
+**Build setup** (current status is in `HANDOFF.md` §2):
 `pyproject.toml` exists, created with `uv init --lib` (src layout). Python is **pinned to 3.13**
 via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` is committed.
 Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
@@ -313,7 +319,7 @@ config/
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
 data/{raw,cache}    # local scratch only. Not the durable warehouse (R2 lagos-chem-l0)
 notebooks/ # Marimo learning surface, one per component
-tests/     # 85 tests (L0 goldens + Unit 100 P&ID + figures tool; no network)
+tests/     # 107 tests (L0 goldens + Unit 100 P&ID + figures tool; no network)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status

@@ -16,7 +16,8 @@ with pytest's cache provider and bytecode writing off; ignored caches such as
 `.pytest_cache` and `__pycache__` are outside that guarantee.
 
 Usage:
-    scripts/facts.py head            branch and commit
+    scripts/facts.py head            the branch and commit you are on
+    scripts/facts.py main            the tip of main, as this clone last saw it
     scripts/facts.py tests           collected test count, total and per file
     scripts/facts.py names           plant-data names from the tag schedule
     scripts/facts.py hashes          pinned fixture SHA-256 digests
@@ -37,7 +38,7 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -53,13 +54,22 @@ PINNED_FIXTURES: tuple[Path, ...] = (
     FIXTURES / "pid" / "LSC-U100-PID-001_revB.pdf",
 )
 
-# Documents that describe the repo as it is now. A dated session note or a
-# phase record states what was true when it was written, so a figure in one is
+# Documents that describe the repo as it is now, and the section within them
+# when only part of the file is a status claim. A dated session note or a phase
+# record states what was true when it was written, so a figure in one is
 # history, not a claim about today, and `check` does not read it.
-CURRENT_STATUS_DOCS: tuple[Path, ...] = (
-    REPO / "README.md",
-    REPO / "AGENTS.md",
-    REPO / "tests" / "README.md",
+#
+# HANDOFF.md is mostly dated session notes, so only its current-status section
+# is read — but it *is* read, because since the status was consolidated there,
+# it is the one document that can go stale in a way the owner would act on.
+CURRENT_STATUS_DOCS: tuple[tuple[Path, str | None], ...] = (
+    (REPO / "README.md", None),
+    (REPO / "AGENTS.md", None),
+    (REPO / "tests" / "README.md", None),
+    (REPO / "HANDOFF.md", "## 2. Current status"),
+    # §2.1 sits below a sub-heading but is still current state, not history: it
+    # carries the schedule's name count. Reading only §2 left it unchecked.
+    (REPO / "HANDOFF.md", "### 2.1"),
 )
 
 # Directories that are not the project's own prose or code.
@@ -98,9 +108,17 @@ ROW_COUNT_PATTERN = re.compile(r"\b(\d+)(?:-(?:row|name)|\s+plant-data)\b")
 # silent gap: an aggregate "some document quoted it" rule lets one document
 # mask another that has gone stale.
 EXPECTED_CLAIMS: dict[str, tuple[str, ...]] = {
-    "README.md": ("test count", "row count"),
-    "AGENTS.md": ("test count",),
-    "tests/README.md": ("test count",),
+    # README no longer quotes the test count: it points at this tool instead,
+    # so there is nothing there to go stale.
+    "README.md": ("row count",),
+    "AGENTS.md": ("test count", "row count"),
+    "tests/README.md": ("test count", "row count"),
+    # Keyed by the section as well as the file, because the two HANDOFF
+    # sections carry different figures. Requiring the wrong one would ask a
+    # section for a claim it never made; requiring too little would let a
+    # claim vanish from the parser without failing the gate.
+    "HANDOFF.md ## 2. Current status": ("test count", "row count"),
+    "HANDOFF.md ### 2.1": ("row count",),
 }
 HEAD_CLAIM_PATTERN = re.compile(r"main[^.\n]{0,20}`([0-9a-f]{7,40})`")
 
@@ -117,6 +135,22 @@ def head() -> dict[str, str]:
     return {"branch": branch, "commit": commit, "short": commit[:7]}
 
 
+def main_branch() -> dict[str, str]:
+    """The tip of `main` as this clone last saw it, and where the checkout is.
+
+    `head` answers "what am I on"; this answers "what is on main", which are
+    different questions on a branch. It reads `origin/main`, the last fetched
+    value, and says so rather than implying a fetch just happened.
+    """
+    origin = _git("rev-parse", "origin/main")
+    return {
+        "main": origin,
+        "main_short": origin[:7],
+        "checked_out": _git("rev-parse", "--abbrev-ref", "HEAD"),
+        "checkout_is_main": "yes" if _git("rev-parse", "HEAD") == origin else "no",
+    }
+
+
 def tests() -> dict[str, object]:
     """Collected tests, total and per file, from pytest itself.
 
@@ -130,12 +164,59 @@ def tests() -> dict[str, object]:
     question does not write into the repository.
     """
     result = subprocess.run(
-        ["uv", "run", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider"],
+        [
+            "uv",
+            "run",
+            # The directory to run in, and the project to run in, are on the
+            # command line because uv otherwise takes them from the environment,
+            # where `UV_WORKING_DIR` and `UV_PROJECT` outrank `cwd=REPO` and the
+            # command would collect another project's tests.
+            "--directory",
+            str(REPO),
+            "--project",
+            str(REPO),
+            # `--no-env-file` because uv loads a file named by `UV_ENV_FILE`, or
+            # a `.env` beside the project, into the child's environment. A file
+            # can put `PYTEST_ADDOPTS` back after `_env()` has cleared it, and a
+            # `--rootdir` from there collects another project's tests.
+            "--no-env-file",
+            "pytest",
+            # `PYTEST_DISABLE_PLUGIN_AUTOLOAD`, set in the environment below,
+            # keeps a plugin installed in this environment from loading.
+            "--collect-only",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            # A config file's `addopts` are selection arguments too, and a local
+            # `pytest.ini` naming one node id would make the suite total one.
+            # `-o` overrides the ini option from the command line, where nothing
+            # in the file can outrank it.
+            #
+            # The discovery settings a repository keeps for itself — `testpaths`,
+            # `python_files` — are left alone: they are the repository's own
+            # definition of its suite, and `check` compares this figure against
+            # every document that quotes it, so a config that disagrees with the
+            # documents stops the push rather than passing quietly.
+            "-o",
+            "addopts=",
+        ],
         cwd=REPO,
         capture_output=True,
         text=True,
         check=False,
-        env={**_env(), "PYTHONDONTWRITEBYTECODE": "1"},
+        env={
+            **_env(),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            # Set, not cleared. A pytest plugin is handed the argument list
+            # before collection and can append to it — a node id, a
+            # `--rootdir` — and it does so after every flag on the command line
+            # above has been read. An argument a plugin adds is not visible in
+            # the collected names either: those are relative to pytest's
+            # rootdir, so a foreign `tests/test_facts.py` reports the same name
+            # as this one. Nothing installed here needs a plugin to collect, so
+            # the plugins are off.
+            "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        },
     )
     if result.returncode != 0:
         raise SystemExit(f"pytest --collect-only failed:\n{result.stdout}{result.stderr}")
@@ -160,7 +241,29 @@ def tests() -> dict[str, object]:
             f"pytest collected {total} but {parsed} node lines parsed; "
             "the per-file breakdown is incomplete"
         )
+    _require_collected_here(per_file)
     return {"total": total, "per_file": dict(sorted(per_file.items()))}
+
+
+def _require_collected_here(per_file: Mapping[str, int]) -> None:
+    """Stop unless every collected test is a file in this repository.
+
+    The command line says which directory and project to collect, and no
+    environment variable can overrule an explicit uv flag. That is an argument
+    about the flags being right, though, and it fails silently the day one of
+    them is dropped or a channel nobody listed gets through. So look at what
+    came back: a collected node that is not a file under `REPO` is another
+    project's suite, however it got collected.
+    """
+    elsewhere = sorted(
+        name for name in per_file if not (REPO / name).is_file() or not _is_inside_repo(REPO / name)
+    )
+    if elsewhere or not per_file:
+        raise SystemExit(
+            "pytest did not collect this repository's tests"
+            + (f"; these are not files here: {', '.join(elsewhere)}" if elsewhere else "")
+            + ". Something in this shell points the collection elsewhere."
+        )
 
 
 def names() -> dict[str, object]:
@@ -309,19 +412,44 @@ class Problem:
     detail: str
 
 
-def _claims(path: Path, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
-    """Every match of `pattern` in a file, with the line each one starts on.
+def _section(path: Path, heading: str | None) -> tuple[str, int]:
+    """One section of a file, and the 1-based file line its heading sits on.
+
+    The line is returned so a reported finding points at the line in the file
+    rather than the line in the slice — a claim at slice line 8 is useless to
+    someone looking for file line 94.
+
+    A section runs from its heading to the next heading of *any* level. That
+    is what both HANDOFF cases need: §2 must stop before the subsection §2.1,
+    and §2.1 must stop before the next top-level section — and it must not run
+    on into the dated session notes filed beneath either, which are history.
+    Raises rather than returning nothing, because a heading that has been
+    renamed must be noticed, not silently left unchecked.
+    """
+    text = path.read_text(encoding="utf-8")
+    if heading is None:
+        return text, 1
+    start = text.find(heading)
+    if start == -1:
+        raise SystemExit(f"{_label(path)} has no section {heading!r}")
+    following = re.compile(r"^#+ ", re.MULTILINE).search(text, start + len(heading))
+    end = following.start() if following else len(text)
+    return text[start:end], text.count("\n", 0, start) + 1
+
+
+def _claims(text: str, pattern: re.Pattern[str]) -> list[tuple[int, str]]:
+    """Every match of `pattern` in `text`, with the line each one starts on.
 
     Matched against the flattened text, so a claim wrapped across two lines is
     still found. Line-by-line scanning is what lets a stale figure survive a
     sweep, and that is the failure this whole tool exists to stop.
     """
-    flat, line_of = flatten(path.read_text(encoding="utf-8"), markdown=True)
+    flat, line_of = flatten(text, markdown=True)
     return [(line_of[match.start()], match.group(1)) for match in pattern.finditer(flat)]
 
 
 def check(
-    docs: Sequence[Path] | None = None,
+    docs: Sequence[Path | tuple[Path, str | None]] | None = None,
     pin_files: Sequence[Path] | None = None,
 ) -> list[Problem]:
     """Compare every quoted figure against the source it is about.
@@ -337,35 +465,43 @@ def check(
     row_count = int(names()["rows"])  # type: ignore[arg-type]
     digests = hashes()
 
-    for path in CURRENT_STATUS_DOCS if docs is None else docs:
+    # A caller may name a whole file or a section of one, so a test can point
+    # the check at a section without editing a real document.
+    targets = (
+        CURRENT_STATUS_DOCS
+        if docs is None
+        else tuple(entry if isinstance(entry, tuple) else (entry, None) for entry in docs)
+    )
+    for path, heading in targets:
+        label = _label(path) if heading is None else f"{_label(path)} {heading}"
         # Claims are found in the flattened text, so one wrapped across two
         # lines is still a claim. Scanning line by line is what lets a stale
         # figure survive, and it is the failure this tool exists to stop.
-        test_claims = _claims(path, TEST_COUNT_PATTERN)
-        row_claims = _claims(path, ROW_COUNT_PATTERN)
+        body, first_line = _section(path, heading)
+        # Claim lines are relative to the slice; shift them back to file lines
+        # so a finding points somewhere the reader can actually go.
+        offset = first_line - 1
+        test_claims = [(offset + n, v) for n, v in _claims(body, TEST_COUNT_PATTERN)]
+        row_claims = [(offset + n, v) for n, v in _claims(body, ROW_COUNT_PATTERN)]
 
         # Each document is asked for the figures it is expected to carry. A
         # document that stops quoting one is a gap, not a pass.
-        expected = EXPECTED_CLAIMS.get(_label(path), ())
+        expected = EXPECTED_CLAIMS.get(label, ())
         if "test count" in expected and not test_claims:
-            problems.append(Problem(_label(path), 0, "quotes no test count to verify"))
+            problems.append(Problem(label, 0, "quotes no test count to verify"))
         if "row count" in expected and not row_claims:
-            problems.append(Problem(_label(path), 0, "quotes no row/name count to verify"))
+            problems.append(Problem(label, 0, "quotes no row/name count to verify"))
 
         for number, quoted in test_claims:
             if int(quoted) != total:
                 problems.append(
-                    Problem(
-                        _label(path),
-                        number,
-                        f"says {quoted} tests; the suite collects {total}",
-                    )
+                    Problem(label, number, f"says {quoted} tests; the suite collects {total}")
                 )
         for number, quoted in row_claims:
             if int(quoted) != row_count:
                 problems.append(
                     Problem(
-                        _label(path),
+                        label,
                         number,
                         f"says {quoted}-row/name; the schedule has {row_count}",
                     )
@@ -429,15 +565,47 @@ def check(
 # --------------------------------------------------------------------------
 
 
-def _env() -> dict[str, str]:
-    """The environment subprocesses run in, with pytest selection options cleared.
+# Variables in the caller's shell that point a subprocess at something other
+# than what this tool meant.
+_REDIRECTING_ENV = (
+    # pytest takes extra arguments from here, so a `-k` in the caller's shell
+    # selects a subset, and a subset reported as the suite total is a wrong
+    # figure.
+    "PYTEST_ADDOPTS",
+    # pytest imports what these name before it collects, and what it imports can
+    # add arguments of its own. `PYTHONPATH` also decides which module a name
+    # means, for any interpreter this tool starts.
+    "PYTEST_PLUGINS",
+    "PYTHONPATH",
+    # git's outrank the working directory: with `GIT_DIR` set, every git command
+    # here answers for another repository while `cwd=REPO` says otherwise, and
+    # `GIT_INDEX_FILE` points it at another repository's index, where `ls-files`
+    # lists nothing.
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    # git takes configuration from these too, and one can set `core.worktree` or
+    # turn commit signing on. `GIT_CONFIG_PARAMETERS` outranks everything else on
+    # this list, including configuration a child sets for itself, so clearing it
+    # is the only way to have a command line that a shell cannot bend.
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
+)
 
-    A `PYTEST_ADDOPTS` in the caller's shell could select a subset, and a subset
-    reported as the suite total is a wrong figure.
+
+def _env() -> dict[str, str]:
+    """The environment subprocesses run in, with the caller's redirections cleared.
+
+    This list is the ways we know a caller's shell can point a child somewhere
+    else, and a list like that is never finished — git and uv each read more
+    variables than anyone writes down. So it is not what makes the figures
+    trustworthy: `_require_this_repo` asks git which repository it is answering
+    about and stops when the answer is another one, and `tests()` names the
+    directory uv runs in on the command line, where uv's own variables cannot
+    reach it.
     """
-    env = dict(os.environ)
-    env.pop("PYTEST_ADDOPTS", None)
-    return env
+    return {k: v for k, v in os.environ.items() if k not in _REDIRECTING_ENV}
 
 
 def _label(path: Path) -> str:
@@ -449,16 +617,87 @@ def _label(path: Path) -> str:
 
 
 def _git(*args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, check=False)
+    result = subprocess.run(
+        ["git", *args], cwd=REPO, capture_output=True, text=True, check=False, env=_env()
+    )
     if result.returncode != 0:
         raise SystemExit(f"git {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout.strip()
+
+
+def _is_inside_repo(path: Path) -> bool:
+    """Whether a path, once resolved, is the repository or under it."""
+    try:
+        path.resolve().relative_to(REPO.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _checkout_git_dir() -> Path:
+    """The git directory this checkout's own `.git` names.
+
+    Read from the filesystem, so the environment cannot answer it: this is the
+    one thing about the repository that no variable in the caller's shell can
+    change.
+    """
+    marker = REPO / ".git"
+    if marker.is_dir():
+        return marker.resolve()
+    if marker.is_file():
+        # A linked worktree or a submodule keeps its metadata in the repository
+        # that owns it and leaves a pointer here instead of a directory.
+        head = marker.read_text(encoding="utf-8").splitlines()[0]
+        return (REPO / head.partition(":")[2].strip()).resolve()
+    raise SystemExit(f"{marker} is neither a file nor a directory; {REPO} is not a checkout")
+
+
+def _require_this_repo() -> None:
+    """Stop unless git is answering about this checkout.
+
+    The figures are only worth anything if they describe `REPO`, and a wrong
+    answer here does not look wrong: another project's suite, another
+    repository's tip, all report as plain numbers. So ask git what it is
+    actually reading, rather than trusting that `_env()` covered every way a
+    shell can redirect it.
+
+    Two questions, because two things can be moved separately. Is the git
+    directory the one this checkout points at, and is the working tree `REPO`?
+    `GIT_DIR` moves the first while the second still answers `REPO`, which is
+    why `--show-toplevel` alone would not have found the finding that started
+    this.
+
+    Compared against `.git` and not against `REPO/.git`: a linked worktree's git
+    directory is `<main>/.git/worktrees/<name>` and a submodule's is
+    `<parent>/.git/modules/<name>`, both outside the checkout, and both
+    ordinary. Refusing those would fail a correct case.
+    """
+    expected = _checkout_git_dir()
+    actual = Path(_git("rev-parse", "--absolute-git-dir")).resolve()
+    if actual != expected:
+        raise SystemExit(
+            f"git is reading the repository at {actual}, but the checkout at {REPO} "
+            f"points at {expected}. Something in this shell points git elsewhere — a "
+            "GIT_DIR, or a variable this tool does not know about. Unset it and run again."
+        )
+
+    top = Path(_git("rev-parse", "--show-toplevel")).resolve()
+    if top != REPO.resolve():
+        raise SystemExit(
+            f"git's working tree is {top}, not {REPO}. Something in this shell points "
+            "git at another checkout. Unset it and run again."
+        )
 
 
 def _render(command: str, payload: object) -> None:
     if command == "head":
         data = payload
         print(f"{data['branch']} at {data['commit']}")  # type: ignore[index]
+    elif command == "main":
+        data = payload
+        print(f"main is at {data['main_short']} as this clone last saw it")  # type: ignore[index]
+        print(f"  checkout: {data['checked_out']}")  # type: ignore[index]
+        print("  run `git fetch` for a live value; `origin/main` is the last fetched one")
     elif command == "tests":
         data = payload
         print(f"{data['total']} tests collected")  # type: ignore[index]
@@ -491,15 +730,19 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("head", "tests", "names", "hashes", "status", "check"):
+    for name in ("head", "main", "tests", "names", "hashes", "status", "check"):
         sub.add_parser(name)
     search_parser = sub.add_parser("search")
     search_parser.add_argument("pattern")
 
     args = parser.parse_args(argv)
 
+    _require_this_repo()
+
     if args.command == "head":
         payload: object = head()
+    elif args.command == "main":
+        payload = main_branch()
     elif args.command == "tests":
         payload = tests()
     elif args.command == "names":
