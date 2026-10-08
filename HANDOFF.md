@@ -145,11 +145,12 @@ The note reached `main` in #47's merge, at 2026-10-08 01:06:32 UTC, and names #4
 in that same instant, since that merge is what closed it. #48 was still open then, and #51 had not
 been opened.
 
-Its sentences went false as the session ran, and the review records carry a time for each. The
-findings sentence — every finding from every review round on both branches was fixed or answered,
-and the reply says which — went false at #48's 01:47:50 review, whose finding was answered at
-02:15:00, and again at the 02:19:03 review, answered at 02:38:35. "Every review round so far had
-deferred them" went false at 02:14:33, when #51's own review took the guard change instead of
+Its sentences went false as the session ran, and the review records carry a time for each.
+The note at `92e2fb7` says, "Every finding from every review round on both branches is fixed,
+or answered on the pull request, and the reply says which." That sentence went false at #48's
+01:47:50 review, whose finding was answered at 02:15:00, and again at the 02:19:03 review,
+answered at 02:38:35. The note also says, "Every review round so far deferred them to keep this
+work to its own concern." That sentence went false at 02:14:33, when #51's own review took the guard change instead of
 deferring it. The promise that the guard change would come as the next pull request once those two
 had merged broke at #51's opening, 02:05:14, before #48 merged. And the merges that closed pull
 requests the text still called open — `personal-agent-skills` #13 at 02:42:25, #48 at 02:45:51 —
@@ -194,9 +195,9 @@ move. The home for it — a rule there, or a check — was left to the retro on 
 **Left open when #50 merged: the guard's environment.** The change is to run `scripts/check.sh`'s
 gates under a fixed environment (`env -i` plus only what the checks need), in place of the drop
 list of redirecting variables that the review rounds kept lengthening. #51's comment at 02:24:08
-proposes it, with the measurement behind it, and closes by saying the change decides what a check
-can see (`PATH`, `HOME` for uv's cache, git's user config) and is one for the owner to approve
-rather than one to make inside that pull request — "I have put it to him." The record holds the
+proposes it, with the measurement behind it. It says, "it also decides what a check can see",
+and leaves the change to the owner's approval rather than making it inside that pull request.
+It closes that proposal with "I have put it to him." The record holds the
 proposal and that closing note; the approval itself is in the conversation, not on the record. By
 03:12, when #50 merged, the four pull requests this session worked through — #47, #48, #50 and #51
 — were all merged. The change decides what a check can see, so a CI run is what proves it.
