@@ -286,6 +286,10 @@ echo
 echo "== quoted figures =="
 uv run --no-env-file python scripts/facts.py check
 
+echo
+echo "== document navigation =="
+uv run --no-env-file python scripts/facts.py links
+
 after="$(tree_state)"
 if [ "$before" != "$after" ]; then
   echo >&2
