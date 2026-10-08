@@ -136,36 +136,37 @@ list columns, not a second naming system.
 
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
-Hamid asked for every open pull request to be fixed. Two are open here, both waiting on him to
+Hamid asked for every open pull request to be fixed. Two were open here, both waiting on him to
 merge:
 
-- **#47 — status lives in `HANDOFF.md` §2** (this branch). It removes the copied status from
-  `README.md` and `AGENTS.md`, stops this file from pinning the `main` tip or listing open pull
-  requests, and points the figures tool's test-count comparison at §2. It also hardens that tool
-  against a caller's environment deciding which tests get counted: a `UV_WORKING_DIR`, a `.env`
-  file's `addopts`, an inherited `PYTHONPATH`. Each was reproduced before it was fixed, and each
-  fix was reviewed again.
+- **#47 — status lives in `HANDOFF.md` §2.** It removed the copied status from `README.md` and
+  `AGENTS.md`, stopped this file from pinning the `main` tip or listing open pull requests, and
+  pointed the figures tool's test-count comparison at §2. It also hardened that tool against a
+  caller's environment deciding which tests get counted: a `UV_WORKING_DIR`, a `.env` file's
+  `addopts`, an inherited `PYTHONPATH`. Each was reproduced before it was fixed, and each fix was
+  reviewed again. **The owner merged it while this session ran.**
 - **#48 — `REVIEW_STANDARDS.md`.** The rules a reviewer applies that a script cannot, each with
-  the incident that taught it.
+  the incident that taught it. It was open when this note was last edited.
 
-Every finding from every review round on both branches is fixed, or answered on the pull request,
-and the reply says which. One check stays unproven and is recorded as such on #47: it changes
-nothing unless the environment installs a pytest plugin, so no test here can exercise it.
+Every finding from every review round on both branches was fixed, or answered on the pull request,
+and the reply says which. One check stayed unproven, and #47 records it:
+`PYTEST_DISABLE_PLUGIN_AUTOLOAD` changes nothing unless the environment installs a pytest plugin,
+so no test could exercise it.
 
-**The next small pull request, once these two merge: the guard in `scripts/check.sh`.** It has two
-holes of one family. A path it cannot read is skipped instead of aborting the comparison, so a
-change to that path goes unseen. And it compares the working tree while inheriting the caller's
-environment, so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the shell decides what
-it looks at. The same file holds both, so they belong in one change. Every review round so far
-deferred them to keep this work to its own concern.
+**The follow-up this session handed on: the guard in `scripts/check.sh`.** It had two holes of one
+family. A path it could not read was skipped instead of aborting the comparison, so a change to
+that path went unseen. And it compared the working tree while inheriting the caller's environment,
+so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the shell decided what it looked
+at. The same file held both, so they belonged in one change, which every review round so far had
+deferred to keep the work to its own concern. The next build is in §3.
 
 Outside this repository, in `aadehamid/personal-agent-skills`: **#11**
 (`docs/working-tree-guard-detail`) **merged** this session, keeping this project's detail on the
-working-tree guard and that repo's wording for where the hook's install line goes. Its branch is
-deleted, along with three other merged branches that were still in the local clone. **#13** is
-open there, carrying two rules this session paid for: an incident in a standards file is a claim
-about the past, so read the commit before writing it, and a conflict resolved by a script is a
-conflict still there.
+working-tree guard and that repo's wording for where the hook's install line goes. Its branch was
+deleted, along with three other merged branches that were still in the local clone. **#13** opened
+there, carrying two rules this session paid for: an incident in a standards file is a claim about
+the past, so read the commit before writing it, and a conflict resolved by a script is a conflict
+still there.
 
 ### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
