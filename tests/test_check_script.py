@@ -8,7 +8,12 @@ answers it is removed from the script:
   so a file at mode 000 could be rewritten under it and the state never moved;
 * the guard inherited the caller's environment, so `GIT_DIR` with `GIT_WORK_TREE`
   pointed it at another repository, where its snapshot collapsed to the hash of
-  the empty string, while the checks still ran here.
+  the empty string, while the checks still ran here;
+* a git read that failed dropped out of the snapshot instead of stopping it, so
+  under a failing `ls-files` the contents and mode lines went missing and a mode
+  change moved the state not at all;
+* the two reads that name the repository let their own failure through, so a
+  `git` that answered correctly and then returned 128 was believed.
 
 The script is copied into a throwaway repository rather than run in this one: it
 runs uv, ruff and pytest, which a test cannot start from inside the suite.
@@ -108,6 +113,67 @@ def test_a_path_the_guard_cannot_read_stops_it(tmp_path: Path) -> None:
 
     assert result.returncode != 0
     assert "could not be hashed" in result.stderr
+
+
+@pytest.mark.parametrize("question", ["rev-parse --absolute-git-dir", "rev-parse --show-toplevel"])
+def test_a_git_answer_that_fails_is_not_believed(tmp_path: Path, question: str) -> None:
+    """The two reads that name the repository answer for their status too.
+
+    Both used `|| true`, which turns "git is broken" into "git agreed": a `git`
+    that ran the real `rev-parse`, printed the expected directory and then
+    returned 128 was believed, and the guard carried on to its snapshot. An
+    exported `git` stands in, answering the named question with the truth and a
+    failing status, and every other command honestly.
+    """
+    repo = _repo(tmp_path, "repo")
+    result = _tree_state(
+        repo,
+        {
+            "BASH_FUNC_git%%": (
+                "() {\n"
+                '  command git "$@"\n'
+                "  local rc=$?\n"
+                f'  if [ "${{1:-}} ${{2:-}}" = "{question}" ]; then return 128; fi\n'
+                "  return $rc\n"
+                "}"
+            )
+        },
+    )
+
+    assert result.returncode != 0, result.stdout
+    assert "could not name" in result.stderr, result.stderr
+
+
+@pytest.mark.parametrize("command", ["ls-files -z", "status --porcelain", "ls-files --stage"])
+def test_a_git_read_that_fails_stops_the_guard(tmp_path: Path, command: str) -> None:
+    """Each read the snapshot is assembled from answers for its own failure.
+
+    The path list came from a process substitution, which discards the exit
+    status of what it runs. A `git ls-files` that failed therefore left the list
+    empty, the two reads after it succeeded on nothing, and the snapshot stopped
+    moving: measured, a tracked file going from mode 644 to mode 600 — a change
+    the mode line is the only home for — left the state identical. The identity
+    checks above let the injected `git` through, because those ask `rev-parse`.
+    """
+    repo = _repo(tmp_path, "repo")
+    asked = f'"{command}"'
+    result = _tree_state(
+        repo,
+        {
+            "BASH_FUNC_git%%": (
+                "() {\n"
+                f'  if [ "${{1:-}} ${{2:-}}" = {asked} ]; then\n'
+                '    echo "fatal: injected failure" >&2\n'
+                "    return 128\n"
+                "  fi\n"
+                '  command git "$@"\n'
+                "}"
+            )
+        },
+    )
+
+    assert result.returncode != 0, result.stdout
+    assert "could not" in result.stderr, result.stderr
 
 
 def test_a_caller_cannot_point_the_guard_at_another_repository(tmp_path: Path) -> None:
@@ -255,6 +321,43 @@ def test_a_deleted_tracked_file_does_not_stop_the_guard(tmp_path: Path) -> None:
     tracked.write_bytes(original)
     tracked.chmod(mode)
     assert _state(_tree_state(repo)) == before
+
+
+def test_the_guard_records_where_a_symlink_points(tmp_path: Path) -> None:
+    """Where a link points is the only place two of its changes show up.
+
+    The content hash follows a link, so a link repointed at a file with the same
+    contents hashes the same. And a broken link fails a content read outright, so
+    `-e` alone would drop it from the mode line with it: without the `|| -L` in
+    `present_paths`, repointing one broken link at another would leave the
+    snapshot where it was. Both retargets below move it, and putting the links
+    back restores the state exactly.
+    """
+    repo = _repo(tmp_path, "repo")
+    (repo / "real-a").write_text("identical\n")
+    (repo / "real-b").write_text("identical\n")
+    (repo / "link").symlink_to("real-a")
+    (repo / "broken").symlink_to("nowhere")
+
+    before = _state(_tree_state(repo))
+
+    (repo / "link").unlink()
+    (repo / "link").symlink_to("real-b")
+    assert _state(_tree_state(repo)) != before, "a link pointing at equal contents moved nothing"
+
+    # Put the first link back before testing the second, or the state the
+    # broken-link assertion compares to carries the earlier retarget with it and
+    # the assertion would hold however the broken link is treated.
+    (repo / "link").unlink()
+    (repo / "link").symlink_to("real-a")
+
+    (repo / "broken").unlink()
+    (repo / "broken").symlink_to("nowhere-else")
+    assert _state(_tree_state(repo)) != before, "a broken link repointed moved nothing"
+
+    (repo / "broken").unlink()
+    (repo / "broken").symlink_to("nowhere")
+    assert _state(_tree_state(repo)) == before, "putting the links back did not restore the state"
 
 
 def test_a_caller_cannot_hide_a_path_with_a_config_file(tmp_path: Path) -> None:

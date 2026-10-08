@@ -319,7 +319,7 @@ config/
 docker/    # compose lands service-by-service from Phase 2 (profiles per charter §8.2)
 data/{raw,cache}    # local scratch only. Not the durable warehouse (R2 lagos-chem-l0)
 notebooks/ # Marimo learning surface, one per component
-tests/     # 118 tests (L0 goldens, Unit 100 P&ID, figures and guard tools; no CI)
+tests/     # 124 tests (L0 goldens, Unit 100 P&ID, figures and guard tools; no CI)
 ```
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status

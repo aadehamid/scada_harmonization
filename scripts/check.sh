@@ -78,8 +78,22 @@ else
   echo >&2 "FAIL: $marker is neither a file nor a directory; $repo is not a checkout."
   exit 1
 fi
-got_git_dir="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
-got_toplevel="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+# Both reads are asked for their status. `|| true` in its place turns "git is
+# broken" into "git agreed": a `git` that ran the real `rev-parse`, printed the
+# expected directory and then returned 128 was believed, and the guard went on.
+# A read that failed has not answered, and an unanswered question is not a
+# comparison that passed. The value comparison below still covers a git that
+# answers with the wrong directory, or with nothing.
+if ! got_git_dir="$(git rev-parse --absolute-git-dir 2>/dev/null)"; then
+  echo >&2 "FAIL: git could not name the repository it is reading. Something in"
+  echo >&2 "      this shell is breaking it; unset it and run again."
+  exit 1
+fi
+if ! got_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+  echo >&2 "FAIL: git could not name the working tree it is reading. Something in"
+  echo >&2 "      this shell is breaking it; unset it and run again."
+  exit 1
+fi
 # Resolve both through the filesystem, so a symlinked path on one side is not
 # read as a difference between two names for the same directory.
 if [ -d "$got_git_dir" ]; then
@@ -118,15 +132,22 @@ tracked_paths() {
 # `--cached` lists a tracked file that has been deleted from the working tree
 # without staging, and reading that path fails; a broken symlink fails a content
 # read too. Neither is a check doing something, and a checkout is in both states
-# while someone works, so each read below asks for the paths it can handle. The
+# while someone works, so each read below takes the paths it can handle. The
 # status and index lines keep those paths in the snapshot, so a deletion or a
 # retargeted link still moves it. A regular file that cannot be read is a
 # different matter, and it stops the snapshot.
+#
+# Each filter reads the path list from its standard input, so it sits inside the
+# pipeline whose status is checked. `<(tracked_paths)` in its place discards the
+# status of what it runs: a `git ls-files` that failed left an empty list, both
+# reads answered happily on nothing, and the state stopped moving — measured, a
+# tracked file changed from mode 644 to mode 600 under a failing enumeration and
+# the snapshot stood still. `pipefail` carries the failed enumeration out.
 hashable_paths() {
   local path
   while IFS= read -r -d '' path; do
     if [ -f "$path" ]; then printf '%s\0' "$path"; fi
-  done < <(tracked_paths)
+  done
 }
 
 # stat reports on the link itself, so it answers for a broken one; `-e` alone
@@ -135,45 +156,49 @@ present_paths() {
   local path
   while IFS= read -r -d '' path; do
     if [ -e "$path" ] || [ -L "$path" ]; then printf '%s\0' "$path"; fi
-  done < <(tracked_paths)
+  done
 }
 
 tree_state() {
-  local contents entries
+  local contents entries status index
   # A read that fails has to stop the snapshot, not drop out of it: a path
   # missing from both snapshots compares equal, so a check that rewrote a file
   # the guard could not read would still reach "All checks passed." It did — a
   # file at mode 000 whose contents were replaced twice produced the same state
   # every time.
   #
-  # The status has to be taken here, not left to `set -e`. Neither read is the
-  # last command in the group below, and a group's status is its last command's,
-  # so nothing else sees `xargs` exit 123 on a failed read.
+  # So every read is asked for its own status, and none of them is left to an
+  # enclosing group: a group's status is its last command's, and a pipeline's is
+  # its last stage's unless `pipefail` is set.
   #
   # Every path goes through './' or a trailing '--', so a file named '--help' is
   # read as a path rather than as an option to the tool. The './' prefix is
   # load-bearing: sha256sum reads a bare '-' operand as standard input even after
   # '--', so a file named '-' would never be read.
-  if ! contents="$(hashable_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum --)"; then
-    echo >&2 "FAIL: a tracked path could not be hashed."
+  if ! contents="$(tracked_paths | hashable_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum --)"; then
+    echo >&2 "FAIL: the paths could not be listed, or one could not be hashed."
     return 1
   fi
   # Mode, filesystem type, and — for a symlink — its target, quoted and escaped
   # by %N, so a target ending in a newline cannot collide with a different name.
-  if ! entries="$(present_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' --)"; then
-    echo >&2 "FAIL: a tracked path could not be stat-ed."
+  if ! entries="$(tracked_paths | present_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' --)"; then
+    echo >&2 "FAIL: the paths could not be listed, or one could not be stat-ed."
     return 1
   fi
-  {
-    printf '%s\n' "$contents" "$entries"
-    # Content hashes miss mode changes and index state (an executable bit
-    # dropped from the hook, for one), so keep git's own view alongside them.
-    git status --porcelain --untracked-files=all
-    # Status records change *categories*, not index blob ids: a staged blob can
-    # change while the status string stays 'MM' and the working file is
-    # untouched. --stage carries the blob id, mode and stage for each path.
-    git ls-files --stage -z
-  } | sha256sum | cut -d' ' -f1
+  # Content hashes miss mode changes and index state (an executable bit dropped
+  # from the hook, for one), so keep git's own view alongside them.
+  if ! status="$(git status --porcelain --untracked-files=all)"; then
+    echo >&2 "FAIL: git could not report the working tree's status."
+    return 1
+  fi
+  # Status records change *categories*, not index blob ids: a staged blob can
+  # change while the status string stays 'MM' and the working file is untouched.
+  # --stage carries the blob id, mode and stage for each path.
+  if ! index="$(git ls-files --stage -z | sha256sum | cut -d' ' -f1)"; then
+    echo >&2 "FAIL: git could not report the index."
+    return 1
+  fi
+  printf '%s\n' "$contents" "$entries" "$status" "$index" | sha256sum | cut -d' ' -f1
 }
 
 # For the guard's own tests: print what a run would compare, and stop. The tests
