@@ -181,6 +181,8 @@ def tests() -> dict[str, object]:
             # `--rootdir` from there collects another project's tests.
             "--no-env-file",
             "pytest",
+            # `PYTEST_DISABLE_PLUGIN_AUTOLOAD`, set in the environment below,
+            # keeps a plugin installed in this environment from loading.
             "--collect-only",
             "-q",
             "-p",
@@ -190,7 +192,19 @@ def tests() -> dict[str, object]:
         capture_output=True,
         text=True,
         check=False,
-        env={**_env(), "PYTHONDONTWRITEBYTECODE": "1"},
+        env={
+            **_env(),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            # Set, not cleared. A pytest plugin is handed the argument list
+            # before collection and can append to it — a node id, a
+            # `--rootdir` — and it does so after every flag on the command line
+            # above has been read. An argument a plugin adds is not visible in
+            # the collected names either: those are relative to pytest's
+            # rootdir, so a foreign `tests/test_facts.py` reports the same name
+            # as this one. Nothing installed here needs a plugin to collect, so
+            # the plugins are off.
+            "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        },
     )
     if result.returncode != 0:
         raise SystemExit(f"pytest --collect-only failed:\n{result.stdout}{result.stderr}")
@@ -546,6 +560,11 @@ _REDIRECTING_ENV = (
     # selects a subset, and a subset reported as the suite total is a wrong
     # figure.
     "PYTEST_ADDOPTS",
+    # pytest imports what these name before it collects, and what it imports can
+    # add arguments of its own. `PYTHONPATH` also decides which module a name
+    # means, for any interpreter this tool starts.
+    "PYTEST_PLUGINS",
+    "PYTHONPATH",
     # git's outrank the working directory: with `GIT_DIR` set, every git command
     # here answers for another repository while `cwd=REPO` says otherwise, and
     # `GIT_INDEX_FILE` points it at another repository's index, where `ls-files`

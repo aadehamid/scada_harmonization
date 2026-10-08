@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 100
+EXPECTED_TESTS = 101
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -234,6 +234,29 @@ def test_a_dotenv_file_cannot_put_a_cleared_redirect_back(
     dotenv.write_text(f'PYTEST_ADDOPTS="--rootdir={other} {other}/tests"\n', encoding="utf-8")
 
     monkeypatch.setenv("UV_ENV_FILE", str(dotenv))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_an_inherited_plugin_cannot_add_to_the_collection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A plugin pytest loads can append arguments after the flags have been read.
+
+    `PYTEST_PLUGINS` names a module pytest imports before it collects, and
+    `PYTHONPATH` says where to find it. This hook appends one node id, so the run
+    reports a single test — and reports it as `tests/test_facts.py`, this
+    repository's own file, because collected names are relative to pytest's
+    rootdir. The check on the collected names cannot tell that apart; only not
+    loading the plugin can.
+    """
+    (tmp_path / "collect_one.py").write_text(
+        "def pytest_load_initial_conftests(early_config, parser, args):\n"
+        '    args.append("tests/test_facts.py::test_test_count_is_pinned")\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path))
+    monkeypatch.setenv("PYTEST_PLUGINS", "collect_one")
 
     assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
 
