@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 132
+EXPECTED_TESTS = 172
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -878,6 +878,7 @@ def test_check_does_not_read_a_document_it_was_not_given(tmp_path: Path) -> None
         ["hashes"],
         ["status"],
         ["check"],
+        ["links"],
         ["search", "contextualization"],
     ],
 )
@@ -896,11 +897,157 @@ def test_tool_does_not_write_to_the_repo(argv: list[str]) -> None:
     assert _tree_state() == before
 
 
-def test_check_exits_zero_on_the_clean_repo() -> None:
-    assert facts.main(["check"]) == 0
+@pytest.mark.parametrize("command", ["check", "links"])
+def test_check_exits_zero_on_the_clean_repo(command: str) -> None:
+    assert facts.main([command]) == 0
 
 
-def test_check_exits_non_zero_on_a_problem(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("command", ["check", "links"])
+def test_check_exits_non_zero_on_a_problem(monkeypatch: pytest.MonkeyPatch, command: str) -> None:
     """The exit code is what CI reads, so a finding must reach it."""
-    monkeypatch.setattr(facts, "check", lambda *a, **k: [facts.Problem("x.md", 1, "boom")])
-    assert facts.main(["check"]) == 1
+    monkeypatch.setattr(facts, command, lambda *a, **k: [facts.Problem("x.md", 1, "boom")])
+    assert facts.main([command]) == 1
+
+
+# --------------------------------------------------------------------------
+# Navigation is checked against real temporary documents and assets
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        ("[target](target.md#hello-world)\n", None),
+        ("[duplicate](target.md#hello-world-1)\n", None),
+        ("[setext](target.md#setext-heading)\n", None),
+        ("[code heading](target.md#metric-id)\n", None),
+        ("[unicode](target.md#déjà-vu)\n", None),
+        ("![asset](image.png)\n", None),
+        ("[space](<file with spaces.md>)\n[encoded](file%20with%20spaces.md)\n", None),
+        ("[query](target.md?raw=1#hello-world)\n", None),
+        ('[reference][r]\n[r]: target.md#hello-world "Title"\n', None),
+        ('<a href="target.html#explicit">HTML</a>\n', None),
+        ('<img src="image.png">\n', None),
+        ("[outside](https://example.com/missing)\n[mail](mailto:a@example.com)\n", None),
+        ("`[example](missing.md)`\n```md\n[example](missing.md)\n```\n", None),
+        ("<!-- [example](missing.md) -->\n", None),
+        ("[broken](missing.md)\n", "missing local target"),
+        ("![broken](missing.png)\n", "missing local target"),
+        ("[broken](target.md#absent)\n", "missing heading/id"),
+        ('<a href="target.html#absent">HTML</a>\n', "missing heading/id"),
+        ("[escape](../outside.md)\n", "leaves repository"),
+    ],
+)
+def test_document_navigation(tmp_path: Path, body: str, expected: str | None) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    (tmp_path / "target.md").write_text(
+        "# Hello world\n# Hello world\n# `Metric` ID\n# Déjà vu\n\nSetext heading\n---\n"
+    )
+    (tmp_path / "target.html").write_text('<h1 id="explicit">Heading</h1>')
+    (tmp_path / "image.png").write_bytes(b"image")
+    (tmp_path / "file with spaces.md").write_text("# Space")
+    problems = facts.links([source], root=tmp_path)
+    if expected is None:
+        assert problems == []
+    else:
+        assert len(problems) == 1
+        assert expected in problems[0].detail
+        assert problems[0].path == "source.md"
+        assert problems[0].line == 1
+
+
+def test_html_navigation_and_line_numbers(tmp_path: Path) -> None:
+    source = tmp_path / "source.html"
+    source.write_text('<h1 id="top">Title</h1>\n<a href="#top">Top</a>\n<img src="missing.png">')
+    problems = facts.links([source], root=tmp_path)
+    assert [(p.path, p.line, p.detail) for p in problems] == [
+        ("source.html", 3, "missing local target: missing.png")
+    ]
+
+
+def test_migration_map_rejects_live_retired_links(tmp_path: Path) -> None:
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    target = docs / "new.md"
+    target.write_text("# New")
+    migration = docs / "DOCUMENT_PATHS.md"
+    migration.write_text("| `old.md` | [docs/new.md](new.md) |\n")
+    source = tmp_path / "source.md"
+    source.write_text("Historical `old.md` is preserved.\n[old](old.md)\n")
+    problems = facts.links([source, migration], root=tmp_path)
+    assert len(problems) == 1
+    assert problems[0].line == 2
+    assert problems[0].detail == "retired target old.md; use docs/new.md"
+    source.write_text("Historical `old.md` is preserved.\n[new](docs/new.md)\n")
+    assert facts.links([source, migration], root=tmp_path) == []
+
+
+def test_migration_map_rejects_wrong_label_and_recreated_path(tmp_path: Path) -> None:
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "new.md").write_text("# New")
+    (tmp_path / "old.md").write_text("# Old")
+    migration = docs / "DOCUMENT_PATHS.md"
+    migration.write_text("| `old.md` | [docs/wrong.md](new.md) |\n")
+    problems = facts.links([migration], root=tmp_path)
+    assert len(problems) == 2
+    assert "differs" in problems[0].detail
+    assert problems[1].detail == "retired path still exists: old.md"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        r"\[example](missing.md)",
+        r"[example\](missing.md)",
+        "```text\n```md\n[example](missing.md)\n```\n",
+    ],
+)
+def test_navigation_ignores_escaped_labels_and_fence_content(tmp_path: Path, body: str) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    assert facts.links([source], root=tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "[example](missing.md)",
+        "![example](missing.md)",
+        r"[label with \] bracket](missing.md)",
+        r"[label with \[ bracket](missing.md)",
+        r"\\[example](missing.md)",
+        "[nested [label]](missing.md)",
+    ],
+)
+def test_navigation_preserves_real_links_with_label_punctuation(tmp_path: Path, body: str) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    problems = facts.links([source], root=tmp_path)
+    assert len(problems) == 1
+    assert problems[0].detail == "missing local target: missing.md"
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        ('<span title="[example](missing.md)">shown</span>', None),
+        ('<span title="![example](missing.md)">shown</span>', None),
+        ('<span title="literal">[example](missing.md)</span>', "missing local target"),
+        ("<code>[example](missing.md)</code>", "missing local target"),
+        ('<a href="missing.md" title="[example](missing.md)">shown</a>', "missing local target"),
+        ('<img src="missing.md" alt="[example](missing.md)">', "missing local target"),
+    ],
+)
+def test_navigation_separates_html_attributes_and_markdown_content(
+    tmp_path: Path, body: str, expected: str | None
+) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    problems = facts.links([source], root=tmp_path)
+    if expected is None:
+        assert problems == []
+    else:
+        assert len(problems) == 1
+        assert problems[0].detail == "missing local target: missing.md"

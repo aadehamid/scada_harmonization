@@ -23,6 +23,7 @@ Usage:
     scripts/facts.py hashes          pinned fixture SHA-256 digests
     scripts/facts.py status          every "main is at <sha>" claim, with file:line
     scripts/facts.py search PATTERN  repo-wide, ignoring line breaks
+    scripts/facts.py links           check local document navigation and migrations
     scripts/facts.py check           fail if a quoted figure contradicts the source
 
 Add --json before the command for machine-readable output.
@@ -37,10 +38,14 @@ import os
 import re
 import subprocess
 import sys
+import unicodedata
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from html import unescape
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 REPO = Path(__file__).resolve().parent.parent
 FIXTURES = REPO / "tests" / "fixtures" / "datagen"
@@ -560,6 +565,178 @@ def check(
 
 
 # --------------------------------------------------------------------------
+# Document navigation
+# --------------------------------------------------------------------------
+
+
+class _HTMLNavigation(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.links: list[tuple[int, str]] = []
+        self.anchors: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        for name, value in attrs:
+            if value is None:
+                continue
+            if name == "id" or (tag == "a" and name == "name"):
+                self.anchors.add(value)
+            if name in {"href", "src"}:
+                self.links.append((self.getpos()[0], value))
+
+
+def _markdown_links(text: str) -> list[tuple[int, str]]:
+    """Read navigation from parsed tokens, keeping HTML attributes separate."""
+    from markdown_it import MarkdownIt
+
+    environment: dict = {}
+    tokens = MarkdownIt("commonmark").enable("table").parse(text, environment)
+    links: list[tuple[int, str]] = []
+    for token in tokens:
+        line = token.map[0] + 1 if token.map else 1
+        if token.type == "html_block":
+            parser = _HTMLNavigation()
+            parser.feed(token.content)
+            links.extend((line + n - 1, target) for n, target in parser.links)
+        elif token.type == "inline":
+            for child in token.children or []:
+                if child.type in {"link_open", "image"}:
+                    target = child.attrGet("href" if child.type == "link_open" else "src")
+                    if isinstance(target, str):
+                        links.append((line, target))
+                elif child.type == "html_inline":
+                    parser = _HTMLNavigation()
+                    parser.feed(child.content)
+                    links.extend((line + n - 1, target) for n, target in parser.links)
+                if child.type in {"softbreak", "hardbreak"}:
+                    line += 1
+                else:
+                    line += child.content.count("\n")
+    # A definition may become navigation when a later reference is added.
+    for reference in environment.get("references", {}).values():
+        links.append((reference["map"][0] + 1, reference["href"]))
+    return list(dict.fromkeys(links))
+
+
+def _anchors(path: Path) -> set[str]:
+    text = path.read_text(encoding="utf-8")
+    parser = _HTMLNavigation()
+    if path.suffix.lower() == ".html":
+        parser.feed(text)
+        return parser.anchors
+    from markdown_it import MarkdownIt
+
+    markdown = MarkdownIt("commonmark").enable("table")
+    parser.feed(markdown.render(text))
+    anchors = parser.anchors
+    used: set[str] = set()
+    tokens = markdown.parse(text)
+    for index, token in enumerate(tokens):
+        if token.type != "heading_open":
+            continue
+        # Inline text/code carries heading words; markup and HTML tags do not.
+        title = "".join(
+            child.content
+            if child.type in {"text", "code_inline", "image"}
+            else " "
+            if child.type in {"softbreak", "hardbreak"}
+            else ""
+            for child in tokens[index + 1].children or []
+        ).lower()
+        slug = "".join(c for c in title if c in "-_ " or unicodedata.category(c)[0] in "LN")
+        slug = slug.replace(" ", "-")
+        candidate = slug
+        suffix = 0
+        while candidate in used:
+            suffix += 1
+            candidate = f"{slug}-{suffix}"
+        used.add(candidate)
+        anchors.add(candidate)
+    return anchors
+
+
+def links(
+    docs: Sequence[Path] | None = None,
+    *,
+    root: Path | None = None,
+    migration_map: Path | None = None,
+) -> list[Problem]:
+    """Check local navigation, assets, fragments and recorded path migrations.
+
+    No network requests. Historical prose and code examples are not navigation;
+    actual links in historical files are checked like links anywhere else.
+    """
+    root = REPO if root is None else root
+    docs = (
+        [p for p in tracked_text_files() if p.suffix.lower() in {".md", ".html"}]
+        if docs is None
+        else docs
+    )
+    migration_map = root / "docs/DOCUMENT_PATHS.md" if migration_map is None else migration_map
+    retired: dict[Path, str] = {}
+    problems: list[Problem] = []
+    if migration_map.is_file():
+        for number, line in enumerate(migration_map.read_text(encoding="utf-8").splitlines(), 1):
+            row = re.match(r"\| `([^`]+)` \| \[([^]]+)\]\(([^)]+)\) \|", line)
+            if not row:
+                continue
+            old, current, destination = row.groups()
+            old_path = (root / old).resolve()
+            retired[old_path] = current
+            target = (migration_map.parent / unquote(destination)).resolve()
+            if target != (root / current).resolve():
+                problems.append(
+                    Problem(
+                        str(migration_map.relative_to(root)),
+                        number,
+                        f"migration label {current!r} differs from {destination!r}",
+                    )
+                )
+            if old_path.exists():
+                problems.append(
+                    Problem(
+                        str(migration_map.relative_to(root)),
+                        number,
+                        f"retired path still exists: {old}",
+                    )
+                )
+    anchor_cache: dict[Path, set[str]] = {}
+    for path in docs:
+        label = str(path.relative_to(root))
+        text = path.read_text(encoding="utf-8")
+        if path.suffix.lower() == ".html":
+            parser = _HTMLNavigation()
+            parser.feed(text)
+            targets = parser.links
+        else:
+            targets = _markdown_links(text)
+        for line, target in targets:
+            parsed = urlsplit(unescape(target))
+            if parsed.scheme or parsed.netloc:
+                continue
+            decoded = unquote(parsed.path)
+            target_path = (
+                root / decoded.lstrip("/") if decoded.startswith("/") else path.parent / decoded
+            ).resolve()
+            if not decoded:
+                target_path = path.resolve()
+            if not target_path.is_relative_to(root.resolve()):
+                problems.append(Problem(label, line, f"local target leaves repository: {target}"))
+            elif target_path in retired:
+                problems.append(
+                    Problem(label, line, f"retired target {target}; use {retired[target_path]}")
+                )
+            elif not target_path.exists():
+                problems.append(Problem(label, line, f"missing local target: {target}"))
+            elif parsed.fragment and target_path.suffix.lower() in {".md", ".html"}:
+                if target_path not in anchor_cache:
+                    anchor_cache[target_path] = _anchors(target_path)
+                if unquote(parsed.fragment) not in anchor_cache[target_path]:
+                    problems.append(Problem(label, line, f"missing heading/id: {target}"))
+    return problems
+
+
+# --------------------------------------------------------------------------
 # Plumbing
 # --------------------------------------------------------------------------
 
@@ -716,10 +893,14 @@ def _render(command: str, payload: object) -> None:
         for hit in hits:  # type: ignore[union-attr]
             print(f"{hit.path}:{hit.line}: {hit.text}")
         print(f"\n{len(hits)} match(es)")  # type: ignore[arg-type]
-    elif command == "check":
+    elif command in {"check", "links"}:
         problems = payload
         if not problems:
-            print("every quoted figure matches its source")
+            print(
+                "every quoted figure matches its source"
+                if command == "check"
+                else "local document navigation and migrations are valid"
+            )
         for problem in problems:  # type: ignore[union-attr]
             print(f"{problem.path}:{problem.line}: {problem.detail}")
         print(f"\n{len(problems)} problem(s)")  # type: ignore[arg-type]
@@ -729,7 +910,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("head", "main", "tests", "names", "hashes", "status", "check"):
+    for name in ("head", "main", "tests", "names", "hashes", "status", "check", "links"):
         sub.add_parser(name)
     search_parser = sub.add_parser("search")
     search_parser.add_argument("pattern")
@@ -752,13 +933,15 @@ def main(argv: list[str] | None = None) -> int:
         payload = search(args.pattern)
     elif args.command == "status":
         payload = status_claims()
+    elif args.command == "links":
+        payload = links()
     else:
         payload = check()
 
     if args.json:
         if args.command in {"search", "status"}:
             body: object = [hit.__dict__ for hit in payload]  # type: ignore[union-attr]
-        elif args.command == "check":
+        elif args.command in {"check", "links"}:
             body = [problem.__dict__ for problem in payload]  # type: ignore[union-attr]
         else:
             body = payload
@@ -766,8 +949,8 @@ def main(argv: list[str] | None = None) -> int:
     else:
         _render(args.command, payload)
 
-    # Only `check` reports failure; the rest are queries.
-    if args.command == "check" and payload:
+    # Consistency and navigation findings fail the gate; other commands are queries.
+    if args.command in {"check", "links"} and payload:
         return 1
     return 0
 

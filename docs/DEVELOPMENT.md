@@ -19,12 +19,16 @@ via a committed `.python-version` (uv's pin — do not gitignore it); `uv.lock` 
 Runtime deps are **polars** (wide→long melt, tabular L0 frames, 1 s machine stream) and
 **pydantic** (L0 boundary). Each further dependency is added in the phase that needs it, with a
 one-line justification. The dev group holds **ruff** (lint + format; `E,W,F,I,UP,B`; 100
-columns), **pytest** (`testpaths = ["tests"]`), and **ty**.
+columns), **pytest** (`testpaths = ["tests"]`), **ty**, and **markdown-it-py**.
+The Markdown parser is a development dependency for document validation;
+[its token API](https://markdown-it-py.readthedocs.io/en/latest/using.html#the-token-stream)
+handles link syntax, code examples, and HTML boundaries. Runtime dependencies
+remain polars and pydantic.
 
 Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff format .` · `uv run ty check`
 
 **Checks run through one script: `scripts/check.sh`.** It runs ruff check, ruff
-format `--check`, ty, pytest, and `scripts/facts.py check`, and fails if the
+format `--check`, ty, pytest, `scripts/facts.py check`, and `scripts/facts.py links`. It fails if the
 checks change the working tree. CI calls it; so does the pre-push hook. **Add a
 gate there, not in `ci.yml` and not in the hook**, so a local run and a CI run
 stay identical.
@@ -35,6 +39,24 @@ finds text across line breaks, which `grep` cannot; `status` lists every place a
 document claims which commit `main` is at; `check` fails when a quoted figure
 contradicts its source and is wired into the check script. `--json` for
 machine-readable output.
+
+`links` checks tracked Markdown and HTML navigation without network access. It
+checks local link and image targets, reference definitions, Markdown ATX and Setext heading
+fragments (including duplicate headings), and HTML `id`/anchor targets. Root-relative
+paths start at the repository root; URL queries do not change the file target.
+It also checks whole-file rows in [the migration map](DOCUMENT_PATHS.md): current
+labels must name their destinations, retired files must stay absent, and live
+links must use current paths.
+
+Historical path mentions in prose, inline code, fenced or indented examples, and
+HTML comments remain untouched. Actual links in historical documents are still
+checked. External URLs, renderer-specific extensions, JavaScript-generated
+links, CSS URLs, and non-Markdown/non-HTML fragments are outside this check.
+Markdown uses CommonMark parsing with table support. The checker reads link
+and image tokens, resolves reference definitions, and sends HTML tokens to
+the HTML attribute parser. It does not judge undefined reference labels, which
+render as plain text. Run it with `uv run python scripts/facts.py links` so the
+development dependency is available.
 
 Install the hook once per clone (it is repo-local config, not committed):
 

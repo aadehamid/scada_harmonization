@@ -560,6 +560,31 @@ hold.**
   `main` is reported by `scripts/facts.py main`, not written down.
 
 
+## 2026-10-08: implement retrospective improvements
+
+The owner asked to implement the retrospective suggestions. Document navigation
+checks were added to the existing facts tool and check script, with regression
+cases for valid links, missing assets and headings, historical examples, and
+retired paths. A planted broken README link failed the navigation command and
+the full check; the original README bytes were restored before the passing run.
+The current test count is collected by the facts tool and recorded in HANDOFF.
+
+Independent review caught false positives for escaped brackets and invalid code
+fence closers. The author reproduced them, added failing regressions against the
+unfixed scanner, and corrected label pairing and closing-fence recognition.
+Valid links with escaped or nested labels remain checked. A later review found
+Markdown-like text inside HTML attributes treated as links. GitHub's renderer
+confirmed the distinction. The final design replaces custom Markdown recognition
+with CommonMark tokens, while HTMLParser owns HTML navigation attributes.
+The parser is a locked development dependency; runtime dependencies are unchanged.
+
+A separate personal-agent-skills change separates evaluation subjects from
+graders and exports prompts without grading criteria. The upstream retro and
+writing-for-agents skills were installed in the shared folder and linked into
+Codex. The existing historical-source judgement rule was retained in its one
+home. Final PR review and merge evidence belong on the respective PRs.
+
+
 ## Additional excerpts from the previous handoff
 
 These excerpts preserve earlier summaries and preferences. The charter, current
