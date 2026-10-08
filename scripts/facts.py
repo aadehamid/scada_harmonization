@@ -496,15 +496,30 @@ def check(
 # --------------------------------------------------------------------------
 
 
+# Variables in the caller's shell that point a subprocess at something other
+# than what this tool meant. git's are the dangerous ones: they outrank the
+# working directory, so with `GIT_DIR` set every git command here answers for
+# another repository while `cwd=REPO` says otherwise.
+_REDIRECTING_ENV = (
+    "PYTEST_ADDOPTS",
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+)
+
+
 def _env() -> dict[str, str]:
-    """The environment subprocesses run in, with pytest selection options cleared.
+    """The environment subprocesses run in, with the caller's redirections cleared.
 
     A `PYTEST_ADDOPTS` in the caller's shell could select a subset, and a subset
-    reported as the suite total is a wrong figure.
+    reported as the suite total is a wrong figure. A `GIT_DIR` is worse than
+    wrong: it makes every git command answer for the repository it names rather
+    than for `REPO`, so `main` reports that repository's tip, and a test helper
+    that commits and branches would change that repository instead of the
+    scratch one it was pointed at.
     """
-    env = dict(os.environ)
-    env.pop("PYTEST_ADDOPTS", None)
-    return env
+    return {k: v for k, v in os.environ.items() if k not in _REDIRECTING_ENV}
 
 
 def _label(path: Path) -> str:
@@ -516,7 +531,9 @@ def _label(path: Path) -> str:
 
 
 def _git(*args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, check=False)
+    result = subprocess.run(
+        ["git", *args], cwd=REPO, capture_output=True, text=True, check=False, env=_env()
+    )
     if result.returncode != 0:
         raise SystemExit(f"git {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout.strip()

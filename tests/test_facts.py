@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -25,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 94
+EXPECTED_TESTS = 95
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -40,7 +39,7 @@ def _tree_state() -> str:
     """Content hash of every tracked file, plus untracked presence."""
     parts: list[str] = []
     for name in subprocess.run(
-        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True
+        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True, env=facts._env()
     ).stdout.splitlines():
         parts.append(hashlib.sha256((REPO / name).read_bytes()).hexdigest())
     status = subprocess.run(
@@ -49,6 +48,7 @@ def _tree_state() -> str:
         capture_output=True,
         text=True,
         check=True,
+        env=facts._env(),
     ).stdout
     return hashlib.sha256(("".join(parts) + status).encode()).hexdigest()
 
@@ -71,20 +71,24 @@ def test_test_count_is_pinned() -> None:
     assert sum(per_file.values()) == EXPECTED_TESTS
 
 
-def test_main_reports_main_not_the_checkout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """On a branch these are different commits, and the status needs main.
+def _scratch_repo(tmp_path: Path) -> tuple[Path, str]:
+    """A repository on `feature`, whose `origin/main` is one commit behind it.
 
-    `head` answers "what am I on"; pointing a reader at it from a status
-    section hands them the feature branch's commit as main's. Built in a scratch
-    repository so the test does not depend on this clone's refs -- PR CI checks
-    out a merge ref and may not have `origin/main` at all.
+    Built from scratch so the test does not depend on this clone's refs: PR CI
+    checks out a merge ref and may not have `origin/main` at all. Returns the
+    path and the commit `origin/main` names.
+
+    The environment is `facts._env()`, which drops the variables that tell git
+    which repository to use. Inherited, `GIT_DIR` outranks `cwd`, so these
+    commands would commit to, move `origin/main` in, and branch *that*
+    repository instead, and this directory would never become a repository at
+    all — while `test_scratch_repo_ignores_a_redirected_environment` still had to
+    be the one to notice.
     """
     repo = tmp_path / "repo"
     repo.mkdir()
     env = {
-        **os.environ,
+        **facts._env(),
         "GIT_AUTHOR_NAME": "t",
         "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t",
@@ -97,19 +101,90 @@ def test_main_reports_main_not_the_checkout(
     git("init", "-q", "-b", "main")
     git("commit", "-q", "--allow-empty", "-m", "on main")
     main_sha = (
-        subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, env=env
+        )
         .stdout.decode()
         .strip()
     )
     git("update-ref", "refs/remotes/origin/main", main_sha)
     git("checkout", "-q", "-b", "feature")
     git("commit", "-q", "--allow-empty", "-m", "on the branch")
+    return repo, main_sha
+
+
+def test_main_reports_main_not_the_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """On a branch these are different commits, and the status needs main.
+
+    `head` answers "what am I on"; pointing a reader at it from a status
+    section hands them the feature branch's commit as main's.
+    """
+    repo, main_sha = _scratch_repo(tmp_path)
 
     monkeypatch.setattr(facts, "REPO", repo)
     result = facts.main_branch()
     assert result["main"] == main_sha, "it answers for main, not for the checkout"
     assert result["checked_out"] == "feature"
     assert result["checkout_is_main"] == "no"
+
+
+def test_scratch_repo_ignores_a_redirected_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`GIT_DIR` in the caller's shell must not move the test's work elsewhere.
+
+    Without `facts._env()` the helper's `init`, `commit`, `update-ref` and
+    `checkout -b` all ran against the repository `GIT_DIR` names -- adding a
+    commit, moving its `origin/main` onto it, and leaving it on `feature` -- and
+    the scratch directory stayed empty. The test above then passed anyway,
+    against the other repository's refs, which is what makes this worth pinning
+    separately: it passed for the wrong reason.
+
+    `scripts/check.sh` cannot see this. Its tree hash covers file contents,
+    `git status --porcelain` and `git ls-files --stage`, none of which record
+    the current branch or `origin/main`.
+    """
+    other = tmp_path / "other"
+    other.mkdir()
+    clean = facts._env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "-m", "other"], cwd=other, check=True, env=clean
+    )
+    head = (
+        subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=other, check=True, capture_output=True, env=clean
+        )
+        .stdout.decode()
+        .strip()
+    )
+    subprocess.run(
+        ["git", "update-ref", "refs/remotes/origin/main", head], cwd=other, check=True, env=clean
+    )
+
+    # What a wrapper, direnv or `git --git-dir` leaves behind. `cwd` does not
+    # override it, so every git command the helper runs would use this.
+    monkeypatch.setenv("GIT_DIR", str(other / ".git"))
+    repo, _ = _scratch_repo(tmp_path)
+
+    def ask(*args: str) -> str:
+        return (
+            subprocess.run(["git", *args], cwd=other, check=True, capture_output=True, env=clean)
+            .stdout.decode()
+            .strip()
+        )
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert ask("rev-parse", "HEAD") == head, "the other repository's HEAD must not move"
+    assert ask("rev-parse", "refs/remotes/origin/main") == head, (
+        "its origin/main must not be moved onto a commit the test made"
+    )
+    assert ask("rev-parse", "--abbrev-ref", "HEAD") == "main", (
+        "it must not be left on the test's feature branch"
+    )
+    assert ask("rev-list", "--count", "--all") == "1", "no commit may be added to it"
 
 
 def test_tag_schedule_names_are_pinned() -> None:
