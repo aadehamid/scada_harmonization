@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 95
+EXPECTED_TESTS = 97
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -185,6 +186,53 @@ def test_scratch_repo_ignores_a_redirected_environment(
         "it must not be left on the test's feature branch"
     )
     assert ask("rev-list", "--count", "--all") == "1", "no commit may be added to it"
+
+
+def test_uv_working_dir_cannot_move_which_tests_are_collected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A `UV_WORKING_DIR` in the caller's shell must not be collected instead.
+
+    uv takes the directory to run in from `UV_WORKING_DIR`, and it outranks the
+    `cwd` the tool passes, so `tests()` collected the other project's suite. That
+    figure is not an error: it comes back with a total, a per-file breakdown, and
+    a zero exit status, and lands in whatever document quotes it.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "pyproject.toml").write_text(
+        '[project]\nname = "other"\nversion = "0"\nrequires-python = ">=3.13"\n',
+        encoding="utf-8",
+    )
+    (other / "tests" / "test_other.py").write_text("def test_only_one(): pass\n", encoding="utf-8")
+
+    monkeypatch.setenv("UV_WORKING_DIR", str(other))
+    monkeypatch.setenv("UV_PROJECT", str(other))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_the_tool_stops_when_a_redirect_it_does_not_know_about_is_in_play(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The env list is a list, so the guarantee has to come from elsewhere.
+
+    `_env()` covers the variables that are known to point git at another
+    repository. Anything it misses would be silent: the figures would describe
+    that repository and look like ordinary numbers. Here the filter is made to
+    pass the environment through, standing in for a variable nobody has written
+    down yet, and the tool must refuse rather than report.
+    """
+    other = tmp_path / "other"
+    other.mkdir()
+    clean = facts._env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
+
+    monkeypatch.setattr(facts, "_env", lambda: dict(os.environ))
+    monkeypatch.setenv("GIT_DIR", str(other / ".git"))
+
+    with pytest.raises(SystemExit, match="answering for the repository at"):
+        facts.main(["head"])
 
 
 def test_tag_schedule_names_are_pinned() -> None:

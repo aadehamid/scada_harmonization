@@ -164,7 +164,23 @@ def tests() -> dict[str, object]:
     question does not write into the repository.
     """
     result = subprocess.run(
-        ["uv", "run", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider"],
+        [
+            "uv",
+            "run",
+            # The directory to run in, and the project to run in, are on the
+            # command line because uv otherwise takes them from the environment,
+            # where `UV_WORKING_DIR` and `UV_PROJECT` outrank `cwd=REPO` and the
+            # command would collect another project's tests.
+            "--directory",
+            str(REPO),
+            "--project",
+            str(REPO),
+            "pytest",
+            "--collect-only",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+        ],
         cwd=REPO,
         capture_output=True,
         text=True,
@@ -497,11 +513,16 @@ def check(
 
 
 # Variables in the caller's shell that point a subprocess at something other
-# than what this tool meant. git's are the dangerous ones: they outrank the
-# working directory, so with `GIT_DIR` set every git command here answers for
-# another repository while `cwd=REPO` says otherwise.
+# than what this tool meant.
 _REDIRECTING_ENV = (
+    # pytest takes extra arguments from here, so a `-k` in the caller's shell
+    # selects a subset, and a subset reported as the suite total is a wrong
+    # figure.
     "PYTEST_ADDOPTS",
+    # git's outrank the working directory: with `GIT_DIR` set, every git command
+    # here answers for another repository while `cwd=REPO` says otherwise, and
+    # `GIT_INDEX_FILE` points it at another repository's index, where `ls-files`
+    # lists nothing.
     "GIT_DIR",
     "GIT_WORK_TREE",
     "GIT_INDEX_FILE",
@@ -512,12 +533,13 @@ _REDIRECTING_ENV = (
 def _env() -> dict[str, str]:
     """The environment subprocesses run in, with the caller's redirections cleared.
 
-    A `PYTEST_ADDOPTS` in the caller's shell could select a subset, and a subset
-    reported as the suite total is a wrong figure. A `GIT_DIR` is worse than
-    wrong: it makes every git command answer for the repository it names rather
-    than for `REPO`, so `main` reports that repository's tip, and a test helper
-    that commits and branches would change that repository instead of the
-    scratch one it was pointed at.
+    This list is the ways we know a caller's shell can point a child somewhere
+    else, and a list like that is never finished — git and uv each read more
+    variables than anyone writes down. So it is not what makes the figures
+    trustworthy: `_require_this_repo` asks git which repository it is answering
+    about and stops when the answer is another one, and `tests()` names the
+    directory uv runs in on the command line, where uv's own variables cannot
+    reach it.
     """
     return {k: v for k, v in os.environ.items() if k not in _REDIRECTING_ENV}
 
@@ -537,6 +559,32 @@ def _git(*args: str) -> str:
     if result.returncode != 0:
         raise SystemExit(f"git {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout.strip()
+
+
+def _require_this_repo() -> None:
+    """Stop unless git is answering about this checkout.
+
+    The figures are only worth anything if they describe `REPO`, and a wrong
+    answer here does not look wrong: another project's suite, another
+    repository's tip, all report as plain numbers. So ask git which repository
+    it is actually reading, rather than trusting that `_env()` covered every way
+    a shell can redirect it.
+
+    The probe is the git directory, not the working tree: `rev-parse
+    --show-toplevel` reports the directory the command ran in, which is `REPO`
+    either way, while `--absolute-git-dir` names the object store the command
+    read. A worktree keeps its git directory under `REPO/.git/worktrees/`, so
+    being inside `REPO` is the test, not being equal to `REPO/.git`.
+    """
+    git_dir = Path(_git("rev-parse", "--absolute-git-dir"))
+    try:
+        git_dir.resolve().relative_to(REPO.resolve())
+    except ValueError:
+        raise SystemExit(
+            f"git is answering for the repository at {git_dir}, not for {REPO}. "
+            "Something in this shell points git elsewhere — a GIT_DIR, or a "
+            "variable this tool does not know about. Unset it and run again."
+        ) from None
 
 
 def _render(command: str, payload: object) -> None:
@@ -586,6 +634,8 @@ def main(argv: list[str] | None = None) -> int:
     search_parser.add_argument("pattern")
 
     args = parser.parse_args(argv)
+
+    _require_this_repo()
 
     if args.command == "head":
         payload: object = head()
