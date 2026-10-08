@@ -569,6 +569,11 @@ retired paths. A planted broken README link failed the navigation command and
 the full check; the original README bytes were restored before the passing run.
 The current test count is collected by the facts tool and recorded in HANDOFF.
 
+Independent review caught false positives for escaped brackets and invalid code
+fence closers. The author reproduced them, added failing regressions against the
+unfixed scanner, and corrected label pairing and closing-fence recognition.
+Valid links with escaped or nested labels remain checked.
+
 A separate personal-agent-skills change separates evaluation subjects from
 graders and exports prompts without grading criteria. The upstream retro and
 writing-for-agents skills were installed in the shared folder and linked into
