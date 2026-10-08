@@ -156,8 +156,8 @@ there. Every finding was the same defect in a different sentence: a claim whose 
 when the file is read rather than on a moment the sentence names. "This note's last edit" moved
 with every commit that touched the file; "every review round so far" was that cutoff; the opening
 pair was anchored to the cutoff although its two pull requests were open at the ask; and the head
-sentence claimed the cutoff governed each sentence below it. Each was reproduced before it was
-fixed.
+sentence claimed the cutoff governed each sentence below it, which the session rewrote before a
+review could find it. Each was reproduced before it was fixed.
 
 No rule in `REVIEW_STANDARDS.md` covered that defect when #50 merged: the rule there separates a
 status claim from a record, and does not reach a reference point that moves under the document's
