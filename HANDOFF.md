@@ -143,42 +143,63 @@ branch was deleted local and remote.
 
 The note reached `main` in #47's merge, at 2026-10-08 01:06:32 UTC, and names #47 as open — false
 in that same instant, since that merge is what closed it. #48 was still open then, and #51 had not
-been opened. Its remaining sentences went false for two reasons. #51 opened at 02:05:14, before #48
-merged, breaking the note's promise that the guard change would come as the next pull request once
-its two had merged. And the merges that closed the pull requests it still called open —
-`personal-agent-skills` #13 at 02:42, #48 at 02:45 — landed after that, while the text stayed as
-written.
+been opened.
+
+Its sentences went false as the session ran, and the review records carry a time for each. The
+findings sentence — every finding from every review round on both branches was fixed or answered,
+and the reply says which — went false at #48's 01:47:50 review, whose finding was answered at
+02:15:00, and again at the 02:19:03 review, answered at 02:38:35. "Every review round so far had
+deferred them" went false at 02:14:33, when #51's own review took the guard change instead of
+deferring it. The promise that the guard change would come as the next pull request once those two
+had merged broke at #51's opening, 02:05:14, before #48 merged. And the merges that closed pull
+requests the text still called open — `personal-agent-skills` #13 at 02:42:25, #48 at 02:45:51 —
+landed after it, while the text stayed as written.
+
 #50 put them in the past and gave the note one fixed cutoff: **2026-10-08 02:15 UTC**, commit
 `f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry their own UTC time.
 
 GitHub's review records for #50 hold six submissions: four blocked on a finding, one approved, one
-recorded nothing blocking. Eight commits, and the adversarial runs between them left no record
-there.
+recorded nothing blocking. #50's body holds a table of the review rounds, which includes the
+session's own adversarial runs; those leave no record on the pull request.
 
-Of the six findings, four were one defect: a claim measured against a moment the sentence does not
-name — the moment the file is read, or a moment other than the one the claim is about. One found
-that "this note's last edit" moved with every commit that touched the file. One found "every review
-round so far" false at the note's last edit, because #51 had merged by then. One found that same
-phrase false at the cutoff the note had just defined, where #51 was open and already under review.
-One found the opening pair anchored to the cutoff although its two pull requests were open at the
-ask. The head sentence that claimed the cutoff governed each sentence below it carried the same
-defect, and the session rewrote it before a review found it.
+Each blocking finding names a commit and the moment it was false:
 
-The other two were different. One was a live status claim a dated note should not carry. One was a
-plain contradiction between two sentences about the same past moment: the note said #47 merged
-during the session and, three sentences later, that both pull requests were still open when it
-ended. Each of the six was reproduced before it was fixed.
+- **01:51:27** on `1630e53`: the findings sentence was unbounded, so a reader takes #48 as clear
+  while #48 held a review from 01:47:50 that was answered only at 02:15:00.
+- **02:26:29** on `f7b9455`: "Both were still open when the session ended" contradicts that note's
+  own #47 bullet, "The owner merged it while this session ran". #47 merged at 01:06:32.
+- **02:46:37** on `c9930e5`: "every review round so far had deferred" was false at the note's own
+  last edit, because #51 had merged at 02:32:17.
+- **02:59:20** on `ffb4555`: the same clause was false at the cutoff the note had named. #51 had
+  opened at 02:05:14, and by then had two rounds that did not defer the change, at 02:14:33 and
+  02:15:07. That review adds that naming the 02:32 merge does not repair the clause; `a66920a`
+  names #47 as the pull request that deferred the change instead.
+
+One defect runs through three records: a claim measured against a moment the sentence does not
+name. The 02:46:37 finding is that defect by its own review's reading — the clause is "false at the
+note's own last edit, and false on `main`" — and the note's last edit is a moment every commit to
+the file moves. Two rows of #50's body are it again: `60eeeb7`, that "this note's last edit" moves
+with every commit and #48's 02:45:51 merge had already falsified it; and `a66920a`, that the
+opening pair was read against the cutoff when #47 had merged before it.
+The other three findings stand alone. The 01:51:27 one was a live status claim, the defect
+`REVIEW_STANDARDS.md` already separates from a record. The 02:26:29 one was a contradiction between
+two sentences about the same past moment. The 02:59:20 one was false at the moment it named, so it
+is not the moving-reference class. Each of the four ended in a fix, and #50's body names the commit
+that closed it.
 
 No rule in `REVIEW_STANDARDS.md` covered that moving reference point when #50 merged: the rule
 there separates a status claim from a record, and does not reach a moment the document's own edits
 move. The home for it — a rule there, or a check — was left to the retro on this session.
 
-**Left open when #50 merged: the guard's environment.** The change was to run `scripts/check.sh`'s
+**Left open when #50 merged: the guard's environment.** The change is to run `scripts/check.sh`'s
 gates under a fixed environment (`env -i` plus only what the checks need), in place of the drop
-list of redirecting variables that the review rounds kept lengthening. #51's author put it to Hamid
-to approve rather than folding it into that pull request (a comment on #51 at 02:24 UTC), and its
-four prerequisites — #47, #48, #50 and #51 — had all merged when #50 did. The change decides what a
-check can see (`PATH`, `HOME` for uv's cache, git's user config), so a CI run is what proves it.
+list of redirecting variables that the review rounds kept lengthening. #51's comment at 02:24:08
+proposes it, with the measurement behind it, and closes by saying the change decides what a check
+can see (`PATH`, `HOME` for uv's cache, git's user config) and is one for the owner to approve
+rather than one to make inside that pull request — "I have put it to him." The record holds the
+proposal and that closing note; the approval itself is in the conversation, not on the record. By
+03:12, when #50 merged, the four pull requests this session worked through — #47, #48, #50 and #51
+— were all merged. The change decides what a check can see, so a CI run is what proves it.
 
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
