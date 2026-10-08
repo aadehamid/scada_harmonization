@@ -187,6 +187,13 @@ def tests() -> dict[str, object]:
             "-q",
             "-p",
             "no:cacheprovider",
+            # A config file's `addopts` are selection arguments too, and a local
+            # `pytest.ini` naming one node id would make the suite total one.
+            # `-o` overrides the ini option from the command line, where nothing
+            # in the file can outrank it. `testpaths` and the other settings
+            # still apply.
+            "-o",
+            "addopts=",
         ],
         cwd=REPO,
         capture_output=True,

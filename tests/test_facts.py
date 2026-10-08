@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 101
+EXPECTED_TESTS = 102
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -72,29 +72,38 @@ def test_test_count_is_pinned() -> None:
     assert sum(per_file.values()) == EXPECTED_TESTS
 
 
-def _scratch_repo(tmp_path: Path) -> tuple[Path, str]:
-    """A repository on `feature`, whose `origin/main` is one commit behind it.
+def _scratch_env() -> dict[str, str]:
+    """The environment for git commands the tests run on throwaway repositories.
 
-    Built from scratch so the test does not depend on this clone's refs: PR CI
-    checks out a merge ref and may not have `origin/main` at all. Returns the
-    path and the commit `origin/main` names.
+    `facts._env()` drops the variables that tell git which repository to use.
+    Inherited, `GIT_DIR` outranks `cwd`, so a helper's commands would commit to,
+    move `origin/main` in, and branch *that* repository instead, and the scratch
+    directory would never become a repository at all.
 
-    The environment is `facts._env()`, which drops the variables that tell git
-    which repository to use. Inherited, `GIT_DIR` outranks `cwd`, so these
-    commands would commit to, move `origin/main` in, and branch *that*
-    repository instead, and this directory would never become a repository at
-    all — while `test_scratch_repo_ignores_a_redirected_environment` still had to
-    be the one to notice.
+    The identity is set here rather than read from the machine. A commit needs an
+    author and a committer, and a developer whose git config has none — or a CI
+    runner with none — would fail the test for a reason that has nothing to do
+    with what it checks.
     """
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    env = {
+    return {
         **facts._env(),
         "GIT_AUTHOR_NAME": "t",
         "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t",
         "GIT_COMMITTER_EMAIL": "t@t",
     }
+
+
+def _scratch_repo(tmp_path: Path) -> tuple[Path, str]:
+    """A repository on `feature`, whose `origin/main` is one commit behind it.
+
+    Built from scratch so the test does not depend on this clone's refs: PR CI
+    checks out a merge ref and may not have `origin/main` at all. Returns the
+    path and the commit `origin/main` names.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    env = _scratch_env()
 
     def git(*args: str) -> subprocess.CompletedProcess[bytes]:
         return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, env=env)
@@ -149,7 +158,7 @@ def test_scratch_repo_ignores_a_redirected_environment(
     """
     other = tmp_path / "other"
     other.mkdir()
-    clean = facts._env()
+    clean = _scratch_env()
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
     subprocess.run(
         ["git", "commit", "-q", "--allow-empty", "-m", "other"], cwd=other, check=True, env=clean
@@ -238,6 +247,43 @@ def test_a_dotenv_file_cannot_put_a_cleared_redirect_back(
     assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
 
 
+def test_a_selection_in_the_config_cannot_shrink_the_suite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A config file's `addopts` are selection arguments, like `PYTEST_ADDOPTS`.
+
+    `PYTEST_ADDOPTS` is cleared from the child's environment so a `-k` there
+    cannot report a subset as the suite total. An `addopts` in a `pytest.ini`, or
+    in the project's own `pyproject.toml`, does the same thing through pytest's
+    configuration, and it is honoured by default.
+    """
+    scratch = tmp_path / "scratch"
+    (scratch / "tests").mkdir(parents=True)
+    (scratch / "tests" / "test_a.py").write_text(
+        "def test_one(): pass\n\n\ndef test_two(): pass\n", encoding="utf-8"
+    )
+    (scratch / "pyproject.toml").write_text(
+        '[project]\nname = "scratch"\nversion = "0"\nrequires-python = ">=3.13"\n'
+        '[dependency-groups]\ndev = ["pytest"]\n'
+        '[tool.pytest.ini_options]\naddopts = "tests/test_a.py::test_one"\n',
+        encoding="utf-8",
+    )
+    # `--offline` because the wheel is in uv's cache already — the suite this
+    # test is part of is running on it — and a test that reaches the network is
+    # a test that fails when the network does.
+    subprocess.run(
+        ["uv", "sync", "--offline"],
+        cwd=scratch,
+        check=True,
+        capture_output=True,
+        env=facts._env(),
+    )
+
+    monkeypatch.setattr(facts, "REPO", scratch)
+
+    assert facts.tests()["total"] == 2, "both tests in the project are the suite"
+
+
 def test_an_inherited_plugin_cannot_add_to_the_collection(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -303,7 +349,7 @@ def test_a_linked_worktree_is_this_repository(
     """
     main = tmp_path / "main"
     main.mkdir()
-    clean = facts._env()
+    clean = _scratch_env()
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=main, check=True, env=clean)
     subprocess.run(
         ["git", "commit", "-q", "--allow-empty", "-m", "x"], cwd=main, check=True, env=clean
@@ -333,7 +379,7 @@ def test_the_tool_stops_when_a_redirect_it_does_not_know_about_is_in_play(
     """
     other = tmp_path / "other"
     other.mkdir()
-    clean = facts._env()
+    clean = _scratch_env()
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=other, check=True, env=clean)
 
     monkeypatch.setattr(facts, "_env", lambda: dict(os.environ))
