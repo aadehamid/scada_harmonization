@@ -5,7 +5,7 @@ bucket `lagos-chem-l0` (ENAM): four TEP `.RData` files, the IIoT zip, five wide
 Parquet natives, notes. Hamid persist: persist on R2; keep raw on R2; warehouse
 is wide Parquet; golden slice in git. Local `raw/` and `cache/` are scratch
 only. Hamid's Mac holds no caches. Record:
-`design/PHASE1_SYNTHETIC_DATA.md`. Datasheet: `design/PHASE1_DATASHEET.md`.
+`docs/LSC-005_Phase_1_Data_Record.md`. Datasheet: `docs/LSC-006_Phase_1_Datasheet.md`.
 
 | Folder | Contents |
 |--------|----------|

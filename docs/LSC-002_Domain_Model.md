@@ -4,7 +4,7 @@
 > **concrete and memorable**: every technical quirk in the lab (why Beaumont speaks Allen-Bradley,
 > why Geismar is metric, why Corpus Christi uses compound tags) traces to a business event here.
 > This is fiction in service of learning — only **Level 0** is synthetic; see
-> [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md), which governs.
+> [`LSC-001_Problem_Statement_and_Project_Charter.md`](LSC-001_Problem_Statement_and_Project_Charter.md), which governs.
 
 ---
 

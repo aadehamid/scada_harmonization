@@ -79,7 +79,7 @@ boundary (62443 Z3)"* — and *"the iDMZ broker is a Purdue/62443 construct that
 know about."*
 
 Use web research to ground all three (ISA/IEC/CISA sources preferred). Log glossary terms to
-`LEARNING_LOG.md` as they appear (ISA-95, IEC 62264, Purdue/PERA, DMZ, zone, conduit, SL, B2MML,
+`LSC-010_Learning_Log.md` as they appear (ISA-95, IEC 62264, Purdue/PERA, DMZ, zone, conduit, SL, B2MML,
 production unit, equipment class…).
 
 ---

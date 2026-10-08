@@ -596,7 +596,7 @@ def test_search_finds_a_phrase_split_across_lines() -> None:
     )
     hits = facts.search(pattern)
     assert hits, "the tool must find a phrase grep misses"
-    assert any(hit.path == "design/PROJECT_CHARTER.md" for hit in hits)
+    assert any(hit.path == "docs/LSC-001_Problem_Statement_and_Project_Charter.md" for hit in hits)
 
 
 def _check(tmp_path: Path, *, doc: str = "", pin: str = "") -> list[facts.Problem]:

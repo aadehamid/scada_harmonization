@@ -1,9 +1,9 @@
 # Phase 1 synthetic data record
 
 **Status:** Polars + 1 s machine stream on `main` (`733cfec` after #32; generators `7b6cdd5` / #33). Warehouse is wide Parquet, compressed with zstd, on R2 `lagos-chem-l0`.
-**Contract:** [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md).  
-**Datasheet:** [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md) (why the files sit where they sit).  
-**Reading copy:** [`PHASE1_SYNTHETIC_DATA.html`](PHASE1_SYNTHETIC_DATA.html).
+**Contract:** [`LSC-004_Level_0_Contract.md`](LSC-004_Level_0_Contract.md).  
+**Datasheet:** [`LSC-006_Phase_1_Datasheet.md`](LSC-006_Phase_1_Datasheet.md) (why the files sit where they sit).  
+**Reading copy:** [`LSC-005_Phase_1_Data_Record.html`](LSC-005_Phase_1_Data_Record.html).
 
 ![Lagos Specialty Chemicals plant, dawn](assets/hero-plant.png)
 
@@ -157,7 +157,7 @@ Coverage matches the contract: L0 schema and frozen records, TEP 180 s deltas, m
 
 ## What this does not close
 
-Phase 0 is still open. The mapping-table spine is unwritten. The Diagram 1 walkthrough is a parallel path and does not gate Phase 0 or Phase 1. The cursor is still `design/WALKTHROUGH_PROGRESS.md` §0.2. This record does not move that cursor. Charter §8.1 Phase 0 is unchanged.
+Phase 0 is still open. The mapping-table spine is unwritten. The Diagram 1 walkthrough is a parallel path and does not gate Phase 0 or Phase 1. The cursor is still `docs/LSC-009_Walkthrough_Progress.md` §0.2. This record does not move that cursor. Charter §8.1 Phase 0 is unchanged.
 
 Phase 1 exit is replay-only (deterministic sequence plus the N8 clock). The mapping table's `source_cadence` column stays on Phase 0. This record does not rewrite N8.
 
@@ -167,10 +167,10 @@ Phase 2 (PLC tag names, Sparkplug, edge Mosquitto) has not started.
 
 | Path | Role |
 |------|------|
-| [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md) | Authoritative L0 / replay identity |
-| [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md) | Local vs R2; why each dataset exists |
-| [`synthetic_data_generation_notes.md`](synthetic_data_generation_notes.md) | 6-layer plan; persist facts are here and in the datasheet |
-| [`LEARNING_LOG.md`](LEARNING_LOG.md) | Durable Phase 1 concepts |
+| [`LSC-004_Level_0_Contract.md`](LSC-004_Level_0_Contract.md) | Authoritative L0 / replay identity |
+| [`LSC-006_Phase_1_Datasheet.md`](LSC-006_Phase_1_Datasheet.md) | Local vs R2; why each dataset exists |
+| [`LSC-003_Synthetic_Data_Generation_Strategy.md`](LSC-003_Synthetic_Data_Generation_Strategy.md) | 6-layer plan; persist facts are here and in the datasheet |
+| [`LSC-010_Learning_Log.md`](LSC-010_Learning_Log.md) | Durable Phase 1 concepts |
 | `tests/fixtures/datagen/` | Golden slice (4 lines) |
 | R2 `lagos-chem-l0` | Durable raw + wide Parquet warehouse |
 | `data/raw/`, `data/cache/` | Local scratch only. Not the durable warehouse. |

@@ -1,8 +1,8 @@
 # Phase 1 datasheet
 
 **Status:** Polars on `main` `7da1621` (2026-08-18).  
-**Record:** [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) records what landed.  
-**Reading copy:** [`PHASE1_DATASHEET.html`](PHASE1_DATASHEET.html).
+**Record:** [`LSC-005_Phase_1_Data_Record.md`](LSC-005_Phase_1_Data_Record.md) records what landed.  
+**Reading copy:** [`LSC-006_Phase_1_Datasheet.html`](LSC-006_Phase_1_Datasheet.html).
 
 This datasheet is why the files sit where they sit. Hamid owns persist. Agents do not invent a retention policy.
 
@@ -66,8 +66,8 @@ Polars melts on read. The 9,600,000-row Faulty Testing native (758,943,582 bytes
 
 | Place | What lives there |
 |-------|------------------|
-| Git | Generators, [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md), golden slice (4 lines), 21 tests, this datasheet, the land record |
+| Git | Generators, [`LSC-004_Level_0_Contract.md`](LSC-004_Level_0_Contract.md), golden slice (4 lines), 21 tests, this datasheet, the land record |
 | R2 `lagos-chem-l0` | Four TEP `.RData`, IIoT zip, five Parquets, notes |
 | Local `data/` | Scratch only. Hamid's Mac holds no caches. |
 
-Phase 1 does not treat L0 names as if a programmable logic controller (PLC) had issued them. PLC tag names wait for Phase 2. This datasheet does not rewrite N8. The walkthrough is a parallel path and does not gate. The cursor stays at `design/WALKTHROUGH_PROGRESS.md` §0.2.
+Phase 1 does not treat L0 names as if a programmable logic controller (PLC) had issued them. PLC tag names wait for Phase 2. This datasheet does not rewrite N8. The walkthrough is a parallel path and does not gate. The cursor stays at `docs/LSC-009_Walkthrough_Progress.md` §0.2.

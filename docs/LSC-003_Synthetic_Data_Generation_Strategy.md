@@ -1,24 +1,24 @@
 # Synthetic Data Generation Notes for the UNS / Sparkplug B Home Lab
 
 > **Living data-strategy note.** The 6-layer pipeline shape here is still the plan. Decided
-> items live in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md): production is **lot-based**
+> items live in [`LSC-001_Problem_Statement_and_Project_Charter.md`](LSC-001_Problem_Statement_and_Project_Charter.md): production is **lot-based**
 > (ISA-106, not ISA-88 batches — §14 N13); **PySparkplug is a candidate**, not a decided
 > dependency (§4.1); mapping-table columns include the §14 set. The charter governs.
 >
 > **Phase 1 (2026-08-19):** persist and disk facts are R2 wide Parquet on
 > `lagos-chem-l0`. Generators include the 1 s machine stream (`7b6cdd5`, #33).
-> See [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) and
-> [`PHASE1_DATASHEET.md`](PHASE1_DATASHEET.md). Contract:
-> [`PHASE1_L0_CONTRACT.md`](PHASE1_L0_CONTRACT.md). **IIoT correction:** the Kaggle
+> See [`LSC-005_Phase_1_Data_Record.md`](LSC-005_Phase_1_Data_Record.md) and
+> [`LSC-006_Phase_1_Datasheet.md`](LSC-006_Phase_1_Datasheet.md). Contract:
+> [`LSC-004_Level_0_Contract.md`](LSC-004_Level_0_Contract.md). **IIoT correction:** the Kaggle
 > file is snapshot-per-machine; the 1 s class is the generated P-101 / K-201 stream (see below).
 > **Cloudflare R2:** one bucket per project; this lab uses `lagos-chem-l0`. Locked
-> tree and connection block live in PHASE1_SYNTHETIC_DATA.md.
+> tree and connection block live in LSC-005_Phase_1_Data_Record.md.
 
 These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.
 
 ## Cloudflare R2
 
-Durable Phase 1 data lives in Cloudflare R2. The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Connection settings (account, endpoint, region `auto`, signature `s3v4`, boto3) are shared across Hamid's projects and are recorded with the locked prefix tree in [`PHASE1_SYNTHETIC_DATA.md`](PHASE1_SYNTHETIC_DATA.md) under **Cloudflare R2 (durable store)**. Do not invent a second bucket for this lab. Do not write other projects into this one.
+Durable Phase 1 data lives in Cloudflare R2. The pattern is **one bucket per project**. This project's bucket is `lagos-chem-l0`. Connection settings (account, endpoint, region `auto`, signature `s3v4`, boto3) are shared across Hamid's projects and are recorded with the locked prefix tree in [`LSC-005_Phase_1_Data_Record.md`](LSC-005_Phase_1_Data_Record.md) under **Cloudflare R2 (durable store)**. Do not invent a second bucket for this lab. Do not write other projects into this one.
 
 The locked prefix tree for this operational-technology (OT) / industrial-IoT warehouse is the OT prefixes below (`raw/`, `cache/`, and `notes/`). The live `lagos-chem-l0` bucket also holds keys outside that locked OT tree: root `CACHE_NOTES.md`, root `DOWNLOAD_NOTES.md`, and prefix `_hermes-connectivity-tests/`. Those keys are not part of the locked OT tree.
 

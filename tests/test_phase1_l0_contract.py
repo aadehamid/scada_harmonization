@@ -1,4 +1,4 @@
-"""Blocking Phase 1 L0 tests. Contract: design/PHASE1_L0_CONTRACT.md.
+"""Blocking Phase 1 L0 tests. Contract: docs/LSC-004_Level_0_Contract.md.
 
 These tests are written first (Hamid TDD lock). They import the public datagen API
 and must stay green without network or full-dataset downloads.

@@ -1,7 +1,7 @@
 # Hand-Built Sparkplug B UNS Notes
 
 > **⚠️ Archived vision note (pre-decision).** Choices presented here as open options are now
-> **DECIDED** in [`PROJECT_CHARTER.md`](PROJECT_CHARTER.md) §4/§12/§13: broker = **two-tier Mosquitto
+> **DECIDED** in [`../LSC-001_Problem_Statement_and_Project_Charter.md`](../LSC-001_Problem_Statement_and_Project_Charter.md) §4/§12/§13: broker = **two-tier Mosquitto
 > (per-site edge) + EMQX ≥5.9 (central, single node)** — not "EMQX or Mosquitto"; historian =
 > **TimescaleDB Community** — not InfluxDB/QuestDB; PLC realism = **two real-protocol sites**
 > (OpenPLC/Modbus at Beaumont, OPC-UA at Geismar). Read only for background and rationale. The

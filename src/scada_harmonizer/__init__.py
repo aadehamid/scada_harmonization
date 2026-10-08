@@ -6,5 +6,5 @@ Sparkplug B / MQTT Unified Namespace and contextualizes it into a Neo4j knowledg
 
 Package layout mirrors the charter's four planes plus the synthetic-data pipeline
 (`datagen/`); each subpackage README states what lands there and in which build phase.
-Authoritative definition: design/PROJECT_CHARTER.md.
+Authoritative definition: docs/LSC-001_Problem_Statement_and_Project_Charter.md.
 """
