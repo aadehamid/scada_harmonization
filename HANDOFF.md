@@ -117,7 +117,9 @@ list columns, not a second naming system.
 
 The owner authorized batch reorganization and document streamlining. Work is
 local on `docs/reorganize-project-documents`, based on the existing guard-fix
-branch. PRs #52 and #53 were open at inspection; this work has no new PR.
+branch. PRs #52 and #53 were open at inspection. The reorganization is pending in
+[PR #54](https://github.com/aadehamid/scada_harmonization/pull/54), initially based
+on #53 so its diff contains only this concern.
 
 The original collaboration rules now live in
 [docs/WORKING_CONVENTIONS.md](docs/WORKING_CONVENTIONS.md). Dated session notes
@@ -128,8 +130,10 @@ The batch scope, reference revision, evidence, and next action are in
 
 The actual-checkout `scripts/check.sh` and pre-push hook passed. The hook also
 rejected a deliberately incorrect schedule figure, which was restored. Working-tree
-review findings were corrected. Final committed review and PR shipping are next.
-The PR will initially depend on #53 so its diff contains only the reorganization.
+review findings were corrected. A separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
+#53's base. The branch was pushed and PR #54 opened. Cursor feedback and
+owner merge remain pending. Retarget to main after #53 lands and keep the
+branch fully pushed before reporting readiness.
 
 ### Decision authority
 

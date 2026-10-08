@@ -8,10 +8,12 @@ step	action	reason	evidence	state
 7	Shorten entry points and create master and decision indexes	Replace copied definitions with ownership and navigation	README, AGENTS, LSC-000, LSC-REG-001	done
 8	Update links and figure-check expectations	Keep current references valid without mutable AGENTS counts	Package docstrings, tests, scripts/facts.py	done
 9	Verify paths, preserved records, and checks	Prove the reorganization is usable	Actual scripts/check.sh and hook passed; all local links resolve; charter changes are references only	done
-10	Review and open PR	Give the owner a concrete result to review	Pending independent review and remote verification	pending
+10	Review and open PR	Give the owner a concrete result to review	gpt-6-sol cleared ffc2c00; PR #54 opened on #53 base; local branch matches remote	done
 11	Pause and resume at owner request	Let the owner change execution permissions	Goal paused twice, then resumed with full filesystem access	done
 12	Verify a staged temporary checkout	Separate Git tracking failures from document defects while source metadata was read-only	/tmp/scada-doc-verification-8meu17cx/scripts/check.sh passed with writable uv cache	done
 13	Correct session-log migration provenance	Name the original HANDOFF source rather than an intermediate local path	Working-tree reviewer finding reproduced against git ls-tree HEAD	done
 14	Correct date-dependent handoff links and HTML labels	Keep navigation stable across status updates and names consistent	Independent working-tree review; local links and heading targets checked	done
 15	Prove hook rejection and restore input	A passing hook alone does not prove enforcement	README 58-name figure rejected, hook exit 1; original bytes restored	done
-16	Prepare committed review	Review the exact branch before pushing	All working-tree findings corrected; PR base initially fix/guard-fixed-environment (#53)	in progress
+16	Complete committed review	Review the exact branch before pushing	gpt-6-sol cleared ffc2c00 against 0b7a5a2; no material findings	done
+17	Push branch and open PR #54	Publish the authorized reviewable change without merging	https://github.com/aadehamid/scada_harmonization/pull/54; remote HEAD ffc2c00; clean tree	done
+18	Watch Cursor feedback and owner merge	Address findings and maintain the dependency on #53	PR #54 open; #52 and #53 also open at this entry	in progress

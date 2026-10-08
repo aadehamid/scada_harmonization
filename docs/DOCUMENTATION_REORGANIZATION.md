@@ -1,6 +1,6 @@
 # Documentation reorganization record
 
-Status: local reorganization in progress on `docs/reorganize-project-documents`.
+Status: reorganization proposed in [PR #54](https://github.com/aadehamid/scada_harmonization/pull/54). Not merged.
 Review and shipping evidence is recorded below as it becomes available.
 
 ## Authorization
@@ -74,8 +74,10 @@ also passed all checks, including 127 tests, with uv cache redirected to `/tmp`.
 The actual-checkout `scripts/check.sh` and pre-push hook passed. Changing the
 README schedule figure from 59 to 58 made the hook exit 1 with the correct
 figure mismatch; the original bytes were restored. Local Markdown/HTML paths
-and linked headings resolve across the tracked repository. Final committed
-review and remote results will be recorded in the PR.
+and linked headings resolve across the tracked repository. The separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
+base `0b7a5a2`. That change was pushed and PR #54 opened. Cursor review and
+owner merge remain pending. Later documentation-only updates are also reviewed
+before each push; the PR carries the current exact-commit verdict.
 A working-tree independent review found no lost charter decisions or working rules.
 Its migration-source, dated-anchor, and reading-copy-label findings were reproduced
 and corrected. The reviewer used gpt-6-sol; the author uses the session model. No diagrams were created or edited. No external source claims,
@@ -83,9 +85,10 @@ versions, licenses, or runtime designs were changed; reference inspection assess
 organization only. Optional grilling and domain-modeling helpers are unavailable;
 this run uses existing domain definitions and introduces no new design.
 
-The branch began at PR #53's guard-fix commit. PR #52 and PR #53 were open when
-inspected. The reorganization PR must identify that dependency or move to main
-after the parent lands; unrelated guard changes must not be presented as this change.
+The branch began at PR #53's guard-fix commit. PR #54 targets that branch
+until #53 lands. Its diff is the documentation change, not the guard repair.
+After #53 lands, inspect main and retarget this PR; review any reconciliation
+with #52's pending session note. The owner merges each PR.
 
 ## Implementation handoff
 
