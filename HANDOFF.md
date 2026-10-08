@@ -145,8 +145,9 @@ The note reached `main` in #47's merge, at 2026-10-08 01:06:32 UTC, and names #4
 in that same instant, since that merge is what closed it. #48 was still open then, and #51 had not
 been opened. Its remaining sentences went false for two reasons. #51 opened at 02:05:14, before #48
 merged, breaking the note's promise that the guard change would come as the next pull request once
-its two had merged. And the merges landed — #51 at 02:32, `personal-agent-skills` #13 at 02:42, #48
-at 02:45 — closing the pull requests the note still called open, while the text stayed as written.
+its two had merged. And the merges that closed the pull requests it still called open —
+`personal-agent-skills` #13 at 02:42, #48 at 02:45 — landed after that, while the text stayed as
+written.
 #50 put them in the past and gave the note one fixed cutoff: **2026-10-08 02:15 UTC**, commit
 `f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry their own UTC time.
 
@@ -155,11 +156,12 @@ recorded nothing blocking. Eight commits, and the adversarial runs between them 
 there.
 
 Of the six findings, four were one defect: a claim measured against a moment the sentence does not
-name — either the moment the file is read, or a moment other than the one the claim is about. "This
-note's last edit" moved with every commit that touched the file; "every review round so far" was
-that cutoff; the opening pair was anchored to the cutoff although its two pull requests were open
-at the ask; and the head sentence claimed the cutoff governed each sentence below it, which the
-session rewrote before a review could find it.
+name — the moment the file is read, or a moment other than the one the claim is about. One found
+that "this note's last edit" moved with every commit that touched the file. Two found that "every
+review round so far" resolved to the cutoff the note had just defined. One found the opening pair
+anchored to the cutoff although its two pull requests were open at the ask. The head sentence that
+claimed the cutoff governed each sentence below it carried the same defect, and the session rewrote
+it before a review found it.
 
 The other two were different. One was a live status claim a dated note should not carry. One was a
 plain contradiction between two sentences about the same past moment: the note said #47 merged
@@ -172,10 +174,10 @@ move. The home for it — a rule there, or a check — was left to the retro on 
 
 **Left open when #50 merged: the guard's environment.** The change was to run `scripts/check.sh`'s
 gates under a fixed environment (`env -i` plus only what the checks need), in place of the drop
-list of redirecting variables that the review rounds kept lengthening. Hamid approved it on
-2026-10-07, and its four prerequisites — #47, #48, #50 and #51 — had all merged when #50 did. The
-change decides what a check can see (`PATH`, `HOME` for uv's cache, git's user config), so a CI run
-is what proves it.
+list of redirecting variables that the review rounds kept lengthening. #51's author put it to Hamid
+to approve rather than folding it into that pull request (a comment on #51 at 02:24 UTC), and its
+four prerequisites — #47, #48, #50 and #51 — had all merged when #50 did. The change decides what a
+check can see (`PATH`, `HOME` for uv's cache, git's user config), so a CI run is what proves it.
 
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
