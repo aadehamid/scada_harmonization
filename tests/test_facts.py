@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 156
+EXPECTED_TESTS = 165
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -991,3 +991,36 @@ def test_migration_map_rejects_wrong_label_and_recreated_path(tmp_path: Path) ->
     assert len(problems) == 2
     assert "differs" in problems[0].detail
     assert problems[1].detail == "retired path still exists: old.md"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        r"\[example](missing.md)",
+        r"[example\](missing.md)",
+        "```text\n```md\n[example](missing.md)\n```\n",
+    ],
+)
+def test_navigation_ignores_escaped_labels_and_fence_content(tmp_path: Path, body: str) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    assert facts.links([source], root=tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "[example](missing.md)",
+        "![example](missing.md)",
+        r"[label with \] bracket](missing.md)",
+        r"[label with \[ bracket](missing.md)",
+        r"\\[example](missing.md)",
+        "[nested [label]](missing.md)",
+    ],
+)
+def test_navigation_preserves_real_links_with_label_punctuation(tmp_path: Path, body: str) -> None:
+    source = tmp_path / "source.md"
+    source.write_text(body)
+    problems = facts.links([source], root=tmp_path)
+    assert len(problems) == 1
+    assert problems[0].detail == "missing local target: missing.md"

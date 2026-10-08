@@ -596,7 +596,11 @@ def _without_markdown_code(text: str) -> str:
             token = marker.group(1)
             if fence is None:
                 fence = token
-            elif token[0] == fence[0] and len(token) >= len(fence):
+            elif (
+                token[0] == fence[0]
+                and len(token) >= len(fence)
+                and not line[marker.end() :].strip()
+            ):
                 fence = None
         if marker or in_fence or line.startswith("    ") or line.startswith("\t"):
             lines[index] = re.sub(r"[^\n]", " ", line)
@@ -609,9 +613,27 @@ def _markdown_links(text: str) -> list[tuple[int, str]]:
     """Inline and reference links/images in the repository's Markdown dialect."""
     visible = _without_markdown_code(text)
     links: list[tuple[int, str]] = []
+    # A destination needs a real label, with paired, unescaped brackets.
+    # Skipping escaped characters also preserves even backslash parity.
+    label_depth = 0
+    closers: set[int] = set()
+    index = 0
+    while index < len(visible):
+        char = visible[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            label_depth += 1
+        elif char == "]" and label_depth:
+            label_depth -= 1
+            closers.add(index)
+        index += 1
     # Balanced parentheses allow file names and external URLs with parentheses.
     inline = re.compile(r"\]\(\s*(<[^>\n]+>|(?:[^\s()\\]|\\.|\([^()]*\))+)")
     for match in inline.finditer(visible):
+        if match.start() not in closers:
+            continue
         target = match[1].strip("<>")
         target = re.sub(r"\\([\\() ])", r"\1", target)
         links.append((visible.count("\n", 0, match.start()) + 1, target))
