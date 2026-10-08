@@ -172,8 +172,9 @@ Each blocking finding names a commit and the moment it was false:
 - **02:46:37** on `c9930e5`: "every review round so far had deferred" was false at the note's own
   last edit, because #51 had merged at 02:32:17.
 - **02:59:20** on `ffb4555`: the same clause was false at the cutoff the note had named. #51 had
-  opened at 02:05:14, and by then had two rounds that did not defer the change, at 02:14:33 and
-  02:15:07. That review adds that naming the 02:32 merge does not repair the clause; `a66920a`
+  opened at 02:05:14. Its two rounds that did not defer the change, at 02:14:33 and 02:15:07,
+  preceded the cutoff of 02:15:27 at `f7b9455`. That review adds that naming the 02:32 merge does
+  not repair the clause; `a66920a`
   names #47 as the pull request that deferred the change instead.
 
 One defect runs through three records: a claim measured against a moment the sentence does not
