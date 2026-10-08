@@ -53,6 +53,12 @@ for understanding, not speed.
 - **Update `HANDOFF.md` at the end of EVERY session** — refresh "Current status," git/PR state, and
   "What's next" so the next agent (or the owner) is never confused. This is mandatory, not optional.
 
+**Review discipline**
+- **Mechanical rules live in `scripts/check.sh`; judgement rules live in `REVIEW_STANDARDS.md`.**
+  The reviewer reads that file, and it grows only from findings a reviewer actually made, each with
+  the incident that taught it. Do not restate the check script there, and do not add a rule without
+  an incident.
+
 **Git / PR discipline (learned the hard way — do NOT repeat)**
 - **Branch per change → PR → the _owner_ merges → delete the branch.** Never push straight to `main`.
 - **Before telling the owner a PR is "ready to merge," push ALL commits and confirm the branch is fully
