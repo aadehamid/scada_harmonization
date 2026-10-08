@@ -134,6 +134,35 @@ instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
 
+### This session (2026-10-07, later): the open pull requests, and what they leave behind
+
+Hamid asked for every open pull request to be fixed. Two are open here, both waiting on him to
+merge:
+
+- **#47 — status lives in `HANDOFF.md` §2** (this branch). It removes the copied status from
+  `README.md` and `AGENTS.md`, stops this file from pinning the `main` tip or listing open pull
+  requests, and points the figures tool's test-count comparison at §2. It also hardens that tool
+  against a caller's environment deciding which tests get counted: a `UV_WORKING_DIR`, a `.env`
+  file's `addopts`, an inherited `PYTHONPATH`. Each was reproduced before it was fixed, and each
+  fix was reviewed again.
+- **#48 — `REVIEW_STANDARDS.md`.** The rules a reviewer applies that a script cannot, each with
+  the incident that taught it.
+
+Every finding from every review round on both branches is fixed, or answered on the pull request,
+and the reply says which. One check stays unproven and is recorded as such on #47: it changes
+nothing unless the environment installs a pytest plugin, so no test here can exercise it.
+
+**The next small pull request, once these two merge: the guard in `scripts/check.sh`.** It has two
+holes of one family. A path it cannot read is skipped instead of aborting the comparison, so a
+change to that path goes unseen. And it compares the working tree while inheriting the caller's
+environment, so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the shell decides what
+it looks at. The same file holds both, so they belong in one change. Every review round so far
+deferred them to keep this work to its own concern.
+
+Outside this repository: **#11** in `aadehamid/personal-agent-skills` (`docs/working-tree-guard-detail`)
+was rebased onto that repo's `main` this session; it keeps this branch's detail on the working-tree
+guard and takes `main`'s wording for where the hook's install line goes.
+
 ### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
 Hamid asked to fold the problem statement from a related **private** repo by the
