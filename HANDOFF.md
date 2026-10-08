@@ -157,11 +157,12 @@ there.
 
 Of the six findings, four were one defect: a claim measured against a moment the sentence does not
 name — the moment the file is read, or a moment other than the one the claim is about. One found
-that "this note's last edit" moved with every commit that touched the file. Two found that "every
-review round so far" resolved to the cutoff the note had just defined. One found the opening pair
-anchored to the cutoff although its two pull requests were open at the ask. The head sentence that
-claimed the cutoff governed each sentence below it carried the same defect, and the session rewrote
-it before a review found it.
+that "this note's last edit" moved with every commit that touched the file. One found "every review
+round so far" false at the note's last edit, because #51 had merged by then. One found that same
+phrase false at the cutoff the note had just defined, where #51 was open and already under review.
+One found the opening pair anchored to the cutoff although its two pull requests were open at the
+ask. The head sentence that claimed the cutoff governed each sentence below it carried the same
+defect, and the session rewrote it before a review found it.
 
 The other two were different. One was a live status claim a dated note should not carry. One was a
 plain contradiction between two sentences about the same past moment: the note said #47 merged
