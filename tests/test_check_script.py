@@ -389,6 +389,7 @@ DROPPED_FROM_THE_CHECKS = (
     "UV_PROJECT",
     "UV_PROJECT_ENVIRONMENT",
     "UV_CONFIG_FILE",
+    "UV_ENV_FILE",
     "PYTEST_ADDOPTS",
     "PYTEST_PLUGINS",
     "PYTHONPATH",
@@ -398,11 +399,18 @@ DROPPED_FROM_THE_CHECKS = (
 def test_the_checks_run_without_the_callers_environment(tmp_path: Path) -> None:
     """The checks' half of the list, on the path that runs checks rather than a snapshot.
 
-    A stub `uv` stands in for the checks and reads its own environment, failing
-    if any of these names is still in it. So an `unset` removed from the loop
-    shows up here as a failing check. Nothing else reaches them: `--tree-state`
-    runs no check at all. The git names are covered by the tests above, and are
-    left out here so this one fails for its own reason.
+    A stub `uv` stands in for the checks, reads its own environment and fails if
+    any of these names is still in it, so an `unset` removed from the loop shows
+    up here as a failing check. Nothing else reaches them: `--tree-state` runs no
+    check at all. The git names are covered by the tests above, and are left out
+    here so this one fails for its own reason.
+
+    The stub also refuses a call without `--no-env-file`, which is the half of
+    this a name cannot carry: `UV_ENV_FILE` names a file uv loads into the child,
+    and a `pyproject.toml` or `uv.toml` can name one too, where dropping the
+    variable reaches nothing. Measured on the script before that flag: a file
+    setting `PYTEST_ADDOPTS=-k test_check_script` selected 17 tests of the
+    suite, deselected 107, and the run still printed "All checks passed."
     """
     repo = _repo(tmp_path, "repo")
     stub_dir = tmp_path / "stub"
@@ -410,7 +418,12 @@ def test_the_checks_run_without_the_callers_environment(tmp_path: Path) -> None:
     stub = stub_dir / "uv"
     stub.write_text(
         f"""#!/usr/bin/env bash
-# Stands in for uv. The checks' only job in this test is to read the environment.
+# Stands in for uv. The checks' only job in this test is to read the environment
+# and to look at how it was called.
+case " $* " in
+  *" --no-env-file "*) ;;
+  *) echo >&2 "uv was called without --no-env-file: $*"; exit 4 ;;
+esac
 for name in {" ".join(DROPPED_FROM_THE_CHECKS)}; do
   if [ -n "${{!name:-}}" ]; then
     echo >&2 "leaked into the checks: $name"
@@ -435,5 +448,6 @@ exit 0
     )
 
     assert "leaked" not in result.stderr, result.stderr
+    assert "without --no-env-file" not in result.stderr, result.stderr
     assert result.returncode == 0, result.stdout + result.stderr
     assert "All checks passed." in result.stdout

@@ -30,13 +30,21 @@ set -euo pipefail
 # reads when nothing names one. That tool answers uv on its command lines
 # instead, so the `UV_` names are this script's own. A list of variables is never
 # finished, so the assertion below does not lean on this one.
+#
+# `UV_ENV_FILE` is the one of those a name alone does not answer. Dropping it
+# takes the caller's pointer away, but a `pyproject.toml` or `uv.toml` can name
+# an environment file too, and nothing here drops that. So every `uv run` below
+# carries `--no-env-file`, which is the half that holds whatever named the file.
+# Measured: with `PYTEST_ADDOPTS=-k test_check_script` in a file named by
+# `UV_ENV_FILE`, this script ran 17 of the suite's tests and printed "All checks
+# passed." — 107 deselected, and the gate passed on a seventh of the suite.
 dropped=()
 for name in \
   GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
   GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE \
   GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM \
   PYTEST_ADDOPTS PYTEST_PLUGINS PYTHONPATH \
-  UV_WORKING_DIR UV_PROJECT UV_PROJECT_ENVIRONMENT UV_CONFIG_FILE; do
+  UV_WORKING_DIR UV_PROJECT UV_PROJECT_ENVIRONMENT UV_CONFIG_FILE UV_ENV_FILE; do
   if [ -n "${!name:-}" ]; then
     dropped+=("$name")
     unset "$name"
@@ -215,23 +223,23 @@ fi
 before="$(tree_state)"
 
 echo "== ruff check =="
-uv run ruff check .
+uv run --no-env-file ruff check .
 
 echo
 echo "== ruff format --check =="
-uv run ruff format --check .
+uv run --no-env-file ruff format --check .
 
 echo
 echo "== ty check =="
-uv run ty check
+uv run --no-env-file ty check
 
 echo
 echo "== pytest =="
-uv run pytest
+uv run --no-env-file pytest
 
 echo
 echo "== quoted figures =="
-uv run python scripts/facts.py check
+uv run --no-env-file python scripts/facts.py check
 
 after="$(tree_state)"
 if [ "$before" != "$after" ]; then
