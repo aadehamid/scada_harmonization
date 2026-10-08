@@ -22,6 +22,6 @@ step	action	reason	evidence	state
 21	Add source register and reference stack assessment	Fill interface/capture and component-comparison gaps	REG-002 and REF-001; cited primary sources; no installed components	pending review
 22	Rewrite domain narrative with clear-writing	Explain site divergence and distinguish fiction from implementation	LSC-002; same site roster and project boundaries	pending review
 23	Clarify PR merge responsibility	Apply latest owner instruction	PR reviewer merges; agents watch, fix, review, and push; no merges performed	done
-24	Reproduce PR #53 Cursor finding	Green checks do not supersede a substantive review blocker	Hostile HOME Git ignore hides untracked mutation; isolated worktree fix c2f734a	pending independent review
+24	Reproduce PR #53 Cursor finding	Green checks do not supersede a substantive review blocker	Hostile HOME Git ignore hides untracked mutation; final fix d4cb05d independently cleared and pushed	done
 25	Address PR #54 Cursor history findings	Correct provenance and historical path policy	History header covers selected sections; code spans retain original paths; current links and pickup refer to HANDOFF	pending committed review
 26	Reconcile the reviewed guard fix into documentation branch	Keep parent fixes and relocated records without duplicated instructions	PR #53 head d4cb05d reviewed by gpt-6-sol and pushed; conflicts resolved by preserving short entry points and guard preparation history	done
