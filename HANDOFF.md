@@ -138,6 +138,15 @@ PR #53's reviewed Git-ignore fix is on main. Cursor merged PR #52 at 2026-10-08
 05:06:14 UTC. Its reviewed session note is preserved in session history. The PR
 reviewer owns merging. The documentation author watches reviews and pushes checked fixes.
 
+### Retrospective follow-up (2026-10-08)
+
+The documentation checks now include local links, assets, heading targets, and
+whole-file migration-map consistency through `scripts/facts.py links`. The
+development guide defines the supported markup and limits. The historical-source
+review rule remains in `REVIEW_STANDARDS.md`. The mapping slice in section 3
+remains the next build task. This follow-up is pending its PR merge; use
+`gh pr list --state open` for the live review state.
+
 ### Decision authority
 
 Existing decision identifiers and qualifications live in charter sections 12,
