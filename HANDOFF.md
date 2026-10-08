@@ -97,7 +97,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
-| Tests | **97 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
+| Tests | **100 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |

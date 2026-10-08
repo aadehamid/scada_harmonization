@@ -38,7 +38,7 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -175,6 +175,11 @@ def tests() -> dict[str, object]:
             str(REPO),
             "--project",
             str(REPO),
+            # `--no-env-file` because uv loads a file named by `UV_ENV_FILE`, or
+            # a `.env` beside the project, into the child's environment. A file
+            # can put `PYTEST_ADDOPTS` back after `_env()` has cleared it, and a
+            # `--rootdir` from there collects another project's tests.
+            "--no-env-file",
             "pytest",
             "--collect-only",
             "-q",
@@ -210,7 +215,29 @@ def tests() -> dict[str, object]:
             f"pytest collected {total} but {parsed} node lines parsed; "
             "the per-file breakdown is incomplete"
         )
+    _require_collected_here(per_file)
     return {"total": total, "per_file": dict(sorted(per_file.items()))}
+
+
+def _require_collected_here(per_file: Mapping[str, int]) -> None:
+    """Stop unless every collected test is a file in this repository.
+
+    The command line says which directory and project to collect, and no
+    environment variable can overrule an explicit uv flag. That is an argument
+    about the flags being right, though, and it fails silently the day one of
+    them is dropped or a channel nobody listed gets through. So look at what
+    came back: a collected node that is not a file under `REPO` is another
+    project's suite, however it got collected.
+    """
+    elsewhere = sorted(
+        name for name in per_file if not (REPO / name).is_file() or not _is_inside_repo(REPO / name)
+    )
+    if elsewhere or not per_file:
+        raise SystemExit(
+            "pytest did not collect this repository's tests"
+            + (f"; these are not files here: {', '.join(elsewhere)}" if elsewhere else "")
+            + ". Something in this shell points the collection elsewhere."
+        )
 
 
 def names() -> dict[str, object]:
@@ -561,30 +588,68 @@ def _git(*args: str) -> str:
     return result.stdout.strip()
 
 
+def _is_inside_repo(path: Path) -> bool:
+    """Whether a path, once resolved, is the repository or under it."""
+    try:
+        path.resolve().relative_to(REPO.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _checkout_git_dir() -> Path:
+    """The git directory this checkout's own `.git` names.
+
+    Read from the filesystem, so the environment cannot answer it: this is the
+    one thing about the repository that no variable in the caller's shell can
+    change.
+    """
+    marker = REPO / ".git"
+    if marker.is_dir():
+        return marker.resolve()
+    if marker.is_file():
+        # A linked worktree or a submodule keeps its metadata in the repository
+        # that owns it and leaves a pointer here instead of a directory.
+        head = marker.read_text(encoding="utf-8").splitlines()[0]
+        return (REPO / head.partition(":")[2].strip()).resolve()
+    raise SystemExit(f"{marker} is neither a file nor a directory; {REPO} is not a checkout")
+
+
 def _require_this_repo() -> None:
     """Stop unless git is answering about this checkout.
 
     The figures are only worth anything if they describe `REPO`, and a wrong
     answer here does not look wrong: another project's suite, another
-    repository's tip, all report as plain numbers. So ask git which repository
-    it is actually reading, rather than trusting that `_env()` covered every way
-    a shell can redirect it.
+    repository's tip, all report as plain numbers. So ask git what it is
+    actually reading, rather than trusting that `_env()` covered every way a
+    shell can redirect it.
 
-    The probe is the git directory, not the working tree: `rev-parse
-    --show-toplevel` reports the directory the command ran in, which is `REPO`
-    either way, while `--absolute-git-dir` names the object store the command
-    read. A worktree keeps its git directory under `REPO/.git/worktrees/`, so
-    being inside `REPO` is the test, not being equal to `REPO/.git`.
+    Two questions, because two things can be moved separately. Is the git
+    directory the one this checkout points at, and is the working tree `REPO`?
+    `GIT_DIR` moves the first while the second still answers `REPO`, which is
+    why `--show-toplevel` alone would not have found the finding that started
+    this.
+
+    Compared against `.git` and not against `REPO/.git`: a linked worktree's git
+    directory is `<main>/.git/worktrees/<name>` and a submodule's is
+    `<parent>/.git/modules/<name>`, both outside the checkout, and both
+    ordinary. Refusing those would fail a correct case.
     """
-    git_dir = Path(_git("rev-parse", "--absolute-git-dir"))
-    try:
-        git_dir.resolve().relative_to(REPO.resolve())
-    except ValueError:
+    expected = _checkout_git_dir()
+    actual = Path(_git("rev-parse", "--absolute-git-dir")).resolve()
+    if actual != expected:
         raise SystemExit(
-            f"git is answering for the repository at {git_dir}, not for {REPO}. "
-            "Something in this shell points git elsewhere — a GIT_DIR, or a "
-            "variable this tool does not know about. Unset it and run again."
-        ) from None
+            f"git is reading the repository at {actual}, but the checkout at {REPO} "
+            f"points at {expected}. Something in this shell points git elsewhere — a "
+            "GIT_DIR, or a variable this tool does not know about. Unset it and run again."
+        )
+
+    top = Path(_git("rev-parse", "--show-toplevel")).resolve()
+    if top != REPO.resolve():
+        raise SystemExit(
+            f"git's working tree is {top}, not {REPO}. Something in this shell points "
+            "git at another checkout. Unset it and run again."
+        )
 
 
 def _render(command: str, payload: object) -> None:

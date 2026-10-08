@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 97
+EXPECTED_TESTS = 100
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -212,6 +212,91 @@ def test_uv_working_dir_cannot_move_which_tests_are_collected(
     assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
 
 
+def test_a_dotenv_file_cannot_put_a_cleared_redirect_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """uv loads a file into the child's environment, after `_env()` has cleared it.
+
+    `UV_ENV_FILE` names a dotenv file uv reads, and `.env` beside the project is
+    read too, so a file can set `PYTEST_ADDOPTS` again once this tool has removed
+    it from the environment it passes. A `--rootdir` from there collects the
+    other project's suite, and the flags that name the directory do not stop it:
+    pytest is running in `REPO`, asked to read its tests from somewhere else.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "pyproject.toml").write_text(
+        '[project]\nname = "other"\nversion = "0"\nrequires-python = ">=3.13"\n',
+        encoding="utf-8",
+    )
+    (other / "tests" / "test_other.py").write_text("def test_only_one(): pass\n", encoding="utf-8")
+    dotenv = tmp_path / "redirect.env"
+    dotenv.write_text(f'PYTEST_ADDOPTS="--rootdir={other} {other}/tests"\n', encoding="utf-8")
+
+    monkeypatch.setenv("UV_ENV_FILE", str(dotenv))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_collected_test_from_outside_the_repository_is_refused(tmp_path: Path) -> None:
+    """The flags being right is an argument; this is the check on the answer.
+
+    Whatever puts pytest somewhere else — a flag dropped from the command line, a
+    variable nobody has listed — the names that come back are the evidence. A node
+    that is not a file under `REPO` is another project's suite, and no figure may
+    be reported from it.
+    """
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({"tests/test_other.py": 3})
+
+    # A traversal out of the repository is not inside it either, even when the
+    # name starts the way the parser requires.
+    outside = tmp_path / "outside"
+    (outside / "tests").mkdir(parents=True)
+    (outside / "tests" / "test_other.py").write_text(
+        "def test_only_one(): pass\n", encoding="utf-8"
+    )
+    escaping = f"tests/{os.path.relpath(outside / 'tests' / 'test_other.py', facts.REPO)}"
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({escaping: 1})
+
+    # Nothing collected at all is not an answer either.
+    with pytest.raises(SystemExit, match="not collect this repository's tests"):
+        facts._require_collected_here({})
+
+    assert facts._require_collected_here({"tests/test_facts.py": 1}) is None
+
+
+def test_a_linked_worktree_is_this_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A linked worktree keeps its git directory outside the checkout.
+
+    `git worktree add` puts the metadata in `<main>/.git/worktrees/<name>` and
+    leaves a `gitdir:` pointer in the checkout, and a submodule does the same
+    under `<parent>/.git/modules`. Comparing git's answer against `REPO/.git`
+    would refuse both, which fails a correct case, so the check compares against
+    what this checkout's own `.git` names.
+    """
+    main = tmp_path / "main"
+    main.mkdir()
+    clean = facts._env()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=main, check=True, env=clean)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "-m", "x"], cwd=main, check=True, env=clean
+    )
+    linked = tmp_path / "linked"
+    subprocess.run(
+        ["git", "worktree", "add", "-q", "--detach", str(linked), "HEAD"],
+        cwd=main,
+        check=True,
+        env=clean,
+    )
+
+    monkeypatch.setattr(facts, "REPO", linked)
+    facts._require_this_repo()
+
+
 def test_the_tool_stops_when_a_redirect_it_does_not_know_about_is_in_play(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -231,7 +316,7 @@ def test_the_tool_stops_when_a_redirect_it_does_not_know_about_is_in_play(
     monkeypatch.setattr(facts, "_env", lambda: dict(os.environ))
     monkeypatch.setenv("GIT_DIR", str(other / ".git"))
 
-    with pytest.raises(SystemExit, match="answering for the repository at"):
+    with pytest.raises(SystemExit, match="points git elsewhere"):
         facts.main(["head"])
 
 
