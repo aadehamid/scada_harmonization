@@ -41,6 +41,7 @@ def _repo(tmp_path: Path, name: str) -> Path:
     repo = tmp_path / name
     (repo / "scripts").mkdir(parents=True)
     shutil.copy2(CHECK_SH, repo / "scripts" / "check.sh")
+    (repo / "notes.md").write_text("a tracked file that is not the script\n")
     env = _scratch_env()
 
     def git(*args: str) -> None:
@@ -213,6 +214,71 @@ def test_the_guard_accepts_a_linked_worktree(tmp_path: Path) -> None:
     result = _tree_state(worktree)
     assert result.returncode == 0, result.stderr
     assert _state(result)
+
+
+def test_the_guard_resolves_a_relative_git_pointer(tmp_path: Path) -> None:
+    """git writes a worktree's pointer absolute and a submodule's relative.
+
+    The worktree test covers one form and this covers the other, where the path
+    has to be resolved against the checkout rather than used as it stands: a
+    guard that joins every pointer to the root names a directory that is not
+    there and refuses the tree.
+    """
+    repo = _repo(tmp_path, "repo")
+    moved = tmp_path / "moved-git-dir"
+    (repo / ".git").rename(moved)
+    (repo / ".git").write_text(f"gitdir: ../{moved.name}\n")
+
+    result = _tree_state(repo)
+    assert result.returncode == 0, result.stderr
+    assert _state(result)
+
+
+def test_a_deleted_tracked_file_does_not_stop_the_guard(tmp_path: Path) -> None:
+    """An unstaged deletion is where a working tree spends most of its time.
+
+    `git ls-files --cached` lists the path and reading it fails, so a guard that
+    treats that as a broken read refuses to run at all until the work is
+    finished. The deletion belongs in the snapshot, which the status line
+    carries, and putting the file back has to restore the state it had.
+    """
+    repo = _repo(tmp_path, "repo")
+    tracked = repo / "notes.md"
+    original, mode = tracked.read_bytes(), tracked.stat().st_mode
+    before = _state(_tree_state(repo))
+
+    tracked.unlink()
+    deleted = _tree_state(repo)
+    assert deleted.returncode == 0, deleted.stderr
+    assert _state(deleted) != before, "the deletion did not move the snapshot"
+
+    tracked.write_bytes(original)
+    tracked.chmod(mode)
+    assert _state(_tree_state(repo)) == before
+
+
+def test_a_caller_cannot_hide_a_path_with_a_config_file(tmp_path: Path) -> None:
+    """`GIT_CONFIG_GLOBAL` swaps the file git reads for its configuration.
+
+    A setting there — `core.excludesFile` — takes an untracked path out of
+    `--exclude-standard`, so the path leaves the snapshot's every line and an
+    edit to it compares equal. The injected file names an ignore, so the run
+    that ignores it proves the file is not being read.
+    """
+    repo = _repo(tmp_path, "repo")
+    ignore = tmp_path / "ignore"
+    ignore.write_text("probe\n")
+    injected = tmp_path / "injected.gitconfig"
+    injected.write_text(f"[core]\n\texcludesFile = {ignore}\n")
+
+    without_probe = _state(_tree_state(repo))
+    (repo / "probe").write_text("content\n")
+    with_probe = _state(_tree_state(repo))
+    assert with_probe != without_probe, "the new path never entered the snapshot"
+
+    hidden = _tree_state(repo, {"GIT_CONFIG_GLOBAL": str(injected)})
+    assert hidden.returncode == 0, hidden.stderr
+    assert _state(hidden) == with_probe
 
 
 DROPPED_FROM_THE_CHECKS = (

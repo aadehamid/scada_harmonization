@@ -21,17 +21,20 @@ set -euo pipefail
 # decides which module a name means. A local run and a CI run have to run the
 # same things, so all of them go.
 #
-# The git and pytest names are `_REDIRECTING_ENV` in scripts/facts.py, which
-# carries the reasoning for each one, plus three more of that family
-# (`GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_COMMON_DIR`, `GIT_NAMESPACE`) that no
-# test here exercises. That tool answers uv on its command lines instead, so the
-# four `UV_` names are this script's own. A list of variables is never finished,
-# so the assertion below does not lean on this one.
+# The git and pytest names are the ones `_REDIRECTING_ENV` in scripts/facts.py
+# carries, plus `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_COMMON_DIR` and
+# `GIT_NAMESPACE` (the same family, unexercised here), plus the two that choose
+# which configuration *file* git reads: one of those can set `core.excludesFile`
+# and take an untracked path out of `--exclude-standard`, where the guard would
+# stop seeing it. What is left is the machine's own configuration, the file git
+# reads when nothing names one. That tool answers uv on its command lines
+# instead, so the `UV_` names are this script's own. A list of variables is never
+# finished, so the assertion below does not lean on this one.
 dropped=()
 for name in \
   GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
   GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE \
-  GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT \
+  GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM \
   PYTEST_ADDOPTS PYTEST_PLUGINS PYTHONPATH \
   UV_WORKING_DIR UV_PROJECT UV_PROJECT_ENVIRONMENT UV_CONFIG_FILE; do
   if [ -n "${!name:-}" ]; then
@@ -60,19 +63,17 @@ if [ -d "$marker" ]; then
 elif [ -f "$marker" ]; then
   # A linked worktree or a submodule keeps its metadata elsewhere and leaves a
   # pointer here instead of a directory. git writes an absolute path for a
-  # worktree and a path relative to the checkout for a submodule, so joining
-  # every pointer to $repo would name a directory that does not exist and refuse
-  # a worktree `git worktree add` had just made.
+  # worktree and one relative to the checkout for a submodule, and both resolve
+  # against the working directory, which `cd` above put at the checkout root. So
+  # the pointer is used as it stands: joining it to the root would name
+  # `$repo//tmp/...`, a directory nothing created, and refuse a worktree that
+  # `git worktree add` had just made.
   pointer="$(sed -n '1s/^gitdir: *//p' "$marker")"
-  case "$pointer" in
-  /*) want_git_dir="$pointer" ;;
-  *) want_git_dir="$repo/$pointer" ;;
-  esac
-  if [ ! -d "$want_git_dir" ]; then
+  if [ ! -d "$pointer" ]; then
     echo >&2 "FAIL: $marker points at '$pointer', which is not a directory."
     exit 1
   fi
-  want_git_dir="$(cd -- "$want_git_dir" && pwd -P)"
+  want_git_dir="$(cd -- "$pointer" && pwd -P)"
 else
   echo >&2 "FAIL: $marker is neither a file nor a directory; $repo is not a checkout."
   exit 1
@@ -114,6 +115,29 @@ tracked_paths() {
   git ls-files -z --cached --others --exclude-standard
 }
 
+# `--cached` lists a tracked file that has been deleted from the working tree
+# without staging, and reading that path fails; a broken symlink fails a content
+# read too. Neither is a check doing something, and a checkout is in both states
+# while someone works, so each read below asks for the paths it can handle. The
+# status and index lines keep those paths in the snapshot, so a deletion or a
+# retargeted link still moves it. A regular file that cannot be read is a
+# different matter, and it stops the snapshot.
+hashable_paths() {
+  local path
+  while IFS= read -r -d '' path; do
+    if [ -f "$path" ]; then printf '%s\0' "$path"; fi
+  done < <(tracked_paths)
+}
+
+# stat reports on the link itself, so it answers for a broken one; `-e` alone
+# would drop that path, and `%N` below is what records the link's target.
+present_paths() {
+  local path
+  while IFS= read -r -d '' path; do
+    if [ -e "$path" ] || [ -L "$path" ]; then printf '%s\0' "$path"; fi
+  done < <(tracked_paths)
+}
+
 tree_state() {
   local contents entries
   # A read that fails has to stop the snapshot, not drop out of it: a path
@@ -130,13 +154,13 @@ tree_state() {
   # read as a path rather than as an option to the tool. The './' prefix is
   # load-bearing: sha256sum reads a bare '-' operand as standard input even after
   # '--', so a file named '-' would never be read.
-  if ! contents="$(tracked_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum --)"; then
+  if ! contents="$(hashable_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum --)"; then
     echo >&2 "FAIL: a tracked path could not be hashed."
     return 1
   fi
   # Mode, filesystem type, and — for a symlink — its target, quoted and escaped
   # by %N, so a target ending in a newline cannot collide with a different name.
-  if ! entries="$(tracked_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' --)"; then
+  if ! entries="$(present_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' --)"; then
     echo >&2 "FAIL: a tracked path could not be stat-ed."
     return 1
   fi
