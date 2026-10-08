@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 103
+EXPECTED_TESTS = 104
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -85,10 +85,12 @@ def _scratch_env() -> dict[str, str]:
     runner with none — would fail the test for a reason that has nothing to do
     with what it checks.
 
-    Signing is turned off for the same reason: a machine configured to sign
-    commits, and without the key, fails these throwaway commits. Configuration
-    given this way outranks the config files and replaces what the shell
-    injected, since `GIT_CONFIG_COUNT` cannot be appended to.
+    Configuration is turned off for the same reason: a machine configured to sign
+    commits without having the key fails these throwaway commits, and one whose
+    `core.hooksPath` runs a hook that rejects a commit — a lint gate over the
+    owner's work, say — fails them too. The two files are not read at all, which
+    leaves the shell's `GIT_CONFIG_PARAMETERS`, the one source that outranks them;
+    `facts._env()` drops that.
     """
     return {
         **facts._env(),
@@ -96,9 +98,8 @@ def _scratch_env() -> dict[str, str]:
         "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t",
         "GIT_COMMITTER_EMAIL": "t@t",
-        "GIT_CONFIG_COUNT": "1",
-        "GIT_CONFIG_KEY_0": "commit.gpgsign",
-        "GIT_CONFIG_VALUE_0": "false",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_SYSTEM": os.devnull,
     }
 
 
@@ -205,19 +206,53 @@ def test_scratch_repo_ignores_a_redirected_environment(
     assert ask("rev-list", "--count", "--all") == "1", "no commit may be added to it"
 
 
+def test_a_machines_git_config_cannot_change_what_the_scratch_repo_does(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The machine's git configuration files must not reach the helper's commands.
+
+    A `core.hooksPath` there is one instance. A developer who gates every commit
+    through a lint hook — or through a hook that checks a ticket number, or signs
+    with a key held in a hardware token — has that hook run on the scratch
+    repository's commits, and the test fails for a reason that has nothing to do
+    with what it checks.
+
+    Both files are set to the same hostile config, so each line of `_scratch_env`
+    is load-bearing: dropping either one lets git read the config and the commit
+    fails.
+    """
+    hooks = tmp_path / "hooks"
+    hooks.mkdir()
+    reject = hooks / "pre-commit"
+    reject.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    reject.chmod(0o755)
+    machine = tmp_path / "machine.gitconfig"
+    machine.write_text(f"[core]\n\thooksPath = {hooks}\n", encoding="utf-8")
+
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(machine))
+    monkeypatch.setenv("GIT_CONFIG_SYSTEM", str(machine))
+
+    repo, main_sha = _scratch_repo(tmp_path)
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert len(main_sha) == 40, "the commit it made must be a commit"
+
+
 def test_a_shell_that_signs_its_commits_cannot_break_the_scratch_repo(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`GIT_CONFIG_PARAMETERS` outranks the configuration the helper sets.
+    """`GIT_CONFIG_PARAMETERS` outranks the files the helper turns off.
 
     It is how git passes `-c` down to the processes it starts, and it beats
-    every other source, so a shell holding it can turn commit signing back on
-    over `_scratch_env`'s `commit.gpgsign=false`. The signing program here does
-    not exist, so the commit fails rather than quietly succeeding on a machine
-    that happens to have a key.
+    every other source, so a shell holding it turns commit signing back on over
+    `_scratch_env`'s empty configuration. What it names is a signer that does not
+    exist, so `_scratch_repo`'s commits raise. A machine signing with an SSH key
+    would ignore that program and sign anyway, which is why the format is named
+    too; without it this test would pass against the tool it is meant to fail.
     """
     monkeypatch.setenv(
-        "GIT_CONFIG_PARAMETERS", "'commit.gpgsign=true' 'gpg.program=/nonexistent-signer'"
+        "GIT_CONFIG_PARAMETERS",
+        "'commit.gpgsign=true' 'gpg.format=openpgp' 'gpg.program=/nonexistent-signer'",
     )
 
     repo, main_sha = _scratch_repo(tmp_path)
