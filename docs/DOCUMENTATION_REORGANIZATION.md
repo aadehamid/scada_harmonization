@@ -112,10 +112,11 @@ cited primary-source research and explicitly proposed phase questions. It instal
 no components and changes no approved runtime design. Optional grilling and
 domain-modeling helpers are unavailable; this run uses existing domain definitions.
 
-The branch began at PR #53's guard-fix commit. PR #54 targets that branch
-until #53 lands. Its diff is the documentation change, not the guard repair.
-After #53 lands, inspect main and retarget this PR; review any reconciliation
-with #52's pending session note. The PR reviewer merges each PR.
+The branch began at PR #53's guard-fix commit. PR #54 initially targeted that branch
+to keep the guard repair outside its diff. Cursor merged #53 at 2026-10-08
+04:56:35 UTC. Main was fetched, the landed merge reconciled locally, and PR #54
+retargeted to main. PR #52's session record still needs reconciliation after its
+review findings are addressed. The PR reviewer merges each PR.
 
 ## Implementation handoff
 

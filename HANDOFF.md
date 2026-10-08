@@ -119,7 +119,7 @@ The owner authorized batch reorganization and document streamlining. Work is
 on `docs/reorganize-project-documents`, based on the existing guard-fix
 branch. PRs #52 and #53 were open at inspection. The reorganization is pending in
 [PR #54](https://github.com/aadehamid/scada_harmonization/pull/54), initially based
-on #53 so its diff contains only this concern.
+on #53. Cursor merged #53 at 2026-10-08 04:56:35 UTC; PR #54 now targets main.
 
 The original collaboration rules now live in
 [docs/WORKING_CONVENTIONS.md](docs/WORKING_CONVENTIONS.md). Dated session notes
@@ -132,8 +132,8 @@ The actual-checkout `scripts/check.sh` and pre-push hook passed. The hook also
 rejected a deliberately incorrect schedule figure, which was restored. Working-tree
 review findings were corrected. A separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
 #53's base. The branch was pushed and PR #54 opened. Cursor feedback and
-reviewer merge remain pending. Retarget to main after #53 lands and keep the
-branch fully pushed before reporting readiness.
+reviewer merge remain pending for #54. Keep the branch fully pushed before
+reporting readiness. Reconcile #52's session record before releasing the draft.
 
 The owner expanded the documentation batch to sensible PPC stack reuse, targeted
 rewrites, and missing documents. The branch now includes a source/integration
@@ -142,8 +142,9 @@ after an overlap audit. These follow-up changes are proposed for PR #54; its rev
 the reviewed version.
 The owner clarified that the PR reviewer merges; agents watch and address feedback.
 PR #53 has reproduced Cursor findings involving HOME-based Git ignores. Its
-fix was independently cleared at `d4cb05d` and pushed. This checkout includes
-its pending regression tests. The reviewer owns merging. No agent has merged a PR.
+fix was independently cleared at `d4cb05d`, pushed, and merged by Cursor. Its
+regression tests are now on main. PR #52 has a remaining time-reference finding
+under repair on its own branch. The reviewer owns merging. No agent has merged a PR.
 
 ### Decision authority
 
