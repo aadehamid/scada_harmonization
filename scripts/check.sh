@@ -59,8 +59,20 @@ if [ -d "$marker" ]; then
   want_git_dir="$(cd -- "$marker" && pwd -P)"
 elif [ -f "$marker" ]; then
   # A linked worktree or a submodule keeps its metadata elsewhere and leaves a
-  # pointer here instead of a directory.
-  want_git_dir="$(cd -- "$repo/$(sed -n '1s/^gitdir: *//p' "$marker")" && pwd -P)"
+  # pointer here instead of a directory. git writes an absolute path for a
+  # worktree and a path relative to the checkout for a submodule, so joining
+  # every pointer to $repo would name a directory that does not exist and refuse
+  # a worktree `git worktree add` had just made.
+  pointer="$(sed -n '1s/^gitdir: *//p' "$marker")"
+  case "$pointer" in
+  /*) want_git_dir="$pointer" ;;
+  *) want_git_dir="$repo/$pointer" ;;
+  esac
+  if [ ! -d "$want_git_dir" ]; then
+    echo >&2 "FAIL: $marker points at '$pointer', which is not a directory."
+    exit 1
+  fi
+  want_git_dir="$(cd -- "$want_git_dir" && pwd -P)"
 else
   echo >&2 "FAIL: $marker is neither a file nor a directory; $repo is not a checkout."
   exit 1

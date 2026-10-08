@@ -191,3 +191,80 @@ def test_the_guard_names_the_variables_it_dropped(tmp_path: Path) -> None:
     assert "ignoring from the caller's environment" in result.stderr
     for name in ("UV_WORKING_DIR", "UV_PROJECT", "PYTEST_ADDOPTS", "PYTHONPATH"):
         assert name in result.stderr
+
+
+def test_the_guard_accepts_a_linked_worktree(tmp_path: Path) -> None:
+    """A worktree's git directory is outside its checkout, behind a pointer file.
+
+    git writes that pointer as an absolute path, so a guard that joins it to the
+    checkout root names a directory nothing created and refuses a legitimate
+    tree. `--tree-state` is enough: the refusal happens before any check.
+    """
+    main = _repo(tmp_path, "main")
+    worktree = tmp_path / "linked"
+    subprocess.run(
+        ["git", "-C", str(main), "worktree", "add", "-q", str(worktree)],
+        check=True,
+        capture_output=True,
+        env=_scratch_env(),
+    )
+    assert (worktree / ".git").is_file(), "git now writes something other than a pointer file"
+
+    result = _tree_state(worktree)
+    assert result.returncode == 0, result.stderr
+    assert _state(result)
+
+
+DROPPED_FROM_THE_CHECKS = (
+    "UV_WORKING_DIR",
+    "UV_PROJECT",
+    "UV_PROJECT_ENVIRONMENT",
+    "UV_CONFIG_FILE",
+    "PYTEST_ADDOPTS",
+    "PYTEST_PLUGINS",
+    "PYTHONPATH",
+)
+
+
+def test_the_checks_run_without_the_callers_environment(tmp_path: Path) -> None:
+    """The checks' half of the list, on the path that runs checks rather than a snapshot.
+
+    A stub `uv` stands in for the checks and reads its own environment, failing
+    if any of these names is still in it. So an `unset` removed from the loop
+    shows up here as a failing check. Nothing else reaches them: `--tree-state`
+    runs no check at all. The git names are covered by the tests above, and are
+    left out here so this one fails for its own reason.
+    """
+    repo = _repo(tmp_path, "repo")
+    stub_dir = tmp_path / "stub"
+    stub_dir.mkdir()
+    stub = stub_dir / "uv"
+    stub.write_text(
+        f"""#!/usr/bin/env bash
+# Stands in for uv. The checks' only job in this test is to read the environment.
+for name in {" ".join(DROPPED_FROM_THE_CHECKS)}; do
+  if [ -n "${{!name:-}}" ]; then
+    echo >&2 "leaked into the checks: $name"
+    exit 3
+  fi
+done
+exit 0
+"""
+    )
+    stub.chmod(0o755)
+
+    result = subprocess.run(
+        ["bash", str(repo / "scripts" / "check.sh")],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={
+            **_scratch_env(),
+            "PATH": f"{stub_dir}:{os.environ['PATH']}",
+            **dict.fromkeys(DROPPED_FROM_THE_CHECKS, "/nowhere"),
+        },
+    )
+
+    assert "leaked" not in result.stderr, result.stderr
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "All checks passed." in result.stdout
