@@ -18,13 +18,22 @@ the tool ever reverses it:
   `git` that answered correctly and then returned 128 was believed;
 * the type checker could be pointed at a configuration that excludes every path,
   so `ty check` reported that it had found no files and the gate passed having
-  read nothing.
+  read nothing;
+* the checks inherited the caller's environment, so a `UV_WORKING_DIR`, a
+  `PYTEST_ADDOPTS` or a `TY_CONFIG_FILE` in the shell decided what they ran and
+  what they read.
 
 The script is copied into a throwaway repository rather than run in this one: it
 runs uv, ruff and pytest, which a test cannot start from inside the suite.
 `--tree-state` asks the guard for its snapshot and stops before any check. The
 one exception runs the real ty on a throwaway project of its own, because what it
 asserts is ty's behaviour and no copy of the script can carry that.
+
+The guard builds the environment its checks run in, and `PATH` is the one thing
+it passes through as the caller had it. So a caller's own `git` or `uv` reaches
+it as a stub earlier on `PATH`, and everything else arrives through the `env=`
+argument: an exported shell function cannot reach the guard at all, which is the
+change these tests were rewritten for.
 """
 
 from __future__ import annotations
@@ -43,6 +52,63 @@ from tests.test_facts import _scratch_env
 REPO = Path(__file__).resolve().parent.parent
 CHECK_SH = REPO / "scripts" / "check.sh"
 STATE = re.compile(r"^tree_state: ([0-9a-f]{64})$", re.MULTILINE)
+
+
+def _bash() -> str:
+    """The absolute path to bash, since a test may hand the guard its own `PATH`.
+
+    The guard is run by its path rather than by name for the same reason: a test
+    that sets `PATH` to a stub directory, or to nothing, has not stopped this
+    process from finding its own shell.
+    """
+    found = shutil.which("bash")
+    assert found, "these tests run the guard with bash"
+    return found
+
+
+BASH = _bash()
+
+# What the guard promises its checks can see, and nothing else. The four after
+# the marker are bash's own, set in the environment of every command it runs.
+# What the guard promises its checks can see, and nothing else. The four after
+# it are bash's own, set in the environment of every command it runs.
+CHECK_ENV_ALLOWED = (
+    "PATH",
+    "HOME",
+    "TMPDIR",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_COUNT",
+    "GIT_CONFIG_KEY_0",
+    "GIT_CONFIG_VALUE_0",
+)
+BASH_OWN_NAMES = ("PWD", "SHLVL", "OLDPWD", "_")
+
+# A caller's environment, as the tests hand it over: every name the guard used to
+# drop, and one that no list ever held. None of them may reach the checks.
+HOSTILE_CALLER_ENV = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_NAMESPACE",
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_SYSTEM",
+    "PYTEST_ADDOPTS",
+    "PYTEST_PLUGINS",
+    "PYTHONPATH",
+    "TY_CONFIG_FILE",
+    "UV_WORKING_DIR",
+    "UV_PROJECT",
+    "UV_PROJECT_ENVIRONMENT",
+    "UV_CONFIG_FILE",
+    "UV_ENV_FILE",
+    "A_VARIABLE_NOBODY_LISTED",
+)
 
 
 def _repo(tmp_path: Path, name: str) -> Path:
@@ -71,16 +137,19 @@ def _tree_state(
 ) -> subprocess.CompletedProcess[str]:
     """Ask the guard for its snapshot, run from outside the repository.
 
-    The environment starts from the tests' own git environment, which already
-    has the redirecting names cleared, so what a test sets here is the only
-    redirection in play.
+    What is passed in `env` is a caller's environment, and the guard rebuilds it
+    before doing anything: only `PATH`, `HOME`, `TMPDIR` and the locale survive.
+    The guard fixes GIT_CONFIG_GLOBAL to /dev/null, so HOME remains available
+    to uv without letting the user's global ignores decide the snapshot.
     """
+    home = repo.parent / "home"
+    home.mkdir(exist_ok=True)
     return subprocess.run(
-        ["bash", str(repo / "scripts" / "check.sh"), "--tree-state"],
+        [BASH, str(repo / "scripts" / "check.sh"), "--tree-state"],
         capture_output=True,
         text=True,
         cwd=repo.parent,
-        env={**_scratch_env(), **(extra_env or {})},
+        env={**_scratch_env(), "HOME": str(home), **(extra_env or {})},
     )
 
 
@@ -88,6 +157,37 @@ def _state(result: subprocess.CompletedProcess[str]) -> str:
     found = STATE.search(result.stdout)
     assert found, f"no snapshot in stdout: {result.stdout!r} stderr: {result.stderr!r}"
     return found.group(1)
+
+
+def _stub(tmp_path: Path, name: str, body: str) -> Path:
+    """A directory holding an executable `name`, for the front of `PATH`."""
+    stub_dir = tmp_path / f"stub-{name}"
+    stub_dir.mkdir(exist_ok=True)
+    stub = stub_dir / name
+    stub.write_text(f"#!/usr/bin/env bash\n{body}")
+    stub.chmod(0o755)
+    return stub_dir
+
+
+def _git_stub(tmp_path: Path, when: str, then: str) -> Path:
+    """A `git` earlier on `PATH` than the real one.
+
+    `when` is matched against the first two arguments, and an empty `when`
+    matches every call. Where it matches, `then` runs, with `$real` naming the
+    real git so a stub can answer honestly and then fail, or answer something
+    else entirely. Everywhere else the real git runs.
+    """
+    real = shutil.which("git")
+    assert real, "these tests need git"
+    guard = "true" if not when else f'[ "${{1:-}} ${{2:-}}" = "{when}" ]'
+    return _stub(
+        tmp_path, "git", f'real="{real}"\nif {guard}; then\n  {then}\nfi\nexec "$real" "$@"\n'
+    )
+
+
+def _path_env(stub_dir: Path) -> dict[str, str]:
+    """A caller's environment with a stub directory in front on `PATH`."""
+    return {"PATH": f"{stub_dir}:{_scratch_env()['PATH']}"}
 
 
 def test_the_guard_snapshots_the_tree_it_is_run_in(tmp_path: Path) -> None:
@@ -129,24 +229,13 @@ def test_a_git_answer_that_fails_is_not_believed(tmp_path: Path, question: str) 
 
     Both used `|| true`, which turns "git is broken" into "git agreed": a `git`
     that ran the real `rev-parse`, printed the expected directory and then
-    returned 128 was believed, and the guard carried on to its snapshot. An
-    exported `git` stands in, answering the named question with the truth and a
-    failing status, and every other command honestly.
+    returned 128 was believed, and the guard carried on to its snapshot. A stub
+    on `PATH` stands in for that `git`, answering the named question with the
+    truth and a failing status, and every other command honestly.
     """
     repo = _repo(tmp_path, "repo")
-    result = _tree_state(
-        repo,
-        {
-            "BASH_FUNC_git%%": (
-                "() {\n"
-                '  command git "$@"\n'
-                "  local rc=$?\n"
-                f'  if [ "${{1:-}} ${{2:-}}" = "{question}" ]; then return 128; fi\n'
-                "  return $rc\n"
-                "}"
-            )
-        },
-    )
+    stub = _git_stub(tmp_path, question, '"$real" "$@"\n  exit 128')
+    result = _tree_state(repo, _path_env(stub))
 
     assert result.returncode != 0, result.stdout
     assert "could not name" in result.stderr, result.stderr
@@ -161,24 +250,11 @@ def test_a_git_read_that_fails_stops_the_guard(tmp_path: Path, command: str) -> 
     empty, the two reads after it succeeded on nothing, and the snapshot stopped
     moving: measured, a tracked file going from mode 644 to mode 600 — a change
     the mode line is the only home for — left the state identical. The identity
-    checks above let the injected `git` through, because those ask `rev-parse`.
+    checks above let the stub through, because those ask `rev-parse`.
     """
     repo = _repo(tmp_path, "repo")
-    asked = f'"{command}"'
-    result = _tree_state(
-        repo,
-        {
-            "BASH_FUNC_git%%": (
-                "() {\n"
-                f'  if [ "${{1:-}} ${{2:-}}" = {asked} ]; then\n'
-                '    echo "fatal: injected failure" >&2\n'
-                "    return 128\n"
-                "  fi\n"
-                '  command git "$@"\n'
-                "}"
-            )
-        },
-    )
+    stub = _git_stub(tmp_path, command, 'echo "fatal: injected failure" >&2\n  exit 128')
+    result = _tree_state(repo, _path_env(stub))
 
     assert result.returncode != 0, result.stdout
     assert "could not" in result.stderr, result.stderr
@@ -188,7 +264,9 @@ def test_a_caller_cannot_point_the_guard_at_another_repository(tmp_path: Path) -
     """`GIT_DIR` and `GIT_WORK_TREE` are what an inherited environment gives it.
 
     Under both, the snapshot is the hash of nothing at all, and the guard passes
-    for any change to this tree.
+    for any change to this tree. The guard builds its own environment now, so the
+    two arrive at the script and stop there; the assertion is the same one it
+    always was, and it fails if the rebuild is removed.
     """
     here = _repo(tmp_path, "here")
     (here / "here-only").write_text("one\n")
@@ -231,41 +309,67 @@ def test_a_caller_cannot_hide_a_path_with_injected_config(tmp_path: Path) -> Non
 
 
 def test_a_caller_cannot_answer_for_git(tmp_path: Path) -> None:
-    """The drop list is not the whole defence, and this is what the rest is for.
+    """Rebuilding the environment is not the whole defence, and this is the rest.
 
-    A shell function exported as `git` answers every command the guard runs, and
-    no list of variable names covers it. So the guard asks git which repository
-    it is reading, and refuses when the answer is some other one.
+    `PATH` is passed on as the caller had it, because that is how the tools are
+    found, so a `git` of theirs can answer every command the guard runs, and no
+    amount of rebuilding the environment covers that. So the guard asks git which
+    repository it is reading, and refuses when the answer is some other one.
     """
     repo = _repo(tmp_path, "repo")
-    result = _tree_state(repo, {"BASH_FUNC_git%%": "() { echo /elsewhere; }"})
+    stub = _git_stub(tmp_path, "", "echo /elsewhere\n  exit 0")
+    result = _tree_state(repo, _path_env(stub))
 
-    assert result.returncode != 0
-    assert "points git elsewhere" in result.stderr
+    assert result.returncode != 0, result.stdout
+    assert "points git elsewhere" in result.stderr, result.stderr
 
 
-def test_the_guard_names_the_variables_it_dropped(tmp_path: Path) -> None:
-    """The uv names need this test: a snapshot runs no check, so nothing else reaches them.
+def test_a_variable_claiming_the_environment_is_built_is_not_believed(tmp_path: Path) -> None:
+    """The rebuild is this script's decision, never the caller's account of it.
 
-    `UV_WORKING_DIR` takes `uv run` out of the project altogether and
-    `PYTEST_ADDOPTS` selects part of the suite, so both are dropped before a
-    check runs.
+    A check that starts a nested run of this script hands it an environment the
+    guard itself built, so a marker naming that state was in the environment the
+    next guard started with, and it skipped the rebuild — letting a caller's
+    `GIT_DIR` through. Measured, under `scripts/check.sh`: five of the guard's own
+    tests failed there and passed when the file was run on its own. The marker is
+    an argument now, and this is the test that says so.
     """
-    repo = _repo(tmp_path, "repo")
-    result = _tree_state(
-        repo,
+    here = _repo(tmp_path, "here")
+    (here / "here-only").write_text("one\n")
+    elsewhere = _repo(tmp_path, "elsewhere")
+    (elsewhere / "there-only").write_text("two\n")
+    clean = _state(_tree_state(here))
+
+    lied_to = _tree_state(
+        here,
         {
-            "UV_WORKING_DIR": "/nowhere",
-            "UV_PROJECT": "/nowhere",
-            "PYTEST_ADDOPTS": "-k nothing",
-            "PYTHONPATH": "/nowhere",
+            "SCADA_CHECK_FIXED_ENV": "1",
+            "GIT_DIR": str(elsewhere / ".git"),
+            "GIT_WORK_TREE": str(elsewhere),
         },
     )
+    assert lied_to.returncode == 0, lied_to.stderr
+    assert _state(lied_to) == clean
 
-    assert result.returncode == 0, result.stderr
-    assert "ignoring from the caller's environment" in result.stderr
-    for name in ("UV_WORKING_DIR", "UV_PROJECT", "PYTEST_ADDOPTS", "PYTHONPATH"):
-        assert name in result.stderr
+
+def test_the_guard_refuses_a_shell_with_no_path(tmp_path: Path) -> None:
+    """A shell with no `PATH` cannot run the tools, and is told so.
+
+    Without the check the first thing to fail is the guard's own re-exec: bash
+    cannot find `env`, and the message names a line of the script instead of what
+    is wrong. Either way the run refuses, so what is asserted is which refusal.
+    """
+    repo = _repo(tmp_path, "repo")
+    result = subprocess.run(
+        [BASH, str(repo / "scripts" / "check.sh"), "--tree-state"],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={**_scratch_env(), "PATH": ""},
+    )
+
+    assert result.returncode != 0, result.stdout
+    assert "PATH is empty" in result.stderr, result.stderr
 
 
 def test_the_guard_accepts_a_linked_worktree(tmp_path: Path) -> None:
@@ -392,47 +496,30 @@ def test_a_caller_cannot_hide_a_path_with_a_config_file(tmp_path: Path) -> None:
     assert _state(hidden) == with_probe
 
 
-DROPPED_FROM_THE_CHECKS = (
-    "UV_WORKING_DIR",
-    "UV_PROJECT",
-    "UV_PROJECT_ENVIRONMENT",
-    "UV_CONFIG_FILE",
-    "UV_ENV_FILE",
-    "PYTEST_ADDOPTS",
-    "PYTEST_PLUGINS",
-    "PYTHONPATH",
-    "TY_CONFIG_FILE",
-)
-
-
 def test_the_checks_run_without_the_callers_environment(tmp_path: Path) -> None:
-    """The checks' half of the list, on the path that runs checks rather than a snapshot.
+    """The checks' half, on the path that runs checks rather than a snapshot.
 
-    A stub `uv` stands in for the checks, reads its own environment and fails if
-    any of these names is still in it, so an `unset` removed from the loop shows
-    up here as a failing check. Nothing else reaches them: `--tree-state` runs no
-    check at all. The git names are covered by the tests above, and are left out
-    here so this one fails for its own reason.
+    A stub `uv` stands in for the checks and reads its own environment. It fails
+    if any name the caller set is still there — the twenty the old list held, and
+    one that no list ever held — and it fails on any name at all beyond the
+    allow-list, which is what "the environment is built here" means. It also
+    fails if `PATH` or `HOME` is missing, since dropping those would break the
+    checks rather than protect them.
 
-    The stub also refuses a call without `--no-env-file`, which is the half of
-    this a name cannot carry: `UV_ENV_FILE` names a file uv loads into the child,
-    and a `pyproject.toml` or `uv.toml` can name one too, where dropping the
-    variable reaches nothing. Measured on the script before that flag: a file
-    setting `PYTEST_ADDOPTS=-k test_check_script` selected 17 tests of the
-    suite, deselected 107, and the run still printed "All checks passed."
-
-    The type check gets the same treatment, for the same reason: it has to name
-    its configuration on the command line, because `TY_CONFIG_FILE` chooses the
-    file ty reads and a name in the list is only as good as the list.
+    The stub refuses a call without `--no-env-file` as well, which rebuilding the
+    environment does not cover: a `pyproject.toml` or a `uv.toml` can name an
+    environment file, and nothing here takes that away. The type check gets the
+    same treatment for the same reason: it has to name its configuration on the
+    command line, because an explicit `--config-file` outranks the variable.
     """
     repo = _repo(tmp_path, "repo")
-    stub_dir = tmp_path / "stub"
-    stub_dir.mkdir()
-    stub = stub_dir / "uv"
-    stub.write_text(
-        f"""#!/usr/bin/env bash
-# Stands in for uv. The checks' only job in this test is to read the environment
-# and to look at how it was called.
+    allowed = " ".join(CHECK_ENV_ALLOWED + BASH_OWN_NAMES)
+    stub_dir = _stub(
+        tmp_path,
+        "uv",
+        f"""# Stands in for uv. The checks' only job here is to read the environment
+# they were given and to look at how they were called.
+allowed=" {allowed} "
 case " $* " in
   *" --no-env-file "*) ;;
   *) echo >&2 "uv was called without --no-env-file: $*"; exit 4 ;;
@@ -441,33 +528,140 @@ if [[ " $* " == *" ty check "* && " $* " != *" --config-file ty.toml "* ]]; then
   echo >&2 "ty was called without its configuration named: $*"
   exit 5
 fi
-for name in {" ".join(DROPPED_FROM_THE_CHECKS)}; do
+for name in {" ".join(HOSTILE_CALLER_ENV)}; do
   if [ -n "${{!name:-}}" ]; then
     echo >&2 "leaked into the checks: $name"
     exit 3
   fi
 done
+if [ "${{GIT_CONFIG_GLOBAL:-}}" != /dev/null ]; then
+  echo >&2 "git's global configuration was not fixed"
+  exit 8
+fi
+if [ "${{GIT_CONFIG_COUNT:-}}" != 1 ] || \
+   [ "${{GIT_CONFIG_KEY_0:-}}" != core.excludesFile ] || \
+   [ "${{GIT_CONFIG_VALUE_0:-}}" != /dev/null ]; then
+  echo >&2 "git's excludes file was not fixed"
+  exit 9
+fi
+for name in PATH HOME; do
+  if [ -z "${{!name:-}}" ]; then
+    echo >&2 "the guard did not pass on $name"
+    exit 6
+  fi
+done
+for name in $(compgen -e); do
+  case "$allowed" in
+    *" $name "*) ;;
+    *) echo >&2 "in the checks' environment, and not on the allow-list: $name"; exit 7 ;;
+  esac
+done
 exit 0
-"""
+""",
     )
-    stub.chmod(0o755)
 
     result = subprocess.run(
-        ["bash", str(repo / "scripts" / "check.sh")],
+        [BASH, str(repo / "scripts" / "check.sh")],
         capture_output=True,
         text=True,
         cwd=repo.parent,
         env={
             **_scratch_env(),
-            "PATH": f"{stub_dir}:{os.environ['PATH']}",
-            **dict.fromkeys(DROPPED_FROM_THE_CHECKS, "/nowhere"),
+            **_path_env(stub_dir),
+            **dict.fromkeys(HOSTILE_CALLER_ENV, "/nowhere"),
+            "GIT_CONFIG_GLOBAL": "/nowhere",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.excludesFile",
+            "GIT_CONFIG_VALUE_0": "/nowhere",
         },
     )
 
-    assert "leaked" not in result.stderr, result.stderr
-    assert "without --no-env-file" not in result.stderr, result.stderr
     assert result.returncode == 0, result.stdout + result.stderr
     assert "All checks passed." in result.stdout
+
+
+def test_a_check_that_edits_the_tree_is_refused(tmp_path: Path) -> None:
+    """The comparison the guard exists for, on the path that runs the checks.
+
+    Every other test in this file stops at `--tree-state`, which returns before
+    a check runs. This one lets a stub `uv` write to a tracked file, and the run
+    has to refuse: a check that edits what it is checking is how a gate passes
+    without the change being there.
+    """
+    repo = _repo(tmp_path, "repo")
+    stub_dir = _stub(tmp_path, "uv", 'echo "edited" >> notes.md\nexit 0\n')
+
+    result = subprocess.run(
+        [BASH, str(repo / "scripts" / "check.sh")],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={**_scratch_env(), **_path_env(stub_dir)},
+    )
+
+    assert result.returncode != 0, result.stdout
+    assert "the checks changed the working tree" in result.stderr, result.stderr
+
+
+@pytest.mark.parametrize(
+    "ignore_source", ["global-config", "default-home", "local-config", "system-config"]
+)
+def test_a_check_cannot_hide_its_edit_with_the_callers_home(
+    tmp_path: Path, ignore_source: str
+) -> None:
+    """User and configured excludes must not hide a check's untracked-file edit."""
+    repo = _repo(tmp_path, "repo")
+    probe = repo / "other"
+    probe.write_text("original\n")
+    home = tmp_path / "hostile-home"
+    home.mkdir()
+    ignore = home / "ignore"
+    ignore.write_text("other\n")
+    if ignore_source == "global-config":
+        (home / ".gitconfig").write_text(f"[core]\n\texcludesFile = {ignore}\n")
+    elif ignore_source == "default-home":
+        default = home / ".config" / "git" / "ignore"
+        default.parent.mkdir(parents=True)
+        default.write_text("other\n")
+    elif ignore_source == "local-config":
+        subprocess.run(
+            ["git", "config", "core.excludesFile", str(ignore)],
+            cwd=repo,
+            env=_scratch_env(),
+            check=True,
+        )
+    stub_dir = _stub(tmp_path, "uv", 'echo "leaked" >> other\nexit 0\n')
+    path_env = _path_env(stub_dir)
+    if ignore_source == "system-config":
+        system_config = tmp_path / "system.gitconfig"
+        system_config.write_text(f"[core]\n\texcludesFile = {ignore}\n")
+        # Use an isolated system config without modifying /etc/gitconfig.
+        git_stub = _git_stub(tmp_path, "", f'export GIT_CONFIG_SYSTEM="{system_config}"')
+        path_env["PATH"] = f"{stub_dir}:{git_stub}:{_scratch_env()['PATH']}"
+
+    result = subprocess.run(
+        [BASH, str(repo / "scripts" / "check.sh")],
+        capture_output=True,
+        text=True,
+        cwd=repo.parent,
+        env={**_scratch_env(), **path_env, "HOME": str(home)},
+    )
+
+    assert "leaked" in probe.read_text(), "the check did not perform the planted edit"
+    assert result.returncode != 0, result.stdout
+    assert "the checks changed the working tree" in result.stderr, result.stderr
+
+
+def test_repository_ignores_still_exclude_build_outputs(tmp_path: Path) -> None:
+    """Fixing core.excludesFile preserves the guard's repository ignore scope."""
+    repo = _repo(tmp_path, "repo")
+    (repo / ".gitignore").write_text(".venv/\n")
+    (repo / ".git" / "info" / "exclude").write_text("local-output\n")
+    before = _state(_tree_state(repo))
+    (repo / ".venv").mkdir()
+    (repo / ".venv" / "generated").write_text("build output\n")
+    (repo / "local-output").write_text("local output\n")
+    assert _state(_tree_state(repo)) == before
 
 
 def test_a_named_config_outranks_the_type_check_variable(tmp_path: Path) -> None:

@@ -13,6 +13,6 @@ The 1 s machine stream is `tests/test_phase1_machine_stream.py` (generate → in
 `iiot` → cache → augment → replay; `{machine_id}/{pv}` names; raw 1 s cadence).
 All three use `tests/fixtures/datagen/` — no network, no full-dataset CI.
 Unit 100 Rev B is `tests/test_unit100_pid.py` (PDF pin + 59 plant-data names).
-`uv run pytest` is **125 passed**. The count comes from `scripts/facts.py tests`.
+`uv run pytest` is **132 passed**. The count comes from `scripts/facts.py tests`.
 
 Run with `uv run pytest`.
