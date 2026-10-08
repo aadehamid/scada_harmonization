@@ -1,0 +1,14 @@
+# ty's configuration, in the file `scripts/check.sh` names on its command line.
+#
+# It lives here rather than under `[tool.ty]` in `pyproject.toml` because
+# `--config-file` takes a `ty.toml` and refuses a `pyproject.toml`, and naming the
+# configuration on the command line is what stops the caller's `TY_CONFIG_FILE`
+# from choosing another one. ty discovers this file on its own, so a plain
+# `uv run ty check` reads it too; the flag says which file, not whether one is
+# read. The keys are bare here — a `ty.toml` has no `tool.ty` prefix.
+
+[environment]
+python-version = "3.13"
+
+[src]
+include = ["src", "tests"]
