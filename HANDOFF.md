@@ -141,10 +141,12 @@ here, #11 and #13 in `aadehamid/personal-agent-skills`, all merged. This session
 note that recorded it, as **#50**, merged 2026-10-08 03:12 UTC in merge commit `6fad81c`. Its
 branch was deleted local and remote.
 
-The note had landed on `main` after the session's own pull requests, so its sentences about open
-work were false when they were read. #50 put them in the past and gave the note one fixed cutoff:
-**2026-10-08 02:15 UTC**, commit `f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry
-their own UTC time.
+The note reached `main` in #47's merge, at 2026-10-08 01:06:32 UTC, and names #47 as open — false
+in that same instant, since that merge is what closed it. #48 was still open then, and #51 had not
+been opened yet. The merges that followed — #51 at 02:32, `personal-agent-skills` #13 at 02:42, #48
+at 02:45 — turned the rest of its open-work sentences false while the text stayed as written. #50
+put them in the past and gave the note one fixed cutoff: **2026-10-08 02:15 UTC**, commit
+`f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry their own UTC time.
 
 GitHub's review records for #50 hold six submissions: four blocked on a finding, one approved, one
 recorded nothing blocking. Eight commits, and the adversarial runs between them left no record
