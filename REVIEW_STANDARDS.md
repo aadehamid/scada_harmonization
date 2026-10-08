@@ -26,7 +26,14 @@ would have survived being read. #47 closed the first of those: it points the cou
 
 **#47 landed the consolidation.** `HANDOFF.md` §2 is the only place the status lives, and
 `README.md` and `AGENTS.md` point at it rather than restating it. `scripts/facts.py check` reads
-that section, so a stale figure in the one place a reader acts on now fails the build.
+that section, so a stale **test count** there now fails the build.
+
+That is the whole of what it judges there. Its patterns are a test count, a row or name count, and
+a pin in a code span, and the same table holds figures that are none of those. Reproduced: changing
+the warehouse cell's `17 objects` to `99 objects` leaves `check` reporting no problem, while
+changing the test-count cell in the same table to `41 tests` fails at that line. A section the tool
+reads is not every figure in it judged, so the numbers its patterns do not reach are still a
+reviewer's to weigh. The warehouse count is one of them, two rows below the test count.
 
 A dated session note or a phase record that names the commit it was written at is **history**, and
 is correct as written. Do not "fix" it. `scripts/facts.py status` lists every such claim; deciding
