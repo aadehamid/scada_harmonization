@@ -136,6 +136,10 @@ list columns, not a second naming system.
 
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
+This note reports that session as it stood at **2026-10-08 02:15 UTC** (2026-10-07 21:15 local,
+commit `f7b9455`), the cutoff every state below is measured at. Pull-request merges that came after
+it are named where they happened, with their time.
+
 Hamid asked for every open pull request to be fixed. Two were open here, both waiting on him to
 merge:
 
@@ -146,12 +150,12 @@ merge:
   `addopts`, an inherited `PYTHONPATH`. Each was reproduced before it was fixed, and each fix was
   reviewed again. **The owner merged it while this session ran.**
 - **#48 — `REVIEW_STANDARDS.md`.** The rules a reviewer applies that a script cannot, each with
-  the incident that taught it. It was open when this note was last edited.
+  the incident that taught it. It was open at the cutoff, and merged at 2026-10-08 02:45 UTC.
 
 Every finding from every review round on both branches was fixed, or answered on the pull request,
-and the reply says which, as of this note's last edit. #47 was merged by then and #48 was still
-open, and an open pull request takes findings after the note that describes it. One check stayed
-unproven, and #47 records it:
+and the reply says which, as of the cutoff. #47 was merged by then and #48 was still open, and an
+open pull request takes findings after the note that describes it. One check stayed unproven, and
+#47 records it:
 `PYTEST_DISABLE_PLUGIN_AUTOLOAD` changes nothing unless the environment installs a pytest plugin,
 so no test could exercise it.
 
@@ -160,16 +164,16 @@ family. A path it could not read was skipped instead of aborting the comparison,
 that path went unseen. And it compared the working tree while inheriting the caller's environment,
 so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the shell decided what it looked
 at. The same file held both, so they belonged in one change, which every review round so far had
-deferred to keep the work to its own concern. That change was **#51**, opened before this note's
-last edit and merged on 2026-10-08. The next build is in §3.
+deferred to keep the work to its own concern. That change was **#51**, opened before the cutoff and
+merged at 2026-10-08 02:32 UTC. The next build is in §3.
 
 Outside this repository, in `aadehamid/personal-agent-skills`: **#11**
 (`docs/working-tree-guard-detail`) **merged** this session, keeping this project's detail on the
 working-tree guard and that repo's wording for where the hook's install line goes. Its branch was
 deleted, along with three other merged branches that were still in the local clone. **#13** opened
-there, carrying two rules this session paid for: an incident in a standards file is a claim about
-the past, so read the commit before writing it, and a conflict resolved by a script is a conflict
-still there.
+there before the cutoff, carrying two rules this session paid for: an incident in a standards file
+is a claim about the past, so read the commit before writing it, and a conflict resolved by a
+script is a conflict still there. It merged at 2026-10-08 02:42 UTC.
 
 ### This session (2026-10-07): ET leg in scope — drawing-to-graph build (docs only)
 
