@@ -163,9 +163,9 @@ so no test could exercise it.
 family. A path it could not read was skipped instead of aborting the comparison, so a change to
 that path went unseen. And it compared the working tree while inheriting the caller's environment,
 so a `GIT_DIR`, a `UV_WORKING_DIR` or a `PYTEST_ADDOPTS` set in the shell decided what it looked
-at. The same file held both, so they belonged in one change, which every review round so far had
-deferred to keep the work to its own concern. That change was **#51**, opened before the cutoff and
-merged at 2026-10-08 02:32 UTC. The next build is in §3.
+at. The same file held both, so they belonged in one change. #47 named them as the next pull
+request rather than folding them into its own, and that change was **#51**, opened before the
+cutoff and merged at 2026-10-08 02:32 UTC. The next build is in §3.
 
 Outside this repository, in `aadehamid/personal-agent-skills`: **#11**
 (`docs/working-tree-guard-detail`) **merged** this session, keeping this project's detail on the
