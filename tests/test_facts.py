@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 102
+EXPECTED_TESTS = 103
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -203,6 +203,27 @@ def test_scratch_repo_ignores_a_redirected_environment(
         "it must not be left on the test's feature branch"
     )
     assert ask("rev-list", "--count", "--all") == "1", "no commit may be added to it"
+
+
+def test_a_shell_that_signs_its_commits_cannot_break_the_scratch_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`GIT_CONFIG_PARAMETERS` outranks the configuration the helper sets.
+
+    It is how git passes `-c` down to the processes it starts, and it beats
+    every other source, so a shell holding it can turn commit signing back on
+    over `_scratch_env`'s `commit.gpgsign=false`. The signing program here does
+    not exist, so the commit fails rather than quietly succeeding on a machine
+    that happens to have a key.
+    """
+    monkeypatch.setenv(
+        "GIT_CONFIG_PARAMETERS", "'commit.gpgsign=true' 'gpg.program=/nonexistent-signer'"
+    )
+
+    repo, main_sha = _scratch_repo(tmp_path)
+
+    assert (repo / ".git").exists(), "the scratch directory must become its own repository"
+    assert len(main_sha) == 40, "the commit it made must be a commit"
 
 
 def test_uv_working_dir_cannot_move_which_tests_are_collected(

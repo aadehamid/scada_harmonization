@@ -585,6 +585,12 @@ _REDIRECTING_ENV = (
     "GIT_WORK_TREE",
     "GIT_INDEX_FILE",
     "GIT_OBJECT_DIRECTORY",
+    # git takes configuration from these too, and one can set `core.worktree` or
+    # turn commit signing on. `GIT_CONFIG_PARAMETERS` outranks everything else on
+    # this list, including configuration a child sets for itself, so clearing it
+    # is the only way to have a command line that a shell cannot bend.
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
 )
 
 
