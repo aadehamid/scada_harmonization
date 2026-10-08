@@ -80,6 +80,20 @@ status line back and added `git ls-files --stage`, which the guard had never sto
 blob could change with the worktree untouched. Both were caught by re-reviewing the fixed diff.
 Re-run the independent review after a fix, before pushing it.
 
+## Check a historical claim against its source and moment
+
+Incident: [PR #52 quotation review](https://github.com/aadehamid/scada_harmonization/pull/52#discussion_r4214537942)
+and [time-reference review](https://github.com/aadehamid/scada_harmonization/pull/52#discussion_r4214896207).
+The session record attributed words to historical main that came from a different
+revision or were never written. A later correction said two reviews existed
+"by then" after naming the PR opening. Both reviews happened after that opening
+and before the intended cutoff.
+
+Read the named file revision or comment before quoting it. A paraphrase must keep
+what the source asserted and when it asserted it. Identify the event a time reference describes,
+then compare the timestamps against that event. Use a fixed cutoff or commit when
+the claim needs one. A document's latest edit moves with each correction.
+
 ## Done when
 
 Every finding in a review is either fixed or answered on the pull request, and the answer says which
