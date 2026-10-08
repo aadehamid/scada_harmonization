@@ -143,9 +143,11 @@ branch was deleted local and remote.
 
 The note reached `main` in #47's merge, at 2026-10-08 01:06:32 UTC, and names #47 as open — false
 in that same instant, since that merge is what closed it. #48 was still open then, and #51 had not
-been opened yet. The merges that followed — #51 at 02:32, `personal-agent-skills` #13 at 02:42, #48
-at 02:45 — turned the rest of its open-work sentences false while the text stayed as written. #50
-put them in the past and gave the note one fixed cutoff: **2026-10-08 02:15 UTC**, commit
+been opened. Its remaining sentences went false for two reasons. #51 opened at 02:05:14, before #48
+merged, breaking the note's promise that the guard change would come as the next pull request once
+its two had merged. And the merges landed — #51 at 02:32, `personal-agent-skills` #13 at 02:42, #48
+at 02:45 — closing the pull requests the note still called open, while the text stayed as written.
+#50 put them in the past and gave the note one fixed cutoff: **2026-10-08 02:15 UTC**, commit
 `f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry their own UTC time.
 
 GitHub's review records for #50 hold six submissions: four blocked on a finding, one approved, one
