@@ -30,6 +30,8 @@ navigation and document identifiers, not scope or implementation status.
 | LSC-009 | [Walkthrough progress](LSC-009_Walkthrough_Progress.md) | Walkthrough cursor and resume prompt | Learning continuity; handoff owns overall project status |
 | LSC-010 | [Learning log](LSC-010_Learning_Log.md) | Durable concepts and shared glossary | Learning record; not a second design ledger |
 | LSC-REG-001 | [Decision index](LSC-REG-001_Decision_Index.md) | Navigation to existing decision identifiers and evidence | Index only; preserve original qualifications |
+| LSC-REG-002 | [Source and integration register](LSC-REG-002_Source_and_Integration_Register.md) | Source/interface inventory, capture boundaries, and acceptance questions | Draft guide; charter owns contracts and phase exits |
+| LSC-REF-001 | [Technology reuse assessment](LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md) | PPC component comparison and reuse proposals | Assessment only; new components remain phase-gated |
 
 Files keep their existing records and qualifications. Their document IDs come
 from the filename and this register. Existing charter, phase, decision, and
@@ -78,13 +80,14 @@ Current implementation state is recorded only in [HANDOFF.md section 2](../HANDO
 - [Archive index](archive/README.md) separates superseded alternatives from the governing design.
 - [Reorganization record](DOCUMENTATION_REORGANIZATION.md) records this batch's permission, source comparison, migration, and verification.
 
-## What was combined
+## Existing coverage and added gaps
 
-PPC's separate architecture, roadmap, governance, and technology documents are
-combined here in the existing charter. Splitting approved sections would add
-cross-reference work without resolving a missing definition. The source contract,
-data records, engineering record, and learning guides remain separate because
-they have different evidence and update cycles.
+The existing charter already covers architecture, roadmap, governance, and
+component choices. Keep its approved sections together so references and amendments
+retain their meaning. The source contract, data records, engineering record, and
+learning guides have different evidence and update cycles, so they remain separate.
 
-The reference does not add EPM dependencies, source systems, software choices,
-or future component directories to this lab. Those require project decisions.
+Two missing records were added: the source/interface register and the reference
+stack assessment. Reuse shared PPC choices and assess its components before
+proposing substitutes. Candidate additions remain proposals until their phase
+review. Redundant standalone architecture guides were omitted after an overlap audit.

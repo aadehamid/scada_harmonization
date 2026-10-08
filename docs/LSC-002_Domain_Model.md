@@ -1,67 +1,66 @@
-# Domain Narrative — Lagos Specialty Chemicals
+# LSC-002. Domain narrative for Lagos Specialty Chemicals
 
-> A narrative backstory for the simulated enterprise. It exists to make the harmonization problem
-> **concrete and memorable**: every technical quirk in the lab (why Beaumont speaks Allen-Bradley,
-> why Geismar is metric, why Corpus Christi uses compound tags) traces to a business event here.
-> This is fiction in service of learning — only **Level 0** is synthetic; see
-> [`LSC-001_Problem_Statement_and_Project_Charter.md`](LSC-001_Problem_Statement_and_Project_Charter.md), which governs.
+Status: fictional domain narrative. The [charter](LSC-001_Problem_Statement_and_Project_Charter.md)
+governs scope and architecture. This document explains why the sites have different
+control systems, units, and tag names. It adds no company facts or technology decisions.
 
 ---
 
 ## The company
 
-**Lagos Specialty Chemicals (LSC)** is a mid-cap specialty-chemicals manufacturer headquartered in
-**Lagos, Nigeria**. It began in the 1990s blending industrial solvents and coatings additives for the
-West African market, then grew — first organically, then aggressively **by acquisition** — into a
-multinational producer of specialty intermediates and polymer additives.
+Lagos Specialty Chemicals (LSC) is a fictional mid-cap specialty-chemicals
+manufacturer headquartered in Lagos, Nigeria. It began in the 1990s blending
+industrial solvents and coatings additives for West Africa. Organic growth and
+acquisitions made it a multinational producer of specialty intermediates and
+polymer additives.
 
-Its plants run a continuous **reaction → separation → stripping** process (reactants in, two liquid
-products + byproduct out — the Tennessee Eastman process archetype), supported by the usual rotating
-equipment: feed pumps, recycle compressors, agitator motors, transfer pumps.
+Its plants run continuous reaction, separation, and stripping using the Tennessee
+Eastman process archetype. Reactants produce two liquid products and a byproduct.
+Feed pumps, recycle compressors, agitator motors, and transfer pumps support the process.
 
-LSC's problem is the problem of every roll-up: **each plant was built or acquired at a different time,
-by different engineers, on a different control platform, in a different unit system, with different tag
-conventions.** Headquarters now wants enterprise-wide analytics, predictive maintenance, and an AI
-copilot — but the operational data is fragmented across four incompatible dialects. That gap is the
-entire reason this lab exists.
+The plants were built or acquired at different times. Their engineers chose
+different control platforms, units, and tag conventions. Headquarters wants
+enterprise analytics, predictive maintenance, and an AI copilot. The lab must
+first reconcile four incompatible operational dialects.
 
-UNS root: **`lagos-chem`** · ISA-95 enterprise level: **Lagos Specialty Chemicals**.
+The Unified Namespace (UNS) root is `lagos-chem`. The ISA-95 enterprise name is
+Lagos Specialty Chemicals.
 
 ---
 
-## How it grew — and why the data is a mess
+## How acquisitions created different site dialects
 
-| Era | Event | Site | Control heritage | Why it looks the way it does |
-|-----|-------|------|------------------|------------------------------|
-| 1990s | Founding + first West African operations | *(HQ, not a lab site)* | — | Solvents/coatings origins; the corporate data culture |
-| ~2005 | First US Gulf Coast plant (oldest asset) | **Beaumont, TX** | **Allen-Bradley** PLCs | Legacy **brownfield**; cryptic AB register tags (`N7:20`, `FIC101_PV`); imperial units; terse status codes. In the lab this is one of **two real-protocol sites** — a real **OpenPLC** runtime (Modbus TCP) — the genuine "memory address → meaning" lesson. |
-| ~2012 | Acquired a competitor's plant, originally built by a European licensor/EPC | **Geismar, LA** | **Siemens** S7 | Despite being on the US coast, it was engineered to European standards: Siemens addressing (`DB10.DBD4`, `MW100`) and **metric** units (m³/h, kPa, °C). Verbose status strings. In the lab: the **second real-protocol site** — a real **OPC-UA server** (`asyncua`), per charter §13 L1.1. |
-| ~2018 | Greenfield European expansion | **Rotterdam, NL** | Modern **Ignition / MQTT** stack | Newest, cleanest build: verbose semi-semantic nested names, metric units, its own status vocabulary. Looks "almost harmonized" already — but on its *own* terms. |
-| ~2022 | Acquired a midstream/feedstock terminal to secure raw-material supply (backward integration) | **Corpus Christi, TX** | **CygNet** (oil-&-gas heritage) | Different industry entirely. Compound flat tags that **encode the hierarchy in the name** (`CC_NORTH_U12_FIC101`); mixed units. The "we bought an O&G asset and inherited its SCADA" story. |
+| Era | Event and site | Control heritage | Source of divergence |
+| --- | --- | --- | --- |
+| 1990s | Founding and first West African operations. Headquarters is not a lab site. | Solvents and coatings | Corporate origins and data culture |
+| About 2005 | First US Gulf Coast plant, Beaumont, TX. The oldest asset is brownfield. | Allen-Bradley PLCs | Register tags such as `N7:20` and `FIC101_PV`, imperial units, and terse status codes. The lab uses real OpenPLC over Modbus TCP to teach how memory addresses acquire meaning. |
+| About 2012 | Acquired Geismar, LA, built by a European licensor/EPC. | Siemens S7 | European engineering conventions explain addresses such as `DB10.DBD4` and `MW100`, metric units such as m³/h, kPa, and °C, and verbose statuses. The lab uses a real OPC-UA server through `asyncua`, per charter L1.1. |
+| About 2018 | Greenfield expansion in Rotterdam, NL. | Ignition/MQTT | Nested semi-semantic names, metric units, and a site-specific status vocabulary. These still need enterprise harmonization. |
+| About 2022 | Acquired a Corpus Christi, TX, midstream/feedstock terminal to secure raw materials. | CygNet from oil and gas | Flat names such as `CC_NORTH_U12_FIC101` encode hierarchy. Mixed units and oil-and-gas conventions come from the acquired SCADA system. |
 
-The result: the **same physical reading** — say, a reactor feed-flow — exists under four unrelated
-names, in two unit systems, with four status vocabularies, across four SCADA lineages. A human
-engineer can squint and reconcile them; a machine cannot. Harmonization is the act of making the
-machine able to.
 
-The mess runs deeper than the four lineages. Within a single site, **tag modeling also varies by the
-system integrator** LSC contracted for each project — so even one plant is internally inconsistent.
-Today, getting analytics-ready data means engineers **pulling historian extracts by hand — sometimes
-days of work** — and each site quietly treats its real-time data as **its own**, not an enterprise
-asset. Meanwhile corporate IT is mid-flight on an **SAP ECC → S/4 migration**, so the business-record
-layer is itself a moving target. HQ's response is not just "one namespace" but **one namespace that is
-governed and reusable**: every harmonized metric gets an owner, a definition, and lineage — a data
-product the whole enterprise can trust — while sites keep local autonomy (the *global-and-local* ask).
+The same physical reading, such as reactor feed flow, has four unrelated names
+and status vocabularies across the SCADA lineages. Sites also use different units.
+Harmonization gives consumers a common meaning while retaining the source identity.
 
-The same is true of the drawings. Every site's P&IDs describe the same Unit 100 equipment, and the
-engineering truth sits in two places at once — the authoring databases and the flat sheets. A tag
-on a sheet names an instrument; it does not by itself say which equipment that instrument belongs
-to, and two crossing lines are not a pipe connection until someone confirms it. Rebuilding that
-connectivity means tracing paths across sheets by hand. Most of these plants are brownfield or
-acquired, so the sheet is often the only engineering record LSC holds. The lab therefore builds
-that graph from the drawings themselves — the Unit 100 P&ID first, then scanned variants. A
-related private project by the same owner, `aadehamid/Engineering_Drawing_to_Graph`, adds the
-other route: pull records straight from an authoring-system backend.
+Within a site, tag models also vary by system integrator. Engineers spend days
+pulling historian extracts by hand, and sites treat real-time data as local assets.
+The fictional corporate SAP ECC-to-S/4 migration adds business-record changes.
+Headquarters needs governed, reusable metrics with owners, definitions, and lineage.
+Sites retain local operating autonomy. The charter selects ERPNext for the lab's
+enterprise-system lesson; this narrative does not add a SAP deployment.
+
+The drawings have a similar reconciliation problem. Every site's P&IDs describe
+the same Unit 100 equipment. Engineering records exist in authoring databases
+and flat sheets. A sheet tag names an instrument but does not establish its
+relationship to equipment. Crossing lines need evidence before they become a
+pipe connection.
+
+Engineers reconstruct connectivity by tracing paths across sheets. Brownfield
+and acquired plants may hold only the sheets. The lab therefore extracts the
+Unit 100 P&ID first, then scanned variants. The owner's related private project,
+`aadehamid/Engineering_Drawing_to_Graph`, explores extraction from an
+engineering-authoring backend.
 
 ---
 
@@ -73,26 +72,24 @@ other route: pull records straight from an authoring-system backend.
 | Tag style | AB register (`N7:20`) | Siemens address (`DB10.DBD4`) | verbose semantic | compound hierarchy-encoding |
 | Units | imperial | metric | metric | mixed |
 | Status codes | terse | verbose | own vocabulary | O&G-style |
-| PLC in lab | **real OpenPLC** (Modbus TCP) | **real OPC-UA** (`asyncua`) | Python-modeled | Python-modeled |
+| PLC in lab | real OpenPLC (Modbus TCP) | real OPC-UA (`asyncua`) | Python-modeled | Python-modeled |
 
-This single roster deliberately spans **every harmonization dimension at once** — naming style, unit
-system, status vocabulary, addressing scheme, and real-vs-modeled control — so the lab proves the
-hard cases, not the easy one.
+The roster exercises naming, units, status vocabulary, and addressing differences.
+It also includes real-protocol and Python-modeled sites.
 
 ---
 
-## The mission (what LSC is trying to achieve = the lab's four planes)
+## The mission and the four planes
 
-1. **Harmonize** the four dialects into **one Unified Namespace** (Sparkplug B / MQTT) — "same reality,
-   one name" — and **govern** it as a reusable data product (owners, definitions, lineage).
-2. **Record** curated operational events into enterprise systems (ERPNext) and reconcile them with the
+1. Harmonize the four dialects into one Unified Namespace through Sparkplug B and MQTT.
+   Govern each metric with an owner, definition, and lineage.
+2. Record curated operational events into ERPNext and reconcile them with the
    plant's transactional systems (MES/LIMS/CMMS/quality).
-3. **Contextualize** everything into a **knowledge graph** (Neo4j) — assets, tags, events, lots,
-   work orders, lab results, engineering topology — enabling cross-domain reasoning and a GraphRAG
+3. Contextualize assets, tags, events, lots, work orders, lab results, and engineering
+   topology in Neo4j for cross-domain reasoning and a GraphRAG
    copilot.
-4. **Apply** the foundation — traditional ML (flagship: **yield improvement / production-leakage**,
-   delivered as human-in-the-loop, edge-executed recommendations) and a GenAI copilot.
+4. Apply the data to traditional ML and a GenAI copilot. The flagship ML question is
+   yield improvement and production leakage, with human-approved recommendations executed at the edge.
 
-Get there and LSC unlocks enterprise analytics, predictive maintenance, yield gains, and trustworthy
-AI — because context is a **governed data product** that scales to the next site, not a one-off
-pipeline. That's the payoff the lab is built to demonstrate end to end.
+The lab must demonstrate these outcomes through the charter's phase exits.
+The fictional business narrative is not evidence of a measured yield gain or a working copilot.

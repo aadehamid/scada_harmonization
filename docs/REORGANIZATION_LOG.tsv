@@ -17,3 +17,10 @@ step	action	reason	evidence	state
 16	Complete committed review	Review the exact branch before pushing	gpt-6-sol cleared ffc2c00 against 0b7a5a2; no material findings	done
 17	Push branch and open PR #54	Publish the authorized reviewable change without merging	https://github.com/aadehamid/scada_harmonization/pull/54; remote HEAD ffc2c00; clean tree	done
 18	Watch Cursor feedback and owner merge	Address findings and maintain the dependency on #53	PR #54 open; #52 and #53 also open at this entry	in progress
+19	Record content and stack clarifications	Reuse existing records and evaluate PPC choices before substitutes	Owner instructions quoted in DOCUMENTATION_REORGANIZATION.md	done
+20	Audit proposed subject guides for overlap	Avoid duplicating the approved charter	Two author agents recommended omitting seven redundant guide drafts	done
+21	Add source register and reference stack assessment	Fill interface/capture and component-comparison gaps	REG-002 and REF-001; cited primary sources; no installed components	pending review
+22	Rewrite domain narrative with clear-writing	Explain site divergence and distinguish fiction from implementation	LSC-002; same site roster and project boundaries	pending review
+23	Clarify PR merge responsibility	Apply latest owner instruction	PR reviewer merges; agents watch, fix, review, and push; no merges performed	done
+24	Reproduce PR #53 Cursor finding	Green checks do not supersede a substantive review blocker	Hostile HOME Git ignore hides untracked mutation; isolated worktree fix c2f734a	pending independent review
+25	Address PR #54 Cursor history findings	Correct provenance and historical path policy	History header covers selected sections; code spans retain original paths; current links and pickup refer to HANDOFF	pending committed review

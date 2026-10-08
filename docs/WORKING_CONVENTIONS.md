@@ -1,6 +1,6 @@
 # Working conventions
 
-Status: existing project rules, relocated without changing their wording.
+Status: existing project rules, relocated. The owner clarified PR merge responsibility during this documentation batch.
 
 Source: the "How we work" section of `AGENTS.md` before this reorganization.
 The project charter governs scope and design; this file owns the collaboration
@@ -24,7 +24,10 @@ for understanding, not speed.
   an incident.
 
 **Git / PR discipline (learned the hard way — do NOT repeat)**
-- **Branch per change → PR → the _owner_ merges → delete the branch.** Never push straight to `main`.
+- Use a branch per change and open a PR. The PR reviewer merges. Agents watch,
+  address feedback, run checks and independent review, and push fixes. Agents
+  never merge or push straight to `main`. See the owner's clarification in
+  [the reorganization record](DOCUMENTATION_REORGANIZATION.md#authorization).
 - **Before telling the owner a PR is "ready to merge," push ALL commits and confirm the branch is fully
   up to date** — run `git status` (clean) and `git log origin/<branch>..HEAD` (empty). *Why:* a PR was
   once merged while later commits were still unpushed, silently dropping a whole work section from

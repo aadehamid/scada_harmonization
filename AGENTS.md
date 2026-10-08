@@ -13,7 +13,7 @@
 - Load the clear-writing skill before writing text for people.
 - Follow the charter rather than archived notes or another repository's design.
 - Explain and align before non-trivial code. Work one understood slice at a time.
-- Every change uses a branch and PR. The owner merges. Never push to `main`.
+- Every change uses a branch and PR. The PR reviewer merges; agents watch, address feedback, and push fixes. Never merge or push to `main`.
 - Record decisions from the owner's words; a merge alone does not approve a design.
 - Preserve unrelated changes. Stage paths explicitly and keep local tooling and private reference material out of commits.
 - Update `HANDOFF.md` at the end of every session. Current status belongs in section 2; dated records belong in [session history](docs/history/SESSION_LOG.md).

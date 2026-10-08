@@ -132,8 +132,16 @@ The actual-checkout `scripts/check.sh` and pre-push hook passed. The hook also
 rejected a deliberately incorrect schedule figure, which was restored. Working-tree
 review findings were corrected. A separate gpt-6-sol reviewer cleared committed change `ffc2c00` against
 #53's base. The branch was pushed and PR #54 opened. Cursor feedback and
-owner merge remain pending. Retarget to main after #53 lands and keep the
+reviewer merge remain pending. Retarget to main after #53 lands and keep the
 branch fully pushed before reporting readiness.
+
+The owner expanded the documentation batch to sensible PPC stack reuse, targeted
+rewrites, and missing documents. The branch now includes a source/integration
+register and a technology reuse assessment. Redundant subject guides were omitted
+after an overlap audit. These follow-up changes await committed review and push.
+The owner clarified that the PR reviewer merges; agents watch and address feedback.
+PR #53 has a reproduced Cursor blocker involving HOME-based Git ignores; its fix
+is being reviewed separately before pushing. No agent has merged a PR.
 
 ### Decision authority
 

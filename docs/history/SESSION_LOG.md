@@ -1,9 +1,12 @@
 # Session history
 
-Historical record relocated verbatim from `HANDOFF.md` section 2.
-Dates and Git state below describe their original sessions. Current status is
-in [HANDOFF.md](../../HANDOFF.md).
-Paths in code spans are repository-relative.
+Historical sessions and selected excerpts relocated from the previous `HANDOFF.md`.
+Dated session bodies retain their original wording. Later excerpts include old
+sections 2 through 6; they are historical context, not current instructions.
+Dates and Git state describe the original sessions. Historical paths in code
+spans name the original checkout; Markdown links provide current navigation.
+Use the [path map](../DOCUMENT_PATHS.md) to find relocated files. Current status
+and the next build slice are in [HANDOFF.md](../../HANDOFF.md).
 
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
@@ -528,11 +531,13 @@ and is deleted; the skeleton is on `main`.
   first slice = `xmeas_7` / `PT-101` across all 4 sites, **including the §14 columns**
   (N17 `raw_min`/`raw_max`/`eu_min`/`eu_max` + `scale_linear`; N10 quality; N8
   `source_cadence`; N11 `interpolation_type`; N18 UNECE unit codes). Charter §8.1
-  Phase-0 exit. Pickup packet is §3 above.
-- 🟡 **3. `docs/LSC-010_Learning_Log.md`** — seeded and growing (§0.1 ISA-95 concepts + glossary landed
+  Phase-0 exit. Pickup packet is the original HANDOFF section 3, retained in the
+  [current handoff](../../HANDOFF.md).
+- 🟡 **3. `design/LEARNING_LOG.md`** — seeded and growing (§0.1 ISA-95 concepts + glossary landed
   2026-07-11); continues to fill as the walkthrough proceeds.
 
-**When resuming piece 2:** use the §3 kickoff prompt. Format is YAML (closed 2026-08-20).
+**When resuming piece 2:** use the kickoff prompt in
+[HANDOFF section 3](../../HANDOFF.md). Format is YAML (closed 2026-08-20).
 Marimo notebook work still starts at **Phase 1**, not here.
 
 ### Tooling decided this session
@@ -579,7 +584,7 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
   they don't drift.
 - **Learning-first, no black boxes.** The owner is learning the stack bare-metal. Per component:
   **explain → align → build piece by piece → run & observe → prune** (keep docstrings + a short note;
-  durable concepts go to `docs/LSC-010_Learning_Log.md`). Use **Marimo** (`marimo-pair`) for interactive
+  durable concepts go to `design/LEARNING_LOG.md`). Use **Marimo** (`marimo-pair`) for interactive
   learning in `notebooks/` (one per component); migrate finalized code into the `src/scada_harmonizer/`
   package (the source of truth). Prefer raw mechanism before convenience wrappers; Docker Compose is a
   learning artifact; keep a glossary; tests encode understanding; YAGNI; deterministic re-runs; owner
@@ -596,20 +601,20 @@ central EMQX + equivalence suite) → 4b real-protocol sites (OpenPLC Beaumont &
 
 | Path | What it is |
 |------|-----------|
-| `docs/LSC-001_Problem_Statement_and_Project_Charter.md` | **Authoritative project definition** (read this first after this file) |
-| `docs/LSC-002_Domain_Model.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the 4 sites diverge) |
-| `docs/LSC-008_End_to_End_Walkthrough.md` | End-to-end teaching walkthrough script |
-| `docs/LSC-009_Walkthrough_Progress.md` | Live walkthrough cursor — resume here |
-| `docs/LSC-010_Learning_Log.md` | Durable concepts + glossary |
-| `docs/LSC-004_Level_0_Contract.md` | Phase 1 L0 record + replay identity |
-| `docs/LSC-005_Phase_1_Data_Record.md` | Phase 1 land / persist / disk record (HTML twin) |
-| `docs/LSC-006_Phase_1_Datasheet.md` | Phase 1 local vs R2 datasheet (HTML twin) |
-| `docs/LSC-007_Unit_100_Engineering_Record.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
+| `design/PROJECT_CHARTER.md` | **Authoritative project definition** (read this first after this file) |
+| `design/DOMAIN.md` | Domain narrative — Lagos Specialty Chemicals backstory (why the 4 sites diverge) |
+| `design/E2E_WALKTHROUGH.md` | End-to-end teaching walkthrough script |
+| `design/WALKTHROUGH_PROGRESS.md` | Live walkthrough cursor — resume here |
+| `design/LEARNING_LOG.md` | Durable concepts + glossary |
+| `design/PHASE1_L0_CONTRACT.md` | Phase 1 L0 record + replay identity |
+| `design/PHASE1_SYNTHETIC_DATA.md` | Phase 1 land / persist / disk record (HTML twin) |
+| `design/PHASE1_DATASHEET.md` | Phase 1 local vs R2 datasheet (HTML twin) |
+| `design/UNIT100_PID.md` | Unit 100 P&ID Rev B one-pager + 59-name tag list |
 | `AGENTS.md` | Agent working guide — constraints, data flow, domain, build sequence |
 | `README.md` | Human-facing summary |
-| `docs/archive/uns_home_lab_notes.md` | Vision & scope *(archived)* |
+| `design/uns_home_lab_notes.md` | Vision & scope *(archived)* |
 | `design/{hand_built,umh_anchored,python_centric}_*_notes.md` | Architecture options (build phase vs. abstraction phase) |
-| `docs/LSC-003_Synthetic_Data_Generation_Strategy.md` | Data strategy & the 6-layer synthetic pipeline |
+| `design/synthetic_data_generation_notes.md` | Data strategy & the 6-layer synthetic pipeline |
 | `reference/README.md` | Index of the local-only reference material (ISHE, EngiGraph) |
 
 ---

@@ -1,4 +1,4 @@
-# Synthetic Data Generation Notes for the UNS / Sparkplug B Home Lab
+# LSC-003. Synthetic data strategy for the UNS and Sparkplug lab
 
 > **Living data-strategy note.** The 6-layer pipeline shape here is still the plan. Decided
 > items live in [`LSC-001_Problem_Statement_and_Project_Charter.md`](LSC-001_Problem_Statement_and_Project_Charter.md): production is **lot-based**
@@ -14,7 +14,11 @@
 > **Cloudflare R2:** one bucket per project; this lab uses `lagos-chem-l0`. Locked
 > tree and connection block live in LSC-005_Phase_1_Data_Record.md.
 
-These notes describe how to build a realistic, high-volume synthetic data layer for a home lab whose purpose is to simulate **multiple plant sites with disparate OT data representations**, then harmonize those site-specific representations into a common enterprise language through Sparkplug B and a Unified Namespace. The synthetic-data layer therefore has to do more than generate believable sensor values: it also has to support downstream contextualization so the harmonized data can feed OT applications, ERPNext as the SAP-like enterprise application layer, Neo4j as the connected-context knowledge graph, analytics/ML pipelines, and floci-based cloud/IT workflows.
+This strategy explains how benchmark data and generated signals represent the
+same process through different site dialects. L0 supplies the synthetic physical
+world. The later PLC, Sparkplug, historian, ERPNext, graph, and ML components
+follow the charter's build sequence. The L0 contract owns implemented record
+shapes; the Phase 1 record and datasheet own persistence evidence.
 
 ## Cloudflare R2
 
