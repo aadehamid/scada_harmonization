@@ -21,8 +21,10 @@ figure was compared with nothing. The tool did open that file: `status_claims()`
 both walk every tracked Markdown file, and `HANDOFF.md` is in both. Neither of them judges a test
 count inside it, which is the part that matters. And its pattern wants a number followed by `tests`
 or `passed`, which the cell `| Tests | **41** (`uv run pytest`) |` is not, so the same stale figure
-would have survived being read. #47 closed the first of those: it points the count comparison at
-§2 of `HANDOFF.md`, and rewrites the cell into a form the pattern sees.
+would have survived being read. #47 closed both: it points the count comparison at §2 of
+`HANDOFF.md`, and it rewrites the cell into a form the pattern sees. Put the old cell back and
+`check` now fails at `quotes no test count to verify`, because the section it reads has to quote a
+count the pattern can find.
 
 **#47 landed the consolidation.** `HANDOFF.md` §2 is the only place the status lives, and
 `README.md` and `AGENTS.md` point at it rather than restating it. `scripts/facts.py check` reads
@@ -33,7 +35,7 @@ a pin in a code span, and the same table holds figures that are none of those. R
 the warehouse cell's `17 objects` to `99 objects` leaves `check` reporting no problem, while
 changing the test-count cell in the same table to `41 tests` fails at that line. A section the tool
 reads is not every figure in it judged, so the numbers its patterns do not reach are still a
-reviewer's to weigh. The warehouse count is one of them, two rows below the test count.
+reviewer's to weigh. The warehouse count is one of them, two rows above the test count.
 
 A dated session note or a phase record that names the commit it was written at is **history**, and
 is correct as written. Do not "fix" it. `scripts/facts.py status` lists every such claim; deciding
