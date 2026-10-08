@@ -134,6 +134,38 @@ instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
 
+### This session (2026-10-07 → 2026-10-08): the note below, rewritten so it can be true
+
+Hamid asked for the open pull requests to be fixed, and that is the note below: #47, #48 and #51
+here, #11 and #13 in `aadehamid/personal-agent-skills`, all merged. This session then rewrote the
+note that recorded it, as **#50**, merged 2026-10-08 03:12 UTC in merge commit `6fad81c`. Its
+branch was deleted local and remote.
+
+The note had landed on `main` after the session's own pull requests, so its sentences about open
+work were false when they were read. #50 put them in the past and gave the note one fixed cutoff:
+**2026-10-08 02:15 UTC**, commit `f7b9455`, which is 2026-10-07 21:15 local. Merges after it carry
+their own UTC time.
+
+GitHub's review records for #50 hold six submissions: four blocked on a finding, one approved, one
+recorded nothing blocking. Eight commits, and the adversarial runs between them left no record
+there. Every finding was the same defect in a different sentence: a claim whose truth depends on
+when the file is read rather than on a moment the sentence names. "This note's last edit" moved
+with every commit that touched the file; "every review round so far" was that cutoff; the opening
+pair was anchored to the cutoff although its two pull requests were open at the ask; and the head
+sentence claimed the cutoff governed each sentence below it. Each was reproduced before it was
+fixed.
+
+No rule in `REVIEW_STANDARDS.md` covered that defect when #50 merged: the rule there separates a
+status claim from a record, and does not reach a reference point that moves under the document's
+own hand. The home for it — a rule there, or a check — was left to the retro on this session.
+
+**Left open when #50 merged: the guard's environment.** The change was to run `scripts/check.sh`'s
+gates under a fixed environment (`env -i` plus only what the checks need), in place of the drop
+list of redirecting variables that the review rounds kept lengthening. Hamid approved it on
+2026-10-07, and its four prerequisites — #47, #48, #50 and #51 — had all merged when #50 did. The
+change decides what a check can see (`PATH`, `HOME` for uv's cache, git's user config), so a CI run
+is what proves it.
+
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
 This note reports that session as it stood at **2026-10-08 02:15 UTC** (2026-10-07 21:15 local,
