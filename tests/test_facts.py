@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 # The published figure. One place, so adding a test here is a one-line change
 # rather than a hunt through the assertions. `scripts/facts.py tests` reports
 # the same number, and `scripts/facts.py check` fails when the docs disagree.
-EXPECTED_TESTS = 104
+EXPECTED_TESTS = 107
 
 _spec = importlib.util.spec_from_file_location("facts", REPO / "scripts" / "facts.py")
 assert _spec is not None and _spec.loader is not None
@@ -342,6 +342,49 @@ def test_a_selection_in_the_config_cannot_shrink_the_suite(
     assert facts.tests()["total"] == 2, "both tests in the project are the suite"
 
 
+def test_a_selection_in_the_shell_cannot_shrink_the_suite(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`PYTEST_ADDOPTS` is a selection argument, and the shell outranks a file.
+
+    A developer who keeps a `-k` or a `-m` there to shorten local runs — or a
+    wrapper that adds `--lf` — has it applied to the child, whose report of the
+    subset is then quoted as the suite total.
+    """
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-k test_test_count_is_pinned")
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
+def test_a_module_on_the_path_cannot_change_what_the_child_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`PYTHONPATH` is on the child's path before the child's own code runs.
+
+    An interpreter imports `sitecustomize` from anywhere on the path at start-up,
+    so a directory left in the caller's shell — a stale checkout, another project,
+    a wrapper's scratch directory — runs code inside the child. The answer must be
+    this repository's suite whether that code is there or not.
+    """
+    hostile = tmp_path / "hostile"
+    hostile.mkdir()
+    (hostile / "sitecustomize.py").write_text(
+        'raise SystemExit("a module on the path reached the child")\n', encoding="utf-8"
+    )
+    reaches = subprocess.run(
+        ["uv", "run", "python", "-c", "print('ran')"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PYTHONPATH": str(hostile)},
+    )
+    assert reaches.returncode != 0, (
+        "the module must reach a child uv starts, or this test proves nothing"
+    )
+
+    monkeypatch.setenv("PYTHONPATH", str(hostile))
+
+    assert facts.tests()["total"] == EXPECTED_TESTS, "it collects this repository's suite"
+
+
 def test_an_inherited_plugin_cannot_add_to_the_collection(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -377,13 +420,19 @@ def test_a_collected_test_from_outside_the_repository_is_refused(tmp_path: Path)
         facts._require_collected_here({"tests/test_other.py": 3})
 
     # A traversal out of the repository is not inside it either, even when the
-    # name starts the way the parser requires.
+    # name starts the way the parser requires. The name is built from where the
+    # parser leaves the search — a `tests` directory under `REPO` — so that it
+    # reaches the file; built from `REPO` it would land a directory too high, on
+    # a path that does not exist, and the test would pass on the existence check
+    # without ever testing containment.
     outside = tmp_path / "outside"
     (outside / "tests").mkdir(parents=True)
-    (outside / "tests" / "test_other.py").write_text(
-        "def test_only_one(): pass\n", encoding="utf-8"
+    target = outside / "tests" / "test_other.py"
+    target.write_text("def test_only_one(): pass\n", encoding="utf-8")
+    escaping = f"tests/{os.path.relpath(target, facts.REPO / 'tests')}"
+    assert (facts.REPO / escaping).resolve() == target.resolve(), (
+        "the escaping name must reach the file that was created, outside the repository"
     )
-    escaping = f"tests/{os.path.relpath(outside / 'tests' / 'test_other.py', facts.REPO)}"
     with pytest.raises(SystemExit, match="not collect this repository's tests"):
         facts._require_collected_here({escaping: 1})
 
@@ -392,6 +441,53 @@ def test_a_collected_test_from_outside_the_repository_is_refused(tmp_path: Path)
         facts._require_collected_here({})
 
     assert facts._require_collected_here({"tests/test_facts.py": 1}) is None
+
+
+def test_a_suite_collected_elsewhere_stops_the_tool(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The names that come back are the evidence, not the flags that were passed.
+
+    The two flags pin the directory and the project, and no environment variable
+    outranks an explicit uv flag. That is an argument about the flags being right,
+    and it stops being true the day one of them is dropped. So hand the tool
+    another project's answer — a real one, captured from a real pytest run — and
+    it must stop rather than report that count as this repository's.
+    """
+    other = tmp_path / "other"
+    (other / "tests").mkdir(parents=True)
+    (other / "tests" / "test_other.py").write_text(
+        "def test_one(): pass\n\n\ndef test_two(): pass\n\n\ndef test_three(): pass\n",
+        encoding="utf-8",
+    )
+    elsewhere = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "-o",
+            "addopts=",
+        ],
+        cwd=other,
+        capture_output=True,
+        text=True,
+        check=True,
+        env=facts._env(),
+    ).stdout
+    assert "3 tests collected" in elsewhere, "the answer fed in must be one pytest really prints"
+
+    monkeypatch.setattr(
+        facts.subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(args, 0, elsewhere, ""),
+    )
+
+    with pytest.raises(SystemExit, match="did not collect this repository's tests"):
+        facts.tests()
 
 
 def test_a_linked_worktree_is_this_repository(
