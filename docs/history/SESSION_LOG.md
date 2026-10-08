@@ -572,7 +572,11 @@ The current test count is collected by the facts tool and recorded in HANDOFF.
 Independent review caught false positives for escaped brackets and invalid code
 fence closers. The author reproduced them, added failing regressions against the
 unfixed scanner, and corrected label pairing and closing-fence recognition.
-Valid links with escaped or nested labels remain checked.
+Valid links with escaped or nested labels remain checked. A later review found
+Markdown-like text inside HTML attributes treated as links. GitHub's renderer
+confirmed the distinction. The final design replaces custom Markdown recognition
+with CommonMark tokens, while HTMLParser owns HTML navigation attributes.
+The parser is a locked development dependency; runtime dependencies are unchanged.
 
 A separate personal-agent-skills change separates evaluation subjects from
 graders and exports prompts without grading criteria. The upstream retro and
