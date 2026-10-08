@@ -37,8 +37,5 @@ select = ["E", "W", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-[tool.ty.environment]
-python-version = "3.13"
-
-[tool.ty.src]
-include = ["src", "tests"]
+# ty's configuration is in ty.toml, which scripts/check.sh names on its command
+# line. Where it lives, and why, is documented there.

@@ -2,7 +2,9 @@
 
 The guard is what stops a check from passing by editing the tree it checks, so
 its own failure modes need proving. Each test below fails when the line that
-answers it is removed from the script:
+answers it is removed from the script — all but the one that pins ty's own
+precedence between an explicit flag and an environment variable, which fails if
+the tool ever reverses it:
 
 * a path the guard could not read was skipped instead of stopping the snapshot,
   so a file at mode 000 could be rewritten under it and the state never moved;
@@ -13,11 +15,16 @@ answers it is removed from the script:
   under a failing `ls-files` the contents and mode lines went missing and a mode
   change moved the state not at all;
 * the two reads that name the repository let their own failure through, so a
-  `git` that answered correctly and then returned 128 was believed.
+  `git` that answered correctly and then returned 128 was believed;
+* the type checker could be pointed at a configuration that excludes every path,
+  so `ty check` reported that it had found no files and the gate passed having
+  read nothing.
 
 The script is copied into a throwaway repository rather than run in this one: it
 runs uv, ruff and pytest, which a test cannot start from inside the suite.
-`--tree-state` asks the guard for its snapshot and stops before any check.
+`--tree-state` asks the guard for its snapshot and stops before any check. The
+one exception runs the real ty on a throwaway project of its own, because what it
+asserts is ty's behaviour and no copy of the script can carry that.
 """
 
 from __future__ import annotations
@@ -26,6 +33,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -393,6 +401,7 @@ DROPPED_FROM_THE_CHECKS = (
     "PYTEST_ADDOPTS",
     "PYTEST_PLUGINS",
     "PYTHONPATH",
+    "TY_CONFIG_FILE",
 )
 
 
@@ -411,6 +420,10 @@ def test_the_checks_run_without_the_callers_environment(tmp_path: Path) -> None:
     variable reaches nothing. Measured on the script before that flag: a file
     setting `PYTEST_ADDOPTS=-k test_check_script` selected 17 tests of the
     suite, deselected 107, and the run still printed "All checks passed."
+
+    The type check gets the same treatment, for the same reason: it has to name
+    its configuration on the command line, because `TY_CONFIG_FILE` chooses the
+    file ty reads and a name in the list is only as good as the list.
     """
     repo = _repo(tmp_path, "repo")
     stub_dir = tmp_path / "stub"
@@ -424,6 +437,10 @@ case " $* " in
   *" --no-env-file "*) ;;
   *) echo >&2 "uv was called without --no-env-file: $*"; exit 4 ;;
 esac
+if [[ " $* " == *" ty check "* && " $* " != *" --config-file ty.toml "* ]]; then
+  echo >&2 "ty was called without its configuration named: $*"
+  exit 5
+fi
 for name in {" ".join(DROPPED_FROM_THE_CHECKS)}; do
   if [ -n "${{!name:-}}" ]; then
     echo >&2 "leaked into the checks: $name"
@@ -451,3 +468,44 @@ exit 0
     assert "without --no-env-file" not in result.stderr, result.stderr
     assert result.returncode == 0, result.stdout + result.stderr
     assert "All checks passed." in result.stdout
+
+
+def test_a_named_config_outranks_the_type_check_variable(tmp_path: Path) -> None:
+    """The flag the script passes, against the variable, on the real ty.
+
+    That an explicit `--config-file` outranks `TY_CONFIG_FILE` is ty's own
+    behaviour, so a stub cannot settle it and the installed ty runs here. A
+    project holding a type error is checked twice under the variable, once with
+    the configuration named on the command line and once with ty left to the
+    variable: the first reports the error, and the second reports having found no
+    files at all — which is the fail-open the flag exists to close.
+    """
+    project = tmp_path / "checked"
+    project.mkdir()
+    (project / "pyproject.toml").write_text('[project]\nname = "scratch"\nversion = "0"\n')
+    (project / "probe.py").write_text('x: int = "not an int"\n')
+    (project / "ty.toml").write_text('[src]\ninclude = ["probe.py"]\n')
+    excluding = tmp_path / "exclude-everything.toml"
+    excluding.write_text('[src]\nexclude = ["**"]\n')
+
+    ty = Path(sys.executable).parent / "ty"
+    assert ty.exists(), f"ty is not installed beside {sys.executable}"
+
+    def check(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [str(ty), "check", *args],
+            capture_output=True,
+            text=True,
+            cwd=project,
+            env={**os.environ, "TY_CONFIG_FILE": str(excluding)},
+        )
+
+    pinned = check("--config-file", "ty.toml")
+    assert pinned.returncode != 0, pinned.stdout + pinned.stderr
+    assert "probe.py" in pinned.stdout + pinned.stderr, "the planted error was not reported"
+
+    left_to_the_variable = check()
+    assert left_to_the_variable.returncode == 0, (
+        left_to_the_variable.stdout + left_to_the_variable.stderr
+    )
+    assert "No python files found" in left_to_the_variable.stdout + left_to_the_variable.stderr

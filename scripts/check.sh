@@ -27,9 +27,10 @@ set -euo pipefail
 # which configuration *file* git reads: one of those can set `core.excludesFile`
 # and take an untracked path out of `--exclude-standard`, where the guard would
 # stop seeing it. What is left is the machine's own configuration, the file git
-# reads when nothing names one. That tool answers uv on its command lines
-# instead, so the `UV_` names are this script's own. A list of variables is never
-# finished, so the assertion below does not lean on this one.
+# reads when nothing names one. That tool answers uv and ty on its command lines
+# instead, so the `UV_` names and `TY_CONFIG_FILE` are this script's own. A list
+# of variables is never finished, so the assertion below does not lean on this
+# one.
 #
 # `UV_ENV_FILE` is the one of those a name alone does not answer. Dropping it
 # takes the caller's pointer away, but a `pyproject.toml` or `uv.toml` can name
@@ -38,12 +39,27 @@ set -euo pipefail
 # Measured: with `PYTEST_ADDOPTS=-k test_check_script` in a file named by
 # `UV_ENV_FILE`, this script ran 17 of the suite's tests and printed "All checks
 # passed." — 107 deselected, and the gate passed on a seventh of the suite.
+#
+# `TY_CONFIG_FILE` is the same shape one tool further on. It names the file ty
+# reads, and a configuration that excludes every path leaves `ty check` with
+# nothing to look at, which ty reports as a warning and not as a failure.
+# Measured, with a type error planted in tests/:
+#
+#   $ printf '[src]\nexclude = ["**"]\n' > /tmp/ty-empty.toml
+#   $ TY_CONFIG_FILE=/tmp/ty-empty.toml ty check
+#   WARN No python files found under the given path(s)
+#   All checks passed!                 exit 0, the error still in the tree
+#
+# So the name goes in the list, and the `ty check` below names its configuration
+# on the command line as well. An explicit `--config-file` outranks the variable,
+# which covers a route to a foreign configuration that a name would not.
 dropped=()
 for name in \
   GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
   GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE \
   GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM \
   PYTEST_ADDOPTS PYTEST_PLUGINS PYTHONPATH \
+  TY_CONFIG_FILE \
   UV_WORKING_DIR UV_PROJECT UV_PROJECT_ENVIRONMENT UV_CONFIG_FILE UV_ENV_FILE; do
   if [ -n "${!name:-}" ]; then
     dropped+=("$name")
@@ -231,7 +247,10 @@ uv run --no-env-file ruff format --check .
 
 echo
 echo "== ty check =="
-uv run --no-env-file ty check
+# Named here as well as dropped above, because a name in the list is only as good
+# as the list and this flag covers the rest of it: an explicit `--config-file`
+# outranks whatever the variable says, and the file it names is this repo's.
+uv run --no-env-file ty check --config-file ty.toml
 
 echo
 echo "== pytest =="
