@@ -633,3 +633,27 @@ No open blocking decisions (§12 #16 resolved → UMH Core). YAML vs TOML/JSON
 is **closed: YAML**. PRs #17–#40 merged. Tabular runtime is Polars. Warehouse
 is R2 `lagos-chem-l0`. Unit 100 Rev B + 59-row CSV are in
 `tests/fixtures/datagen/pid/`.
+
+
+## Guard fix preparation record
+
+The following excerpt records preparation at commit `d4cb05d`, before its push.
+Its next action describes that point in time. Current review and merge state
+belongs in HANDOFF section 2 and PR #53.
+
+### Guard review follow-up, 2026-10-08
+
+PR #53 remains pending review. Cursor reproduced a global ignore under the caller's
+HOME hiding an untracked file that a check edited. The fixed environment now sets
+GIT_CONFIG_GLOBAL=/dev/null while preserving HOME for uv. The regression first
+failed because the guard printed "All checks passed" after the planted edit.
+It now requires the guard to refuse that same run. The original PR records Hamid's
+authorization, "go ahead with the follow-up"; this repair stays within that concern.
+Independent review found that Git still reads HOME/.config/git/ignore when the
+global config file is disabled. The new default-HOME and local-config cases both
+reproduced the silent pass. The environment also fixes core.excludesFile to
+/dev/null at command scope. Regression cases now cover global, default-HOME,
+local, and system excludes. Repository .gitignore and .git/info/exclude still
+define the guard's non-ignored scope, and a separate test preserves that boundary.
+The next action is independent review of this commit, then a checked push to the
+existing PR. The Cursor reviewer owns merging. No runtime or phase decision changes.

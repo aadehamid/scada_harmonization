@@ -24,3 +24,4 @@ step	action	reason	evidence	state
 23	Clarify PR merge responsibility	Apply latest owner instruction	PR reviewer merges; agents watch, fix, review, and push; no merges performed	done
 24	Reproduce PR #53 Cursor finding	Green checks do not supersede a substantive review blocker	Hostile HOME Git ignore hides untracked mutation; isolated worktree fix c2f734a	pending independent review
 25	Address PR #54 Cursor history findings	Correct provenance and historical path policy	History header covers selected sections; code spans retain original paths; current links and pickup refer to HANDOFF	pending committed review
+26	Reconcile the reviewed guard fix into documentation branch	Keep parent fixes and relocated records without duplicated instructions	PR #53 head d4cb05d reviewed by gpt-6-sol and pushed; conflicts resolved by preserving short entry points and guard preparation history	done

@@ -76,7 +76,7 @@ still the walkthrough + lock target for Diagrams 2 & 3. Those diagrams stay just
 | Runtime | Python 3.13 + **polars + pydantic** (`uv`; no pandas) |
 | Warehouse | R2 `lagos-chem-l0` wide Parquet, zstd, melt-on-read. 17 objects listed 2026-08-20 |
 | R2 object I/O | Works from Cursor Cloud env secrets (`R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`). No package reader yet. Do not write warehouse objects. |
-| Tests | **127 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
+| Tests | **132 tests** — from `scripts/facts.py tests`, never counted by hand. No network, no full warehouse |
 | Phase 1 code | `datagen/{generation,ingestion,augmentation,replay}` + `records.py` / `pipeline.py` |
 | 1 s class | `generate_machine_stream` — P-101 / K-201; `friendly_name` = `{machine_id}/{pv}` |
 | Goldens | TEP `f5b9d1cf…e6d33516` (do not change); machine stream `84b9f088…2159f0` |
@@ -116,7 +116,7 @@ list columns, not a second naming system.
 ### Documentation reorganization in progress
 
 The owner authorized batch reorganization and document streamlining. Work is
-local on `docs/reorganize-project-documents`, based on the existing guard-fix
+on `docs/reorganize-project-documents`, based on the existing guard-fix
 branch. PRs #52 and #53 were open at inspection. The reorganization is pending in
 [PR #54](https://github.com/aadehamid/scada_harmonization/pull/54), initially based
 on #53 so its diff contains only this concern.
@@ -138,10 +138,12 @@ branch fully pushed before reporting readiness.
 The owner expanded the documentation batch to sensible PPC stack reuse, targeted
 rewrites, and missing documents. The branch now includes a source/integration
 register and a technology reuse assessment. Redundant subject guides were omitted
-after an overlap audit. These follow-up changes await committed review and push.
+after an overlap audit. These follow-up changes are proposed for PR #54; its review records identify
+the reviewed version.
 The owner clarified that the PR reviewer merges; agents watch and address feedback.
-PR #53 has a reproduced Cursor blocker involving HOME-based Git ignores; its fix
-is being reviewed separately before pushing. No agent has merged a PR.
+PR #53 has reproduced Cursor findings involving HOME-based Git ignores. Its
+fix was independently cleared at `d4cb05d` and pushed. This checkout includes
+its pending regression tests. The reviewer owns merging. No agent has merged a PR.
 
 ### Decision authority
 
