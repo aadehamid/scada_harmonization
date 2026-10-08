@@ -137,8 +137,8 @@ list columns, not a second naming system.
 ### This session (2026-10-07, later): the open pull requests, and what they leave behind
 
 This note reports that session as it stood at **2026-10-08 02:15 UTC** (2026-10-07 21:15 local,
-commit `f7b9455`), the cutoff every state below is measured at. Pull-request merges that came after
-it are named where they happened, with their time.
+commit `f7b9455`), this note's cutoff. Pull-request merges that came after it are named where they
+happened, with their time.
 
 Hamid asked for every open pull request to be fixed. Two were open here when he asked, both
 waiting on him to merge:
