@@ -140,8 +140,8 @@ This note reports that session as it stood at **2026-10-08 02:15 UTC** (2026-10-
 commit `f7b9455`), the cutoff every state below is measured at. Pull-request merges that came after
 it are named where they happened, with their time.
 
-Hamid asked for every open pull request to be fixed. Two were open here, both waiting on him to
-merge:
+Hamid asked for every open pull request to be fixed. Two were open here when he asked, both
+waiting on him to merge:
 
 - **#47 — status lives in `HANDOFF.md` §2.** It removed the copied status from `README.md` and
   `AGENTS.md`, stopped this file from pinning the `main` tip or listing open pull requests, and
