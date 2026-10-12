@@ -751,3 +751,78 @@ local, and system excludes. Repository .gitignore and .git/info/exclude still
 define the guard's non-ignored scope, and a separate test preserves that boundary.
 The next action is independent review of this commit, then a checked push to the
 existing PR. The Cursor reviewer owns merging. No runtime or phase decision changes.
+
+### This session (2026-10-12 UTC): charter §12 #13 amendment — Plane 3 catalog + ontology authoring (docs only)
+
+Owner-confirmed: the lightweight-catalog decision is split into three named roles
+(catalog, ontology, graph). Adopting Apache-2.0 `pyshacl` (an SHACL engine implementing the
+W3C SHACL Recommendation), BSD-3-Clause `rdflib`, and Apache-2.0 OpenMetadata 2.x;
+`neontology` is out of the ontology pipeline because its public API and PyPI
+documentation do not expose RDF/OWL ingestion (verified at pypi.org/project/neontology/
+2026-10-12 UTC). Applied as an "Amended" block in §12 #13, anchored in §13.1 L5.1,
+reflected in §13.2 net-new components, and a single "no separate triplestore" line added
+to §13.3. Three new rows in §4.1 (`rdflib` 7.x BSD-3-Clause, `pyshacl` 0.40.x Apache-2.0,
+OpenMetadata 2.x Apache-2.0). `docs/LSC-010_Learning_Log.md` gets a Plane 3 concepts
+entry and four new glossary items. **No code, no service starts, no `uv add` calls.**
+
+This work replaces PR #56, which was built against pre-#55 ground (the charter was
+at `design/PROJECT_CHARTER.md`, not `docs/LSC-001_Problem_Statement_and_Project_Charter.md`,
+and the cited tools didn't do what the description claimed). PR #56 was closed as
+superseded on 2026-10-12 UTC with a one-line comment pointing at this branch.
+
+Primary-source verifications (2026-10-12 UTC): `pyshacl` 0.40.1 license = Apache-2.0
+(pypi.org/project/pyshacl/0.40.1/, LICENSE.txt); `rdflib` 7.6.0 license = BSD-3-Clause
+(pypi.org/project/rdflib/); OpenMetadata native OWL/RDF glossary import is a 2.0
+capability (`docs.open-metadata.org/v2.0.x/deployment/upgrade/breaking-changes/data-governance`,
+`PUT /v1/glossaries/name/{name}/importRdf` new in 2.0).
+
+Phase status: **Phase 0 mapping-table spine is still the next code change.** The
+Plane 3 stack lands in Phase 5b/7 per §12 #13's existing note.
+
+### This session (2026-10-12 UTC, later): durable review lessons from PR #57
+
+Cursor's review automation posted eleven review threads against PR #57 across the
+PR's commit iterations. None of them are design findings; they are durable lessons
+worth recording. **Anchored to dated sections, not commit SHAs** — local commit
+SHAs changed as PR #57 was force-amended before push, and any specific SHA
+referenced from a prior local iteration would be unverifiable on `origin/main`
+after squash. The lessons themselves, however, are stable.
+
+- **§12 #13's identifier is `§12 #13`, not `§13 #13`.** §12 ("Open decisions")
+  carries numbered items `1..N`. §13's own row ids are L (§13.1, §13.5), P (§13.7),
+  and Z (§13.8); §14 carries the N1–N35 ledger (see §12 #17 and the §14 heading).
+  Cross-references for the catalog / ontology / graph decision must use `§12 #13`.
+  PR #56 used `§13 #13` in four files
+  (`AGENTS.md`, `HANDOFF.md`, `design/LEARNING_LOG.md`, `design/PROJECT_CHARTER.md`),
+  including §4.1 and §13.1 L5.1 of the latter; §13.2 of `design/PROJECT_CHARTER.md`
+  did *not* contain `§13 #13` (its net-new-components paragraph names the tools but
+  does not cite the decision's identifier). PR #57 carries `§12 #13` throughout.
+- **Pipeline order matters in the prose.** Phase 5b.1's loader reads the
+  *same* `rdflib.Graph` that `pyshacl.validate()` consumes, ignores the
+  `results_graph` (the SHACL conformance report), and writes the original ontology
+  triples to Neo4j via `MERGE`. Phrasing "validated triples from `pyshacl` are
+  parsed by `rdflib`" reverses the order and tells future agents to load the SHACL
+  report instead of the ontology. The corrected wording is in the §12 #13 bullet,
+  §13.1 L5.1 row, §13.2 net-new bullet, and Learning Log runtime-graph body.
+- **Tool licenses and version lines must be read from the actual packaging, not
+  from the lab's prior assumption.** `pyshacl` 0.40.x is Apache-2.0 (the project's
+  LICENSE.txt confirms); `rdflib` 7.x is BSD-3-Clause; OpenMetadata is Apache-2.0 and
+  we pin 2.x because the native `importRdf` glossary endpoint is a 2.0 capability
+  the 1.x line does not have. `pyshacl` "implements the W3C SHACL Recommendation,"
+  it is not "W3C-recommended." §4.1 is the row that future agents copy-paste, so
+  its claims must be exact.
+- **Do not put history-of-prior-amendment prose in a concepts entry.** The
+  Learning Log "Plane 3" entry originally described how this amendment differs from
+  PR #56. Each rewrite attracted a conflation-finding from the bot (collapsing
+  PR #56 into "one role," assigning a license error to OpenMetadata that PR #56
+  did not contain). The structural fix is to keep history here, in
+  `docs/history/SESSION_LOG.md`, and let the Concepts entry describe only what
+  the current decision says. The Concepts entry carries a one-line pointer to
+  this file for historical context.
+
+**Structural rule (this session):** when a record names a decision and dates it,
+the durable anchors are (a) the canonical section in the charter / register,
+(b) a `YYYY-MM-DD` date, and (c) the published commit SHA on `main` (`git log
+-1 origin/main --format=%h`), not local pre-force-push SHAs. A doc that pins a
+local pre-push SHA invites a future reader to type a SHA that resolves to
+nothing.

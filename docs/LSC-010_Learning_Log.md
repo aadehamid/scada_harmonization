@@ -105,6 +105,42 @@ spine (`xmeas_7` / `PT-101` × 4 sites, YAML). Pickup: `HANDOFF.md` §2.1 / §3.
 
 **Hamid lock (2026-08-18, via Chief Architect):** Diagram 1 v2 L0 cuts are packed in `HANDOFF.md` §2, not drawn. The N8 fast-class hole landed as `#33`. N8 is not rewritten.
 
+### Plane 3 — catalog / ontology / graph (decided §12 #13, amended 2026-10-12 UTC)
+
+*Three roles, three tools, no conflation. This entry captures what §12 #13
+(amended 2026-10-12 UTC) decides, not what an earlier amendment got wrong. The history
+of that earlier amendment (PR #56, closed unmerged on 2026-10-12T03:01:46Z) lives in
+`docs/history/SESSION_LOG.md`; refer to it there.*
+
+**Catalog** — discoverability, ownership ("gatekeepers"), lineage UI. **OpenMetadata 2.x
+(Apache-2.0).** Catalogs `ods_core.metric_registry`, `asset_master`, and the
+Bronze→Silver→Gold `lineage` projection. Native OWL/RDF glossary import is a **2.0**
+feature (`PUT /v1/glossaries/name/{name}/importRdf`); the 1.x line does not have it. OM is
+**downstream** of `ods_core` + Neo4j and never the system of record.
+
+**Ontology authoring** — shared vocabulary with hard constraints. **RDF/OWL + SHACL.**
+The ISO 15926 / DEXPI vocabulary lives in `config/ontology/*.ttl` (vocab + companion
+`*.shapes.ttl`), versioned in git, validated locally by **Apache-2.0 `pyshacl` 0.40.x**. The
+TTL is the **single source of truth**; SHACL is the pre-commit + CI gate. *Why not
+`neontology`*: it is documented as a Pydantic/pandas Python-class → Neo4j mapper; its public
+API and the optional `[grand]` extra (`networkx` + `grand-cypher`) do not include an RDF/OWL
+parser, so the SoT never enters the graph through a library whose documented surface
+area does not include RDF/OWL ingestion.
+
+**Runtime graph** — traversal, reasoning, GraphRAG. **Neo4j**, loaded by a documented
+**BSD-3-Clause `rdflib` 7.x → Cypher `MERGE`** pipeline in `src/scada_harmonizer/contextualize/`
+(Phase 5b.1). The ontology TTL is parsed by `rdflib` into an in-memory `Graph`; the *same*
+graph is validated against the SHACL shapes by **Apache-2.0 `pyshacl` 0.40.x** (the SHACL report
+is a gate, not data — it is not loaded). When conformance passes, the original ontology triples
+write to Neo4j. No triplestore, no SHACL-as-loader (`neontology`'s optional `[grand]` extra
+is `networkx` + `grand-cypher`, not an RDF parser — verified at pypi.org/project/neontology/
+2026-10-12 UTC). Traversal + GraphRAG keep using Cypher + `neo4j-graphrag`.
+
+**Teach-back:** *"Plane 3 has three jobs. Catalog is OM. Ontology is RDF in git with
+SHACL as the gate. The runtime graph is Neo4j, fed by rdflib from a SHACL-validated
+TTL. `neontology`'s documented API / PyPI surface does not expose RDF/OWL ingestion,
+so it's not in the ontology pipeline."*
+
 ## Gotchas
 
 - **Eraser MCP:** the AI edit path (`update_diagram`) tends to reverse connection arrow
@@ -113,12 +149,10 @@ spine (`xmeas_7` / `PT-101` × 4 sites, YAML). Pickup: `HANDOFF.md` §2.1 / §3.
   fast-class twin. Do not mix TEP and IIoT on one stream. The ~1 s class is
   `generate_machine_stream` (P-101 / K-201), ingested as `iiot`. TEP stays 180 s.
 
----
-
 ## Glossary
 
-- **B2MML (Business To Manufacturing Markup Language)** — MESA's ready-made XML schema binding of the
-  ISA-95 object model (production schedules, work orders, performance, material definitions); the usual
+- **Catalog vs ontology vs graph (Plane 3, §12 #13)** — three distinct concerns: a **catalog** (OpenMetadata 2.x) discovers + governs; an **ontology** (RDF/OWL + SHACL, ISO 15926 / DEXPI in this lab) defines the shared vocabulary with hard shape constraints; a **graph** (Neo4j LPG, fed by `rdflib` from the SHACL-validated TTL) backs traversal + reasoning + GraphRAG. Catalog observes the other two; ontology is the source of truth that the graph materializes from.
+- **B2MML (Business To Manufacturing Markup Language)** — MESA's ready-made XML schema binding of the  ISA-95 object model (production schedules, work orders, performance, material definitions); the usual
   wire format for L3↔L4 integration. The same model can also be JSON or an OPC-UA information model.
 - **CDC (change data capture)** — capturing inserts/updates/deletes from a database as an event
   stream; *log-based* CDC (Debezium reading the Postgres WAL) catches deletes and ordering that
@@ -181,3 +215,19 @@ spine (`xmeas_7` / `PT-101` × 4 sites, YAML). Pickup: `HANDOFF.md` §2.1 / §3.
   namespace through which all OT/IT systems publish and consume current plant state.
 - **WAL (write-ahead log)** — Postgres's durability log; logical decoding of the WAL is what
   Debezium reads for CDC (a replication slot pins WAL until the connector consumes it).
+
+### Plane 3 tooling references (§12 #13, 2026-10-12 UTC)
+
+- **`neontology`** — MIT, Pydantic/pandas Python-class → Neo4j mapper. Its public API + the
+  optional `[grand]` extra (`networkx` + `grand-cypher`) do **not** include an RDF/OWL parser
+  (verified at pypi.org/project/neontology/ 2026-10-12 UTC). The lab uses `rdflib` + `pyshacl`
+  for the ontology pipeline instead; `neontology` is kept out of Plane 3's ontology-role
+  (§12 #13, 2026-10-12 UTC).
+- **`OpenMetadata`** — Apache-2.0 catalog + lineage platform, the lab's Plane 3 catalog layer.
+  **Pinned to the 2.x line** because the native OWL/RDF glossary import (`PUT /v1/glossaries/name/{name}/importRdf`)
+  is a 2.0 capability that the 1.x line does not have.
+- **`rdflib`** — BSD-3-Clause pure-Python RDF library (parsers for TTL/N3/JSON-LD/N-Triples, an
+  in-memory `Graph`, a SPARQL 1.1 engine). The TTL → triples step in the ontology pipeline.
+- **SHACL (Shapes Constraint Language)** — W3C Recommendation for validating RDF data against
+  shapes. The lab's `pyshacl` 0.40.x (Apache-2.0) runner validates `config/ontology/*.ttl` against
+  the companion `*.shapes.ttl` as a pre-commit + CI check.
