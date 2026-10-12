@@ -355,6 +355,9 @@ Version **floors** and editions/licenses the design assumes. Exact pins land in 
 | DuckDB | ≥1.2 | MIT | interactive OLAP over Parquet (3+) |
 | MinIO | latest stable | AGPLv3 | hand-built S3-compatible object store for the medallion Parquet (6); floci-S3 stays the cloud-pattern demo |
 | Neo4j | **Community 2025.x** (CalVer since Jan 2025; native vector index included) + `neo4j-graphrag` | GPLv3 / Apache-2.0 | knowledge graph + GraphRAG (5b, 7) |
+| **`neontology`** | latest stable | Apache-2.0 | **Plane 3 ontology-materialization layer (§13 #13)**: hydrates Python `@dataclass`es from an RDF/OWL ISO 15926 / DEXPI TTL so the ontology's single source of truth stays the RDF file, and Neo4j is the runtime LPG; ships with its own SHACL-driven in-memory backend for CI checks |
+| **`pySHACL`** | latest stable | W3C Software License / MIT | **SHACL validator (§13 #13)**: pre-commit + CI check for `config/ontology/*.ttl` against the ISO 15926 / DEXPI shapes; runs standalone, no network |
+| **OpenMetadata** | **1.x** (latest stable; CalVer) | Apache-2.0 | **Plane 3 catalog layer (§13 #13)**: discovers + owners ("gatekeepers") + lineage UI over `ods_core.metric_registry` / `asset_master` / Bronze→Silver→Gold lineage projection; RDF/SKOS ingestion enabled so ontology terms travel into the glossary; **downstream of** `ods_core` + Neo4j — never the system of record (5b, 7) |
 | ERPNext | **v15 LTS or v16** (v16 GA Dec 2025) on MariaDB 10.x — Postgres unsupported | GPLv3 | enterprise business records (5b) |
 | Grafana | OSS ≥11 | AGPLv3 | dashboards + observability UI (3+) |
 | Prometheus | ≥3.0 | Apache-2.0 | pipeline/infra metrics (3+) |
@@ -754,12 +757,29 @@ beyond ERPNext community.
     **License note (2026-07-06):** Redis 8 returned to genuine open source (**AGPLv3**, May 2025), so
     "Redis (open source)" is accurate again; **Valkey** (BSD, CNCF) is the drop-in fallback if AGPL
     ever matters.
-13. ~~Governance / data-product framing~~ — **DECIDED (2026-06-21):** adopt a **lightweight governed
-    catalog** — the three-stage mapping table / `metric_registry` is a governed data product (owner/
-    "gatekeeper" + definition + lineage). **Not** a full data-mesh pillar; no separate governance build
-    phase. Folds the specialty-chemicals discovery "govern + reuse / data-marketplace,
-    creators-as-gatekeepers" pattern into
-    what we already build. See §2, §4, §6, §9.
+13. ~~Governance / data-product framing + Plane 3 catalog + ontology authoring~~ — **DECIDED
+    (charter §13 originally 2026-06-21; amended 2026-08-21 for catalog + ontology layers):**
+    adopt a **lightweight governed catalog** + an explicit **catalog / ontology / graph** split.
+    Concretely:
+    - **Catalog layer — OpenMetadata (Apache-2.0).** Surfaced in Phase 5b/7; catalogs
+      `ods_core.metric_registry` + `asset_master` + the `lineage` projection and exposes a
+      discoverable UI (glossary / owners / "gatekeepers" / per-field lineage). **Not** a system of
+      record — Neo4j + `ods_core` stay authoritative. OM's RDF/SKOS ingestion is *enabled* so the
+      same glossary terms authored in RDF travel into the catalog without re-keying.
+    - **Ontology authoring — RDF/OWL + SHACL.** The ISO 15926 / DEXPI vocabulary is written once
+      in TTL/Turtle (`config/ontology/*.ttl`), validated by a SHACL runner (`pySHACL`, W3C eval),
+      versioned in git. Reuses the pattern from `reference/engineering_drawing_business_case/`
+      (EngiGraph, charter §7) instead of letting the lab grow ad-hoc Cypher labels.
+    - **Runtime graph — Neo4j via `neontology`.** `neontology` materializes the RDF/OWL class
+      definitions as Python `@dataclass`es that persist as Neo4j nodes/edges — the *single source
+      of truth* for the ontology is the RDF file; at runtime, traversal + reasoning happen in
+      Cypher and `neo4j-graphrag`. No separate triplestore; SHACL validation is a local
+      pre-commit + CI check.
+    - **Folds the specialty-chemicals discovery "govern + reuse / data-marketplace,
+      creators-as-gatekeepers" pattern into what we already build.** See §2, §4, §6, §9, §14.
+    - **Not** a full data-mesh pillar; not a triplestore + LPG split; not an ontology rebuild
+      per phase. The ontology **starts minimal, extends** (L5.1) — equipment + instrument + valve
+      + control-system core vocabulary, then `process-flow` + `material-balance` later.
 14. ~~Plane 4 flagship use case~~ — **DECIDED (2026-06-21):** **yield improvement / production-leakage**
     is the named flagship Track-A use case (generic ML methods retained), delivered as human-in-the-loop,
     edge-executed recommendations. **No** lab→pilot→plant tier added — LIMS covers the lab leg. Folds the
@@ -826,7 +846,7 @@ self-hosted OSS.
 | L3.2 | IT/ET sources | **LIMS only** lab system; skip ELN / instrument / chem-inventory / Protec |
 | L4.1 | Storage/lake | **Medallion lakehouse** (Bronze/Silver/Gold, Parquet/object store) via **real Spark ETL**; DuckDB stays the interactive OLAP query engine |
 | L4.2 | Storage/lake | **Add batch/file-drop ingestion** → bronze (historian/instrument extracts) alongside CDC/streaming |
-| L5.1 | Context | Neo4j ontology **starts minimal, extends** (ISO 15926/DEXPI-aligned core vocab) |
+| L5.1 | Context | Neo4j ontology **starts minimal, extends** (ISO 15926/DEXPI-aligned core vocab); **authored in RDF/OWL + SHACL** under `config/ontology/*.ttl`, **materialized to Neo4j via `neontology`** (§13 #13); **cataloged by OpenMetadata** (Apache-2.0) — RDF/SKOS ingestion enabled so the same glossary terms travel into the catalog; OM is **downstream of** `ods_core` + Neo4j, never the source of record |
 | L5.2 | Context | GraphRAG embeddings in **Neo4j native vector index** (no separate vector DB) |
 | L6.1 | ML | **MLflow** (tracking + registry + publish→score) in hand-built design; SageMaker + dataiku in cloud-native; algorithms still deferred to Phase 6 |
 | L6.2 | ML | Feature store = **offline gold medallion + online Redis** (online/offline split) |
@@ -840,11 +860,15 @@ self-hosted OSS.
 **Net-new components** (beyond pre-review charter): OPC-UA server (Geismar) · edge store-and-forward ·
 Docker-network segmentation · historian-less site · real-time alerting node · medallion lakehouse +
 Spark ETL · batch/file-drop ingestion · MLflow · online/offline feature store · Prometheus+Grafana
-observability · `ods_core` named the MDM analog.
+observability · `ods_core` named the MDM analog · **RDF/OWL + SHACL ontology authoring** (`config/ontology/*.ttl` + `pySHACL`) · **`neontology` ontology materialization layer** · **OpenMetadata Plane-3 catalog** (Apache-2.0, downstream of `ods_core` + Neo4j).
 
-**New hands-on learning milestones** (join Debezium + Redis): **OPC-UA · Spark · observability
-(Prometheus) · MLflow.** Optional *later* "graduate-to / explore" milestones (§13.6):
-**Databricks Free Edition** (managed lakehouse) · **Apache Iggy** (alternative streaming).
+**New hands-on learning milestones** (join Debezium + Redis + OPC-UA + Spark + Prometheus + MLflow):
+**SHACL (`pySHACL`)** — lab builds the ISO 15926/DEXPI shapes and learns W3C vocab-in-shapes before
+the LPG code reaches for them; **`neontology`** — Python `@dataclass` from RDF/OWL, with its
+in-memory backend as the test surface; **OpenMetadata** — catalog + lineage UI over the same
+`ods_core` truths (glossary/SKOS-from-RDF, owners, asset hierarchy, lineage). Optional *later*
+"graduate-to / explore" milestones (§13.6): **Databricks Free Edition** (managed lakehouse) ·
+**Apache Iggy** (alternative streaming).
 
 ### 13.3 Deliberately out of scope
 

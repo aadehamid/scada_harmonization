@@ -284,5 +284,8 @@ tests/     # 41 tests (L0 goldens + Unit 100 P&ID; no network, no full warehouse
 
 **Later stack** (not yet added): paho-mqtt ≥2.x, pysparkplug 0.6.x (**candidate** — PyPI status
 Pre-Alpha; verify Sparkplug 3.0 behavior in Phase 2, fallback = hand-rolled `spBv1.0` protobuf),
-Neo4j driver. **Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
+Neo4j driver, **`neontology`** + **`pySHACL`** (charter §13 #13, added 2026-08-21 — Plane 3
+ontology authoring as RDF/OWL + SHACL materialized to Neo4j), **OpenMetadata 1.x** (charter §13
+#13 — Plane 3 catalog layer, Apache-2.0, downstream of `ods_core` + Neo4j).
+**Tool versions/editions/licenses: charter §4.1 pinned stack** (EMQX ≥5.9
 single-node BSL, TimescaleDB Community/TSL, ERPNext v15/16, Redis 8 AGPLv3, …).

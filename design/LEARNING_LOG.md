@@ -120,6 +120,12 @@ spine (`xmeas_7` / `PT-101` × 4 sites, YAML). Pickup: `HANDOFF.md` §2.1 / §3.
 - **B2MML (Business To Manufacturing Markup Language)** — MESA's ready-made XML schema binding of the
   ISA-95 object model (production schedules, work orders, performance, material definitions); the usual
   wire format for L3↔L4 integration. The same model can also be JSON or an OPC-UA information model.
+- **Catalog vs ontology vs graph (Plane 3, charter §13 #13)** — three distinct concerns that travel
+  together: a **catalog** (OpenMetadata) is the discoverable UI for "what exists + who owns it +
+  where did it come from"; an **ontology** (RDF/OWL + SHACL, ISO 15926 / DEXPI in this lab) is the
+  shared vocabulary + constraints; a **graph** (Neo4j, LPG via `neontology`) is the runtime
+  traversable store that backs traversal + reasoning + GraphRAG. Catalog observes the other two;
+  ontology is the source of truth that the graph materializes from.
 - **CDC (change data capture)** — capturing inserts/updates/deletes from a database as an event
   stream; *log-based* CDC (Debezium reading the Postgres WAL) catches deletes and ordering that
   *poll-based* CDC misses.

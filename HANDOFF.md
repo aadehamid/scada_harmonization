@@ -1,13 +1,20 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-08-21 (#40 merged; mapping spine still next)
+**Last updated:** 2026-08-21 (#40 merged + charter §13 #13 amended: OpenMetadata catalog layer + RDF/OWL + SHACL ontology authored via `neontology` to Neo4j; mapping spine still next)
 
 > **RESUME HERE.** Session wrapped 2026-08-20. Next build is the mapping-table
 > spine. Paste the kickoff in **§3** (“Next build session”). Do not start
 > Sparkplug, extra P&ID pages, or DEXPI unless Hamid redirects. Walkthrough
 > stays parallel at §0.2. P&ID leftovers are **§2.1 Track B** (documented, not
 > a gate).
+>
+> **2026-08-21 docs delta:** charter §13 decision #13 amended — Plane 3 stack is now
+> **catalog (OpenMetadata, Apache-2.0) + ontology (RDF/OWL + SHACL, materialized to Neo4j
+> via `neontology`)**. Three rows added to §4.1 pinned stack (`neontology`, `pySHACL`,
+> OpenMetadata 1.x). This is **docs-only** — no code, no services started. Phase 0 mapping
+> spine is still the next code change; OpenMetadata / `neontology` / ontology TTL land in
+> Phase 5b/7 as planned.
 
 > **Read order for a new agent:** (1) this file → (2) `design/PROJECT_CHARTER.md` (authoritative
 > and governing) → (3) `AGENTS.md` (working constraints) → (4) the `design/*_notes.md` for depth.
@@ -122,6 +129,19 @@ and the 59-name set. You can continue the OT build without more drawings.
 instrument↔TEP pairings were rebuilt after the Grok Bot pack was lost.
 That is good enough for mapping-table join keys. Pipe/stream cells are
 list columns, not a second naming system.
+
+### This session (2026-08-21, later): charter §13 #13 — Plane 3 catalog (OpenMetadata) + ontology authoring (RDF/OWL + SHACL → `neontology` → Neo4j) (docs only)
+
+Owner confirmed: **adopt OpenMetadata as the Plane 3 catalog layer** and **author the ISO 15926 / DEXPI ontology in RDF/OWL**, validated with SHACL, materialized to Neo4j via **`neontology`**. Single source of truth for the ontology stays the TTL file under `config/ontology/`; Neo4j is the runtime LPG; OpenMetadata is downstream of `ods_core` + Neo4j (never the system of record). **No code, no service starts.** Edits:
+
+- `design/PROJECT_CHARTER.md` §13 decision #13 — amended (catalog / ontology / graph split).
+- `design/PROJECT_CHARTER.md` §13.1 L5.1 — anchored against the same split.
+- `design/PROJECT_CHARTER.md` §13.2 — net-new components + learning milestones include `neontology`, `pySHACL`, OpenMetadata.
+- `design/PROJECT_CHARTER.md` §4.1 — three new pinned-stack rows (`neontology` Apache-2.0, `pySHACL` W3C/MIT, **OpenMetadata 1.x Apache-2.0**).
+- `AGENTS.md` — “Later stack” block names the three new components so the stack inventory is honest.
+- `HANDOFF.md` — this entry.
+
+**Next code for Plane 3**: still Phase 0 mapping spine; this decision only governs Phase 5b/7. A Phase 5b kickoff is drafted in §3 below (catalog + ontology slices).
 
 ### This session (2026-08-21): charter §2 scale fold (docs only)
 
@@ -524,6 +544,7 @@ hold.**
 | 6 | Sites + enterprise | **Lagos Specialty Chemicals** (UNS root `lagos-chem`); **4 sites** — Beaumont (Allen-Bradley), Geismar (Siemens), Rotterdam (Ignition-style), Corpus Christi (CygNet) |
 | 7 | Postgres deployment | ~~Historian + role-B ODS consolidated in the Timescale instance~~ **Amended (§14 N16): three Postgres homes** — OT-side Timescale (`ts_historian`), **IT-side Postgres** (`ods_core` + `erp_shadow` — the consolidation straddled the iDMZ), OT-side plant Postgres (role A, CDC-captured) |
 | 8 | CDC | **Start Python poll** (Debezium-shaped events), **design for Debezium**, with an explicit hands-on Debezium learning milestone in Phase 5a (5a.1 → 5a.2 → 5a.3) |
+| 9 | **Plane 3 catalog + ontology** (charter §13 #13, amended 2026-08-21) | **Catalog = OpenMetadata 1.x (Apache-2.0), downstream of `ods_core` + Neo4j.** **Ontology authored in RDF/OWL + SHACL** (`config/ontology/*.ttl`, validated by `pySHACL`), **materialized to Neo4j via `neontology` (Apache-2.0)**. TTL is the single source of truth; Neo4j is the runtime LPG (Cypher + `neo4j-graphrag` for GraphRAG); OpenMetadata catalogs `metric_registry` + `asset_master` + the lineage projection with RDF/SKOS ingestion enabled. **Starts minimal, extends** (L5.1) — equipment + instrument + valve + control-system core vocab, then `process-flow` + `material-balance`. No separate triplestore; no ontology rebuild per phase. |
 
 Plus the **relational schema layout** (charter §4): two Postgres homes —
 `ts_historian` + `ods_core` + `erp_shadow` (Timescale, pipeline-owned) and `mes`/`lims`/`cmms`/`quality`
@@ -738,3 +759,30 @@ No open blocking decisions (§12 #16 resolved → UMH Core). YAML vs TOML/JSON
 is **closed: YAML**. PRs #17–#40 merged. Tabular runtime is Polars. Warehouse
 is R2 `lagos-chem-l0`. Unit 100 Rev B + 59-row CSV are in
 `tests/fixtures/datagen/pid/`.
+
+### Phase 5b/7 kickoff pointer — Plane 3 catalog + ontology (locked by §13 #13, 2026-08-21)
+
+When Phase 5b starts (after 5a CDC context lands), the build is two parallel
+slices, not a single block — adopt the **build cadence** (explain → align →
+build → run & observe → prune) for each:
+
+1. **Ontology slice.** Author `config/ontology/iso15926-core.ttl` (core vocab:
+   `Equipment`, `Instrument`, `Valve`, `ControlSystem`, `PipingNetworkSegment`,
+   with `PART_OF` / `controls` / `isolates` / `connects-to`) + companion
+   `config/ontology/iso15926-core.shapes.ttl` (SHACL). Add `pySHACL` to the dev
+   group (one-line justification: W3C-recommended SHACL engine; runs standalone,
+   no network, fast in pre-commit/CI). `uv add neontology` in the phase
+   that needs the LPG materialization (Apache-2.0; the lib ships an in-memory
+   backend that double-doubles as the test surface — no Neo4j needed for the
+   first ontology tests). Model the first `ControlValve` end-to-end (TTL →
+   SHACL-pass → `neontology` `@dataclass` → Cypher-injected unit test).
+2. **Catalog slice.** Bring up OpenMetadata (Docker; Apache-2.0) on the IT-side
+   network. Ingest `ods_core.asset_master` + `metric_registry` + the
+   Bronze→Silver→Gold `lineage` projection via the OM `Postgres` + `OpenLineage`
+   connectors. Enable RDF/SKOS ingestion so the same glossary terms authored
+   in TTL travel into OM without re-keying. First discovery query is a
+   smoke test: search for `Metric: xmeas_7` and verify it shows owner,
+   `source_cadence`, lineage, and the ISO 15926 class it links to.
+
+Both slices run *after* the mapping spine and Phase 4 cross-source equivalence,
+not before.
