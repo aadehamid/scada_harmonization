@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-10-12 UTC (charter §12 #13 amendment: Plane 3 catalog + ontology; mapping spine remains the next build slice; PR #56 closed as superseded)
+**Last updated:** 2026-10-12 UTC (PR #57 merged: charter §12 #13 amendment — Plane 3 catalog + RDF/OWL + SHACL ontology; mapping-table spine remains the next build slice)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
@@ -13,7 +13,7 @@ The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
 [The project charter](docs/LSC-001_Problem_Statement_and_Project_Charter.md)
 defines the project. This file owns continuity and current status.
 
-## 2. Current status (2026-10-08)
+## 2. Current status (2026-10-12)
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
@@ -21,7 +21,10 @@ defines the project. This file owns continuity and current status.
 
 **Phase: Phase 1 L0 is on `main`. Warehouse is wide Parquet on R2 `lagos-chem-l0`. 1 s machine
 stream landed (#33). Unit 100 Rev B one-pager + 59-row tag list landed (#35). The figures tool
-landed (#46). Mapping table is unwritten — that is the next build slice. Walkthrough is a parallel
+landed (#46). PR #57 merged: charter §12 #13 amendment splits Plane 3 into three roles
+(catalog = OpenMetadata 2.x; ontology authoring = RDF/OWL + SHACL validated by Apache-2.0
+`pyshacl`; runtime graph = Neo4j fed from the SHACL-validated TTL via BSD-3-Clause `rdflib`
+→ Cypher `MERGE`). Mapping table is unwritten — that is the next build slice. Walkthrough is a parallel
 path, not a gate. Cursor remains at §0.2.**
 
 **The `main` tip is deliberately not pinned in this file.** It moves on every merge, and a pin here
