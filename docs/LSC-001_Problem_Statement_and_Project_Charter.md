@@ -396,6 +396,9 @@ Version **floors** and editions/licenses the design assumes. Exact pins land in 
 | DuckDB | ≥1.2 | MIT | interactive OLAP over Parquet (3+) |
 | MinIO | latest stable | AGPLv3 | hand-built S3-compatible object store for the medallion Parquet (6); floci-S3 stays the cloud-pattern demo |
 | Neo4j | **Community 2025.x** (CalVer since Jan 2025; native vector index included) + `neo4j-graphrag` | GPLv3 / Apache-2.0 | knowledge graph + GraphRAG (5b, 7) |
+| `rdflib` | **7.x** (BSD-3-Clause; pure-Python RDF parser and in-memory `Graph`) | BSD-3-Clause | **Plane 3 ontology-load pipeline (§12 #13)**: parses the SHACL-validated TTL in `config/ontology/*.ttl` into triples; the `rdflib → Cypher MERGE` loader in `src/scada_harmonizer/contextualize/` (Phase 5b.1) writes them into Neo4j |
+| `pyshacl` | **0.40.x** (SHACL engine implementing the **W3C SHACL Recommendation**; native CLI + Python `validate()`) | Apache-2.0 | **Plane 3 SHACL validator (§12 #13)**: pre-commit + CI check that `config/ontology/*.ttl` conforms to the companion `*.shapes.ttl`; runs standalone, no network |
+| **OpenMetadata** | **2.x** (active 2.0.x line; native OWL/RDF glossary import via `PUT /v1/glossaries/name/{name}/importRdf`) | Apache-2.0 | **Plane 3 catalog layer (§12 #13)**: catalogs `ods_core.metric_registry` + `asset_master` + the Bronze→Silver→Gold `lineage` projection; RDF/SKOS ingestion enabled so glossary terms travel from the ontology TTL into the catalog without re-keying; **downstream of** `ods_core` + Neo4j — never the source of record (5b, 7). The 1.x line is a separate release line and does not have `importRdf`; we pin 2.x to use the feature |
 | ERPNext | **v15 LTS or v16** (v16 GA Dec 2025) on MariaDB 10.x — Postgres unsupported | GPLv3 | enterprise business records (5b) |
 | Grafana | OSS ≥11 | AGPLv3 | dashboards + observability UI (3+) |
 | Prometheus | ≥3.0 | Apache-2.0 | pipeline/infra metrics (3+) |
@@ -835,6 +838,42 @@ beyond ERPNext community.
     phase. Folds the specialty-chemicals discovery "govern + reuse / data-marketplace,
     creators-as-gatekeepers" pattern into
     what we already build. See §2, §4, §6, §9.
+
+    **Amended (2026-10-12 UTC, §12 #13):** the lightweight catalog is split into three named roles so each
+    piece can be adopted and learned on its own. The owner's recorded words: *"lets go with your
+    recommendation"* (R-Draft 1: Apache-2.0 `pyshacl` for SHACL validation, BSD-3-Clause `rdflib`
+    for TTL parsing, OpenMetadata 2.x catalog layer; `neontology` not adopted as the
+    ontology-materialization layer).
+
+    - **Catalog layer — OpenMetadata 2.x (Apache-2.0).** Catalogs `ods_core.metric_registry` +
+      `asset_master` + the Bronze→Silver→Gold `lineage` projection; RDF/SKOS glossary import
+      available (the `importRdf` endpoint is a 2.0 capability; we pin 2.x, not 1.x, in §4.1).
+      **Downstream of** `ods_core` + Neo4j — never the system of record. Phase 5b/7.
+    - **Ontology authoring — RDF/OWL + SHACL.** ISO 15926 / DEXPI vocabulary lives in
+      `config/ontology/*.ttl`, validated locally by **Apache-2.0 `pyshacl` 0.40.x**. The TTL is the
+      single source of truth; versioned in git; SHACL is a pre-commit + CI check.
+    - **Runtime graph — Neo4j via `rdflib` → Cypher.** The ontology TTL is parsed by
+      **BSD-3-Clause `rdflib` 7.x** into an in-memory `Graph`; the *same* `Graph` (not the
+      SHACL report) is then validated by **Apache-2.0 `pyshacl` 0.40.x** against
+      `config/ontology/*.shapes.ttl`. If `conforms=True`, the loader in
+      `src/scada_harmonizer/contextualize/` (Phase 5b.1) writes the *original* ontology
+      triples to Neo4j via `MERGE` — the SHACL conformance report is not loaded; it is a
+      gate, not data. Traversal + reasoning + GraphRAG keep using Cypher + `neo4j-graphrag`.
+      **No separate triplestore** — the file-based TTL + Neo4j LPG split is what the lab commits
+      to (§13.3).
+    - **Why these and not `neontology`.** `neontology` v2.x (MIT) is a Pydantic/pandas object-graph
+      mapper: Python classes → Neo4j nodes. Its public API and PyPI documentation do **not** expose
+      RDF/OWL ingestion (verified at pypi.org/project/neontology/ 2026-10-12 UTC); the optional
+      `[grand]` extra adds `networkx` + `grand-cypher`, not an RDF parser. A library whose
+      documented surface area does not include RDF/OWL ingestion is not the place an RDF-authored ontology enters
+      the graph, so we use the RDF-native `rdflib` + `pyshacl` path and keep `neontology` out of the
+      ontology pipeline.
+    - **Verified primary sources (2026-10-12 UTC):** `pyshacl` 0.40.1 license = Apache-2.0 (PyPI
+      project page; the package's `LICENSE.txt` confirms); `rdflib` 7.6.0 license = BSD-3-Clause
+      (PyPI project page); OpenMetadata native RDF glossary import is documented in the 2.0
+      breaking-changes for data governance (`importRdf` is new in 2.0; 1.x does not have it).
+    - See §4.1 (tool rows: `rdflib`, `pyshacl`, `OpenMetadata`), §13.1 L5.1 (anchored split),
+      §13.2 (net-new components), §13.3 (no separate triplestore).
 14. ~~Plane 4 flagship use case~~ — **DECIDED (2026-06-21):** **yield improvement / production-leakage**
     is the named flagship Track-A use case (generic ML methods retained), delivered as human-in-the-loop,
     edge-executed recommendations. **No** lab→pilot→plant tier added — LIMS covers the lab leg. Folds the
@@ -913,7 +952,7 @@ self-hosted OSS.
 | L3.2 | IT/ET sources | **LIMS only** lab system; skip ELN / instrument / chem-inventory / Protec |
 | L4.1 | Storage/lake | **Medallion lakehouse** (Bronze/Silver/Gold, Parquet/object store) via **real Spark ETL**; DuckDB stays the interactive OLAP query engine |
 | L4.2 | Storage/lake | **Add batch/file-drop ingestion** → bronze (historian/instrument extracts) alongside CDC/streaming |
-| L5.1 | Context | Neo4j ontology **starts minimal, extends** (ISO 15926/DEXPI-aligned core vocab) |
+| L5.1 | Context | Neo4j ontology **starts minimal, extends** (ISO 15926/DEXPI-aligned core vocab); **authored in RDF/OWL + SHACL** under `config/ontology/*.ttl` (single source of truth); **parsed by `rdflib` 7.x** into an in-memory `Graph`; the *same* `Graph` is **validated by `pyshacl` 0.40.x** (CI gate — SHACL report is a gate, not data); on `conforms=True`, the loader writes the *original* ontology triples to Neo4j via `MERGE`; **cataloged by OpenMetadata 2.x** (Apache-2.0) — RDF/SKOS ingestion enabled; OM is **downstream of** `ods_core` + Neo4j, never the source of record (§12 #13) |
 | L5.2 | Context | GraphRAG embeddings in **Neo4j native vector index** (no separate vector DB) |
 | L6.1 | ML | **MLflow** (tracking + registry + publish→score) in hand-built design; SageMaker + dataiku in cloud-native; algorithms still deferred to Phase 6 |
 | L6.2 | ML | Feature store = **offline gold medallion + online Redis** (online/offline split) |
@@ -929,11 +968,12 @@ Docker-network segmentation · historian-less site · real-time alerting node ·
 Spark ETL · batch/file-drop ingestion · MLflow · online/offline feature store · Prometheus+Grafana
 observability · `ods_core` named the MDM analog · **P&ID drawing extraction** (vector text and
 geometry → OCR and symbol detection → vision-model assist) · **engineering-graph publication**
-(review status, stable identity, revision control).
+(review status, stable identity, revision control) · **RDF/OWL ontology authoring** (`config/ontology/*.ttl` + SHACL shapes, parsed by `rdflib 7.x` BSD-3-Clause, then validated by `pyshacl` 0.40.x Apache-2.0) · **`pyshacl` 0.40.x** (SHACL validator, Apache-2.0) · **OpenMetadata 2.x** (Plane 3 catalog, Apache-2.0; downstream of `ods_core` + Neo4j; native RDF glossary import in 2.0).
 
 **New hands-on learning milestones** (join Debezium + Redis): **OPC-UA · Spark · observability
-(Prometheus) · MLflow · P&ID extraction · DEXPI 2.0.** Optional *later* "graduate-to / explore"
-milestones (§13.6):
+(Prometheus) · MLflow · P&ID extraction · DEXPI 2.0 · SHACL (`pyshacl`) · `rdflib` + Cypher `MERGE`
+ontology-load pipeline · OpenMetadata 2.x catalog / lineage UI.** Optional *later* "graduate-to /
+explore" milestones (§13.6):
 **Databricks Free Edition** (managed lakehouse) · **Apache Iggy** (alternative streaming).
 
 ### 13.3 Deliberately out of scope
@@ -942,7 +982,7 @@ CRM/Salesforce · **separate WMS** (ERPNext stock moves + `material_lot` events 
 semantics — §12 #19) · separate MDM platform · extra lab systems (ELN/instrument/chem/Protec) · pilot
 plants · **EDMS** (the ET graph is built from the Unit 100 P&ID, not from a document-management
 system) · separate real-time "hot" store · Power BI (Grafana +
-DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now.
+DuckDB/notebooks; Superset/Metabase = OSS-BI upgrade) · separate vector DB · Vault/IAM now · real AWS now · **separate triplestore** (Jena Fuseki / GraphDB / Stardog — RDF/TTL ships in git + SHACL-validated; runtime LPG = Neo4j via the `rdflib` → `MERGE` pipeline in §12 #13).
 
 ### 13.4 The three implementation variants (architecture diagrams)
 

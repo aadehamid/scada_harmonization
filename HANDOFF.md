@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-10-08 (documentation batch; mapping spine remains the next build slice)
+**Last updated:** 2026-10-12 UTC (charter §12 #13 amendment: Plane 3 catalog + ontology; mapping spine remains the next build slice; PR #56 closed as superseded)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
