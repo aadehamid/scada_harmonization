@@ -826,3 +826,51 @@ the durable anchors are (a) the canonical section in the charter / register,
 -1 origin/main --format=%h`), not local pre-force-push SHAs. A doc that pins a
 local pre-push SHA invites a future reader to type a SHA that resolves to
 nothing.
+
+### This session (2026-10-12 UTC, end of session): PR #58 merged; pause
+
+Owner-confirmed pause ("let us take a break here. record the handoff. we will
+pick this up later"). This session closes with both PRs merged onto `main`:
+
+- PR #57 (merged 2026-10-12T04:07:12 UTC, merge commit `53f05a5`) — the
+  charter §12 #13 amendment + Plane 3 catalog/ontology/runtime-graph
+  architecture.
+- PR #58 (merged shortly after, merge commit `b6c9388`) — the post-merge
+  HANDOFF §2 refresh, so the durable handoff file agrees with the merged
+  state on `main`.
+
+Repo state at end of session:
+- Local `main` == `origin/main` HEAD (`b6c9388`); working tree clean.
+- No open PRs (`gh pr list --state open` empty).
+- Both PR-branches deleted by `--delete-branch`.
+- `scripts/facts.py tests` 172 collected, `status` 8 claim locations.
+
+What was settled (not deferred):
+- The three PR-feedback iterations against PR #57 that the bot raised in
+  review were each fixed on the same branch and the threads resolved (see
+  the "durable review lessons from PR #57" entry above).
+- Hand-built code path for Plane 3: rdflib parses the TTL → same graph
+  validated by pyshacl → original ontology triples loaded to Neo4j via
+  `MERGE`; OpenMetadata 2.x catalogs ods_core + lineage; SHACL is the
+  ontology gate; SHACL report is not data.
+
+What was offered but explicitly deferred (carry over for the next session):
+- Refresh PR #57's body so its text reflects the round-11 history rather
+  than the round-2 narrative. `gh pr edit 57 --body`.
+- A new `docs/architecture/PHASE_5B_ONTOLOGY_LOADER.md` design note that
+  captures the pipeline order in one canonical place (so the next reader
+  does not have to read §12 #13 + §13.1 L5.1 + §13.2 + the learning log
+  runtime-graph body to reconstruct what Phase 5b.1's loader will do).
+  This is its own PR.
+
+Next code change (per HANDOFF.md §3, locked since 2026-08-20):
+**the mapping-table spine, Phase 0 exit** (`xmeas_7` / `PT-101` × 4 sites,
+YAML + Pydantic + tests). The kickoff packet in HANDOFF.md §3 still
+applies verbatim. Phase 1 L0 is done, PRs #57 and #58 are merged, the
+Plane 3 stack lands in Phase 5b/7 per §12 #13 — none of that gates
+Phase 0.
+
+Structural lesson that survived the session: the durable anchors in
+this file are dated sections, PR numbers, and `git log -1 origin/main
+--format=%h`. Local pre-force-push commit SHAs are not durable anchors;
+do not pin them.
