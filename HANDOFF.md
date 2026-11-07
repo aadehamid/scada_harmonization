@@ -15,21 +15,21 @@ defines the project. This file owns continuity and current status.
 
 ## 2. Current status (2026-11-07)
 
-CI setup on `ci/dagger-checks`: Dagger v1.0.0-beta.25 wraps the unchanged
+Dagger v1.0.0-beta.25 wraps the unchanged
 `scripts/check.sh`. Run `./scripts/dagger.sh check --progress plain`.
 Local success, cache reuse, failure invalidation, and private-input filtering
 were verified, then repeated for the beta after the owner approved it.
 A real native Cloud run rejected stable v0.21.11 because this account requires
 v1.0.0-beta.19 or later. The beta project check passed on the PR merge commit
 for `5c0cf72`; native Cloud Checks now replaces the duplicate Actions workflow.
-PR #61 remains open pending final cutover verification and review.
+PR #61 carries this setup; run `gh pr view 61` for its live review and merge state.
 See [the development guide](docs/DEVELOPMENT.md#dagger-checks) for setup and limits.
 
 Local tooling: `.pi/` joins the ignored agent folders. This clone's ignored
 `.entire/settings.local.json` sets `strategy_options.push_sessions` to `false`.
 Entire recording remains enabled; automatic checkpoint uploads are off.
 This setting is local and does not configure other clones.
-The change uses branch `chore/ignore-pi-tooling`; the mapping slice below is unchanged.
+The ignore rule landed in PR #60; the mapping slice below is unchanged.
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
