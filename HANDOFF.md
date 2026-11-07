@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-10-12 UTC (PR #57 merged: charter §12 #13 amendment — Plane 3 catalog + RDF/OWL + SHACL ontology; mapping-table spine remains the next build slice)
+**Last updated:** 2026-11-07 UTC (Dagger CI setup on PR #61; mapping-table spine remains the next build slice)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
@@ -13,13 +13,23 @@ The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
 [The project charter](docs/LSC-001_Problem_Statement_and_Project_Charter.md)
 defines the project. This file owns continuity and current status.
 
-## 2. Current status (2026-10-12)
+## 2. Current status (2026-11-07)
+
+Dagger v1.0.0-beta.25 wraps the unchanged
+`scripts/check.sh`. Run `./scripts/dagger.sh check --progress plain`.
+Local success, cache reuse, failure invalidation, and private-input filtering
+were verified, then repeated for the beta after the owner approved it.
+A real native Cloud run rejected stable v0.21.11 because this account requires
+v1.0.0-beta.19 or later. The beta project check passed on the PR merge commit
+for `5c0cf72`; native Cloud Checks now replaces the duplicate Actions workflow.
+PR #61 carries this setup; run `gh pr view 61` for its live review and merge state.
+See [the development guide](docs/DEVELOPMENT.md#dagger-checks) for setup and limits.
 
 Local tooling: `.pi/` joins the ignored agent folders. This clone's ignored
 `.entire/settings.local.json` sets `strategy_options.push_sessions` to `false`.
 Entire recording remains enabled; automatic checkpoint uploads are off.
 This setting is local and does not configure other clones.
-The change uses branch `chore/ignore-pi-tooling`; the mapping slice below is unchanged.
+The ignore rule landed in PR #60; the mapping slice below is unchanged.
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
