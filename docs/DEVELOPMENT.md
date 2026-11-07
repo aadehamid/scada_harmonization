@@ -30,27 +30,29 @@ Commands: `uv sync` · `uv run pytest` · `uv run ruff check .` · `uv run ruff 
 ## Dagger checks
 
 `./scripts/dagger.sh check --progress plain` runs the same `scripts/check.sh`
-in a Linux container. Use `--list` to list the available check,
-`scada-ci:project`. The wrapper requires Docker and Dagger v0.21.11, the latest
-stable release verified on 2026-11-07. It uses the CLI at
-`~/.local/share/dagger/v0.21.11/dagger`; set `DAGGER_BIN` if installed elsewhere.
-Install that release from the
-[official release assets](https://github.com/dagger/dagger/releases/tag/v0.21.11)
-and verify the archive against the release's `checksums.txt`.
+in a Linux container. Use `--list` to list the `project` check in module
+`scada-ci`. The wrapper requires Docker and Dagger v1.0.0-beta.25.
+The owner approved this pre-release because Cloud Engines rejected stable
+v0.21.11 and require v1.0.0-beta.19 or later. The wrapper uses the CLI at
+`~/.local/bin/dagger`; set `DAGGER_BIN` if installed elsewhere.
+Verify its release with `dagger version --quiet`.
 
 The wrapper creates or starts the privileged local engine
-`scada-dagger-engine-v0.21.11` and keeps its cache in Docker volume
-`scada-dagger-cache-v0.21.11`. It does not replace another project's engine.
+`scada-dagger-engine-v1.0.0-beta.25` and keeps its cache in Docker volume
+`scada-dagger-cache-v1.0.0-beta.25`. It does not replace another project's engine.
 Start OrbStack or another Docker-compatible runtime first.
 Before upload, it creates a temporary snapshot from Git's tracked and
 non-ignored files, including unstaged edits and new non-ignored files.
 Nested ignored tooling is therefore excluded too. The snapshot is removed
 when the command exits. Cloud checkout inputs come from the pushed commit.
-Dagger generates its Python SDK inside the temporary snapshot.
+Dagger's beta workspace reads the snapshot through a synthetic Git index.
+`dagger.toml` selects the module in `dagger.json`, which uses the beta's
+documented unmanaged Python compatibility runtime. It generates its SDK
+inside the temporary snapshot, without vendoring a new SDK into the application.
 `ci/pyproject.toml` and `ci/uv.lock` isolate its environment from the application,
 whose dependencies stay in the root `pyproject.toml` and `uv.lock`.
 
-`dagger.json` and `ci/src/scada_ci/main.py` define the pipeline. The container
+`dagger.toml`, `dagger.json`, and `ci/src/scada_ci/main.py` define the pipeline. The container
 prepares Python, uv, Git, and frozen dependencies before copying changing source.
 The source filter excludes local agent folders, secrets, virtual environments,
 real Git metadata, warehouse data, and private references. Only the README files
@@ -61,8 +63,9 @@ Use the launcher for local runs. Calling the module directly bypasses its
 Git-ignore filtering, even though the module's own source allowlist still applies.
 
 Run the command twice without editing inputs to see cache reuse. In the
-two-run launcher demonstration, the first observed run took 15.77 seconds and the next
-took 1.87 seconds. The second trace marked the entire project check `CACHED`.
+beta launcher demonstration, the first observed run took 25.53 seconds and the next
+took 3.55 seconds. The second trace completed the project check in under a second
+by reusing the earlier work.
 These are individual observations, not a benchmark or a guaranteed speedup.
 Cached success means the earlier result was reused, not that tests ran again.
 A temporary wrong test-count claim invalidated that result and failed the
@@ -79,15 +82,14 @@ does not split the suite into separate cached lint/test/doc jobs.
 
 ### Push-triggered cloud execution
 
-Native Dagger Cloud Checks is enabled for this repository. Hosted execution
-still needs verification from a pushed commit before the existing GitHub
-Actions job can be removed. The local pipeline uses stable v0.21.11; the
-installed v1.0.0-beta.25 CLI provides the separate Cloud management commands.
-Do not use the beta CLI to run this stable module locally.
+The first native Cloud run loaded the stable module but failed engine provisioning.
+The owner then approved v1.0.0-beta.25 for local and hosted execution.
+The existing GitHub Actions job remains until the beta passes a real pushed-run check.
 
 Cloud Checks uses the installed Dagger GitHub App, not a token committed to the
-repository. Use the Cloud management CLI's `dagger cloud checks list` or view
-GitHub commit checks to inspect runs. `dagger cloud checks off` disables native
+repository. Use `dagger cloud checks list` or view GitHub commit checks to inspect
+runs. PR checks may test GitHub's merge commit rather than the head SHA; use the
+commit in the check URL when looking up that run. `dagger cloud checks off` disables native
 automatic checks. The existing account reported an active trial ending
 2026-11-14; no subscription change was made by this setup. Check account usage
 and billing before relying on continued hosted capacity.

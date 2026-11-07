@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Keep this repo's stable engine separate from other projects' Dagger versions.
+# Keep this repo's pinned engine separate from other projects' Dagger versions.
 set -euo pipefail
 
-version=v0.21.11
+version=v1.0.0-beta.25
 engine=scada-dagger-engine-$version
-cli="${DAGGER_BIN:-$HOME/.local/share/dagger/$version/dagger}"
+cli="${DAGGER_BIN:-$HOME/.local/bin/dagger}"
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 
 if [[ ! -x "$cli" ]]; then
   printf 'Install Dagger %s at %s, or set DAGGER_BIN to that release.\n' "$version" "$cli" >&2
   exit 1
 fi
-if [[ "$("$cli" version)" != "dagger $version "* ]]; then
+if [[ "$("$cli" version --quiet)" != "$version"+* ]]; then
   printf 'This project requires Dagger %s.\n' "$version" >&2
   exit 1
 fi
@@ -24,7 +24,7 @@ elif [[ "$(docker inspect --format '{{.State.Running}}' "$engine")" != true ]]; 
   docker start "$engine" >/dev/null
 fi
 
-export _EXPERIMENTAL_DAGGER_RUNNER_HOST="docker-container://$engine"
+export DAGGER_ENGINE="container://$engine"
 
 # Dagger's Ignore filter does not inherit Git's ignore rules. Filter before upload.
 snapshot="$(mktemp -d "${TMPDIR:-/tmp}/scada-dagger.XXXXXX")"
@@ -37,4 +37,6 @@ git -C "$repo" ls-files -z --cached --others --exclude-standard |
   done |
   tar -C "$repo" --null --no-recursion --files-from - -cf - |
   tar -C "$snapshot" -xf -
-"$cli" --mod "$snapshot" "$@"
+git -C "$snapshot" init --quiet --initial-branch=main
+git -C "$snapshot" add --all
+"$cli" --workspace "$snapshot" "$@"

@@ -16,6 +16,7 @@ SOURCE_FILTER = [
     "!README.md",
     "!REVIEW_STANDARDS.md",
     "!dagger.json",
+    "!dagger.toml",
     "!pyproject.toml",
     "!ty.toml",
     "!uv.lock",
@@ -64,10 +65,10 @@ SOURCE_FILTER = [
 class ScadaCi:
     @function
     @check
-    def project(
+    async def project(
         self,
-        source: Annotated[dagger.Directory, DefaultPath("."), Ignore(SOURCE_FILTER)],
-    ) -> dagger.Container:
+        source: Annotated[dagger.Directory, DefaultPath("/"), Ignore(SOURCE_FILTER)],
+    ) -> None:
         """Run scripts/check.sh with locked dependencies and an isolated Git index."""
         uv = dag.container().from_("ghcr.io/astral-sh/uv:0.13.7")
         dependencies = (
@@ -83,10 +84,11 @@ class ScadaCi:
             .with_file(".python-version", source.file(".python-version"))
             .with_exec(["uv", "sync", "--frozen", "--group", "dev", "--no-install-project"])
         )
-        return (
+        await (
             dependencies.with_directory("/work", source)
             .with_exec(["uv", "sync", "--frozen", "--group", "dev"])
             .with_exec(["git", "init", "--initial-branch=main"])
             .with_exec(["git", "add", "--all"])
             .with_exec(["bash", "scripts/check.sh"])
+            .sync()
         )
