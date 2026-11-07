@@ -15,6 +15,12 @@ defines the project. This file owns continuity and current status.
 
 ## 2. Current status (2026-10-12)
 
+Local tooling: `.pi/` joins the ignored agent folders. This clone's ignored
+`.entire/settings.local.json` sets `strategy_options.push_sessions` to `false`.
+Entire recording remains enabled; automatic checkpoint uploads are off.
+This setting is local and does not configure other clones.
+The change uses branch `chore/ignore-pi-tooling`; the mapping slice below is unchanged.
+
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
 > they quoted `main` at two different commits while the truth was a third.
