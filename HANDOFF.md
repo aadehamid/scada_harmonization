@@ -15,6 +15,13 @@ defines the project. This file owns continuity and current status.
 
 ## 2. Current status (2026-10-12)
 
+CI setup on `ci/dagger-checks`: stable Dagger v0.21.11 wraps the unchanged
+`scripts/check.sh`. Run `./scripts/dagger.sh check --progress plain`.
+Local success, cache reuse, failure invalidation, and private-input filtering
+were verified. Native Dagger Cloud Checks is enabled, but hosted execution
+still needs proof from a push; the existing Actions job remains.
+See [the development guide](docs/DEVELOPMENT.md#dagger-checks) for setup and limits.
+
 Local tooling: `.pi/` joins the ignored agent folders. This clone's ignored
 `.entire/settings.local.json` sets `strategy_options.push_sessions` to `false`.
 Entire recording remains enabled; automatic checkpoint uploads are off.

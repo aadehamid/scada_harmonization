@@ -1,0 +1,8 @@
+{
+  "name": "scada-ci",
+  "engineVersion": "v0.21.11",
+  "sdk": {
+    "source": "python"
+  },
+  "source": "ci"
+}
