@@ -20,8 +20,9 @@ CI setup on `ci/dagger-checks`: Dagger v1.0.0-beta.25 wraps the unchanged
 Local success, cache reuse, failure invalidation, and private-input filtering
 were verified, then repeated for the beta after the owner approved it.
 A real native Cloud run rejected stable v0.21.11 because this account requires
-v1.0.0-beta.19 or later. PR #61 remains open; the beta still needs a successful
-hosted push before removing the existing Actions job.
+v1.0.0-beta.19 or later. The beta project check passed on the PR merge commit
+for `5c0cf72`; native Cloud Checks now replaces the duplicate Actions workflow.
+PR #61 remains open pending final cutover verification and review.
 See [the development guide](docs/DEVELOPMENT.md#dagger-checks) for setup and limits.
 
 Local tooling: `.pi/` joins the ignored agent folders. This clone's ignored

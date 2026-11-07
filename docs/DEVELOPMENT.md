@@ -36,6 +36,7 @@ The owner approved this pre-release because Cloud Engines rejected stable
 v0.21.11 and require v1.0.0-beta.19 or later. The wrapper uses the CLI at
 `~/.local/bin/dagger`; set `DAGGER_BIN` if installed elsewhere.
 Verify its release with `dagger version --quiet`.
+Use `./scripts/dagger.sh check --progress report` for a concise pass/fail summary.
 
 The wrapper creates or starts the privileged local engine
 `scada-dagger-engine-v1.0.0-beta.25` and keeps its cache in Docker volume
@@ -84,7 +85,11 @@ does not split the suite into separate cached lint/test/doc jobs.
 
 The first native Cloud run loaded the stable module but failed engine provisioning.
 The owner then approved v1.0.0-beta.25 for local and hosted execution.
-The existing GitHub Actions job remains until the beta passes a real pushed-run check.
+The first beta hosted run passed on the PR merge commit for `5c0cf72`:
+[`project` succeeded in 53.4 seconds](https://dagger.cloud/aadehamid-ece/checks/github.com/aadehamid/scada_harmonization@b4f280afb1288898ce49ca010db68a9daddd09cf?check=project).
+Native Cloud Checks replaces the old GitHub Actions workflow, so a push does
+not intentionally run the same suite through two CI providers. At cutover,
+`main` had no branch rules requiring the removed Actions status.
 
 Cloud Checks uses the installed Dagger GitHub App, not a token committed to the
 repository. Use `dagger cloud checks list` or view GitHub commit checks to inspect
@@ -97,7 +102,7 @@ and billing before relying on continued hosted capacity.
 **Checks run through one script: `scripts/check.sh`.** It runs ruff check, ruff
 format `--check`, ty, pytest, `scripts/facts.py check`, and `scripts/facts.py links`. It fails if the
 checks change the working tree. CI calls it; so does the pre-push hook. **Add a
-gate there, not in `ci.yml` and not in the hook**, so a local run and a CI run
+gate there, not in the Dagger module and not in the hook**, so a local run and a CI run
 stay identical.
 
 **Figures and searches come from `scripts/facts.py`**, never from counting by
