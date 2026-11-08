@@ -218,6 +218,12 @@ so it's not in the ontology pipeline."*
 
 ### Plane 3 tooling references (§12 #13, 2026-10-12 UTC)
 
+- **SSSOM (Simple Standard for Sharing Ontological Mappings)** — a tabular TSV standard for
+  exchanging ontology-to-ontology mappings with match type and provenance columns. The
+  candidate crosswalk lane (LSC-REF-001, 2026-11-08) adopts its shape: subject, object,
+  predicate (a SKOS mapping relation), match type, and evidence, kept outside `identity_map`
+  because it aligns classes, not same-referent records. Worked exemplar: the IES↔HQDM
+  crosswalk repository (17 correspondences + divergences record + SHACL validation).
 - **`brickschema`** — BSD-3-Clause Python package for working with the Brick Schema ontology
   (PyPI 0.8.0). Default dependencies: `owlrl`, `pyshacl`, `pyshifty`, `rdflib`, `reasonable`
   (default SHACL engine `shifty` — `pyshacl` is the explicit `engine="pyshacl"` alternative).

@@ -115,6 +115,33 @@ before any install. The domain comparison (buildings vs. process) is read agains
 charter's §2 domain table and against Brick v1.5.0's equipment definitions
 (`bricksrc/equipment.py`, which defines `Pump`, `Compressor`, and `Valve`).
 
+### Ontology candidates from the 2026-11-08 search (proposals, not adopted)
+
+A secondary TinyFish web/registry search for ontologies aligned to the anchors (ISO 15926/DEXPI,
+ISA-95, SKOS, QUDT) produced the list below. Same rules as this section: proposals only; a phase
+review must choose versions and demonstrate use before any adoption. Facts were inspected from
+primary sources on 2026-11-08 UTC (repository pages, release and license reads through the GitHub
+API, ISO/registry pages); anything not verified from a primary source is flagged in the row.
+
+| Candidate | Location | What is verified | Fit and proposed role |
+| --- | --- | --- | --- |
+| **QUDT** | qudt.org; github.com/qudt/qudt-public-repo | CC-BY-4.0 (repository LICENSE and README, read 2026-11-08); latest release v3.5.3, 2026-10-20 (GitHub release, read); distribution includes `QUDT-all-in-one-SHACL.ttl` and `QUDT-all-in-one-OWL.ttl` (README, read) | Units/quantity backbone for §14 N18's "QUDT-style unit nodes later" hook; class crosswalk via plain SKOS mapping relations into the units dimension table. **Strongest of the list.** |
+| **PCA RDL (ISO 15926-4 reference data)** | rds.posccaesar.org/services/downloads/ | Turtle / RDF/XML / JSON-LD / Manchester distribution confirmed (site page, read); class pages carry OWL axioms (e.g. `Compressor`); site states IDO compliance. **License terms not found on-inspect — unverified.** | The concrete ISO 15926-4 instance behind §12 #13's anchor; ET equipment vocabulary crosswalk (lab ontology classes ↔ RDL classes, SKOS mapping relations). |
+| **IDO (Industrial Data Ontology)** | ISO 23726-3 (DIS); draft at rds.posccaesar.org/WD_IDO.pdf | Existence and OWL basis confirmed (ISO OBP entry, read; PCA draft PDF, 2023, read); final publication status **unverified**; draft's own reuse terms **unverified** | The standardized, simplified descendant of ISO 15926-2; reference role; crosswalk target if it finalizes. |
+| **ISO 15926-14 / HQDM** | bioregistry.io/iso15926; gchq/HQDM; readi-jip.org draft | Purpose and OWL 2 DL basis confirmed (bioregistry, read; READI-JIP draft PDF, read); gchq/HQDM is Apache-2.0 (GitHub API) but **stale** (last push 2022-07); a maintained TTL in the Mimir/READI lineage is **not verified** | Upper-ontology alignment reference only — the lab's ISO 15926/DEXPI core stays as decided. |
+| **IES ↔ HQDM crosswalk** | github.com/fabio-rovai/ies-hqdm-crosswalk | LICENSE file is CC-BY-4.0 (read); active (pushed 2026-09-07, GitHub API); repo-stated deliverables: 17 SSSOM correspondences, 6 curated divergences, SHACL validation, HermiT promotion — **repo's own claims, cited as candidate-for-review, not independently reproduced** | Pattern reference for running and validating an SSSOM crosswalk beside §14 N36's class-crosswalk lane — not for its domain content. |
+| **DEXPI via pyDEXPI** | dexpi.org; github.com/process-intelligence-research/pyDEXPI | AGPL-3.0 (GitHub API, read); implements DEXPI 2.0.1, writes XML + JSON (README, read); 265 stars; pushed 2026-11-01 | Tooling reference for the charter's DEXPI hands-on milestone (Phase 5b.1, §13); the data model is Pydantic/XML, **not RDF** — it informs the ET graph vocabulary, it is not the ontology itself. AGPL matters if code is embedded, not if the spec is read. |
+| **B2MML-BatchML** | github.com/MESAInternational/B2MML-BatchML | XSD implementation of ISA-95/IEC 62264 object models (README, read); license **NOASSERTION on GitHub** — MESA terms **unverified**; last push 2023-08 | Pattern reference for the IT-leg object model (equipment, production orders, lots, work orders); XSD, not RDF. |
+| **ISA-95 as OWL** | — | **Not found** on the searched registry paths (BARTOC/LOV/search); nearest finds are papers and B2MML's XSDs. Negatives are reported only as *not found*, not proven absent. | If a mature open ISA-95 OWL emerges, it would map directly onto the ISA-95 anchor; revisit at Phase 5a. |
+
+Evidence notes: QUDT facts read from the repository's README and release feed; PCA, IDO, and
+Brick-adjacent pages read live on 2026-11-08 UTC; pyDEXPI, B2MML, HQDM, and the crosswalk
+repository verified through the GitHub API (license, push dates) plus the fetched READMEs. Two
+search-result pages (a vendor explainer and a commentary on crosswalk failures) were treated as
+leads only and are not cited for facts. The crosswalk-lane distinction from the Brick review is
+kept: class alignment uses plain SKOS mapping relations outside `identity_map`; `match_rule`
+(§14 N36) applies only to same-referent instance records.
+
 ## Documentation coverage
 
 Existing documents already cover the domain, synthetic data, L0 contract, Phase 1
