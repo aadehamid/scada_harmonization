@@ -43,9 +43,12 @@ Adapted from the Intentional Arrangement / Ontology Pipeline resource catalog (J
 Merged at head `af59e2a` with all checks green (Dagger, Bugbot, three Cursor agents) and the
 reviewer's MERGE on that head; independent review ran on Kimi/K3.1 Pro (two rounds).
 
-Also merged 2026-11-08: PR #63 (this file's post-merge fix) and PR #64 (Brick Schema
-assessed in LSC-REF-001 as a reference, not adopted — owner-approved in-session; two Kimi
-review rounds plus Cursor bot comments, all verified, bot approved and merged).
+Also merged 2026-11-08: PR #63 (this file's post-merge fix, merged at `b62d0ea` 06:12 UTC via
+the owner's session) and PR #64 (Brick Schema assessed in LSC-REF-001 as a reference, not
+adopted — owner-approved in-session; two Kimi review rounds, then Cursor bot inline comments
+(seven claims across three: subsystem list, point-class pattern claim, SHACL citation) fixed
+in `54500d7`; the bot cleared the fixed head ("Clean on `54500d72`", COMMENTED 07:09:15Z) and
+`cursor[bot]` merged at 07:09:23Z).
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:

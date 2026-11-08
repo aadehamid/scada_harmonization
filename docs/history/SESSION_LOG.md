@@ -878,9 +878,14 @@ package (PyPI 0.8.0) defaults to five dependencies (`owlrl`, `pyshacl`, `pyshift
 installs none of them; Brick v1.5.0's equipment definitions include Pump, Compressor, and
 Valve, confirming the overlap noted in LSC-REF-001.
 
-Merge record: PR #63 merged 2026-11-08 (owner-authorized "merge if everything is
-clean", post-merge handoff fix; one transient Dagger Cloud 'project' check failure —
-local run passed and a rerun passed in 27s; re-asked via empty commit). PR #64
-merged 2026-11-08 07:09 UTC by the Cursor bot after it APPROVED the head; the bot's
-three source-fidelity comments (subsystem list, point-class pattern claim, SHACL
-release-note citation) were verified against the cited sources and fixed in 54500d7.
+Merge records: PR #63 merged 2026-11-08 06:12 UTC (merge commit b62d0ea;
+owner-authorized "please merge if everything is clean. and clean up" — post-merge handoff fix;
+one transient Dagger Cloud 'project' check failure on 90b8b90 — local run passed and the
+rerun on empty commit a5eb499 passed in 27.4s). PR #64 merged 2026-11-08 07:09 UTC by
+cursor[bot] (merge commit f79e85d): Kimi ran two independent review rounds; cursor[bot]
+then posted two inline comments holding two false claims plus a misattributed source in
+the LSC-REF-001 block (subsystem list, point-class mapping, SHACL release-note
+attribution — three claims across the two comments), all verified against the cited
+sources and fixed in 54500d7; the bot's review of the fixed head was COMMENTED
+("Clean on 54500d72", 07:09:15Z) — its earlier APPROVED was on 79ddc93, the comment-held
+head, not the merged one.
