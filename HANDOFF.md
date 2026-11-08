@@ -4,8 +4,9 @@
 **Last updated:** 2026-11-08 UTC (PR #62 merged — charter §14.7 N36/N37; PR #64 merged — Brick Schema
 recorded in LSC-REF-001 as a domain reference, not adopted; PR #63 merged — handoff post-merge fix;
 PR request — ontology candidate list (QUDT, PCA RDL, IDO, ISO 15926-14/HQDM, IES↔HQDM crosswalk,
-pyDEXPI, B2MML; ISA-95-as-OWL not found) recorded in LSC-REF-001 §3 as proposals, not adopted, on
-branch `docs/ontology-candidate-search`. Mapping-table spine remains the next build slice; run
+pyDEXPI, B2MML; ISA-95-as-OWL not found) recorded in LSC-REF-001's
+["External reference vocabularies assessed (not adopted)"](docs/LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md#external-reference-vocabularies-assessed-not-adopted)
+section as proposals, not adopted, on branch `docs/ontology-candidate-search`. Mapping-table spine remains the next build slice; run
 `scripts/facts.py main` for the tip)
 
 Read section 2 for current status and section 3 for the next build slice.
