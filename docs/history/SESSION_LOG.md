@@ -841,8 +841,10 @@ Owner's recorded words: *go ahead and add them* (2026-11-07).
 
 One agent refinement, stated here so the record is honest: the recommendation said
 "match_type column", but §14 N15 already defines match_rule / match_confidence columns
-on identity_map, so N36 fixes the SKOS mapping-relation set (skos:exactMatch /
-skos:closeMatch / skos:broadMatch / skos:narrowMatch, plus unresolved) as match_rule's
+on identity_map, so N36 fixes SKOS mapping relations (skos:exactMatch /
+skos:closeMatch / skos:broadMatch / skos:narrowMatch, plus unresolved;
+skos:relatedMatch is excluded on purpose: it does not
+assert a shared referent, so it cannot justify reconciling two identities) as match_rule's
 value domain instead of adding a column. Same intent, no duplicate column; flagged to
 the owner in the PR body.
 
