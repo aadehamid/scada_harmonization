@@ -940,3 +940,14 @@ nearest are the general process-plant options already in LSC-REF-001 (PCA RDL) a
 separate checks for its GPL license and version, OntoCAPE (RWTH Aachen, chemical-engineering
 process ontology — surfaced in the 2026-11-08 search but not filed in LSC-REF-001), and
 the BFO/IOF-aligned COPI. Nothing adopted; charter unchanged.
+
+Merge records (session close, 2026-11-08 UTC): PR #67 merged 2026-11-08 18:41 UTC by
+cursor[bot] (merge commit 4619942) — LSC-REF-002 downstream oil & gas operational-process
+ontology search documented as proposals, not adopted. PR #68 merged 2026-11-08 19:25 UTC by
+cursor[bot] (merge commit 30c20c3) — portable macOS working-tree guard in scripts/check.sh:
+the snapshot moved from GNU-only tools (sed -z / stat -c / sha256sum) to an embedded Python
+program; 25/25 guard tests + 172/172 full suite pass, and check.sh verified under a plain
+macOS PATH with no coreutils/gnu-sed. Independent review on #68 ran on Pi (the Kimi
+herdr-review harness failed with its own NameError before launching, twice); Pi verdict:
+READY, no blocking findings — commit-message tool list corrected in amend 6d89fe8 after Pi
+measured BSD sort -z / xargs -r actually work on macOS. The user closed the session here.
