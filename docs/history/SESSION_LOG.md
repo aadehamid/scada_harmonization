@@ -910,3 +910,33 @@ PR #64 distinction: class alignment via plain SKOS mapping relations outside ide
 match_rule (§14 N36) governs identity_map reconciliation rows — exactMatch/closeMatch (same
 referent), broadMatch/narrowMatch (hierarchy mismatch), plus unresolved — never class-level
 alignment. Learning log gains an SSSOM glossary entry. Nothing adopted; no charter change.
+
+### 2026-11-08 UTC (later): downstream oil & gas operational-process ontology search recorded (docs only)
+
+The owner asked whether there is an ontology specific to downstream oil and gas, then to
+create a dedicated document recording the downstream O&G operational-process ontology
+findings and recommendations so the search does not need to be repeated. Recorded in
+LSC-REF-002 (downstream oil & gas process ontologies) as proposals, not adopted. Owner's
+recorded words (session): "Also is there any one specfic for Downstream oil and gass can
+you create a documents in the repo to docuemnd these findings and recommendation so that
+when I am looking for operational process ontology I do nto have to do the search agaia.
+Then update the repo documents to include these findings in relevant places." This follows
+the earlier 2026-11-08 OT-process search (package list) whose results were also reviewed
+in-session.
+
+Findings verified from primary sources 2026-11-08 UTC via TinyFish + GitHub API + repo
+fetches: COPI (INF-UFRGS-Ontologies/copi; CC-BY-4.0 LICENSE read; BFO 2020 + IOF-Core;
+interoperates with ISO 15926-4, ISO 14224, CFIHOS, DEXPI; active 2026-11-04; TTL+OWL
+distributions), O3PO (BDI-UFRGS/O3POntology; MIT; offshore petroleum production; paper ESWA
+2024), CFIHOS ontology (tecnomod-um/cfihos; OWL, standalone + CFIHOS-IDO aligned; no LICENSE
+file — GitHub API reports no license — unverified, so flagged), CFIHOS RDL v2.0 (POSC Caesar,
+https://posccaesar.org/ontologies/cfihos/v2.0; GUID identity scheme — license terms not
+found on-inspect, flagged), ISO 15926-14 READI-JIP draft (title confirms "process plants
+including oil and gas"), BioPortal ISO-15926-2 oil entry (existence + OWL status from a
+search snippet; live page bot-blocked — flagged not independently verified), and IBM ITOPS
+(IT operations, archived 2024 — excluded as not oil & gas). Negatives: no mature openly
+licensed ontology specific to downstream refining operations themselves was found; the
+nearest are the general process-plant options already in LSC-REF-001 (PCA RDL) and, with
+separate checks for its GPL license and version, OntoCAPE (RWTH Aachen, chemical-engineering
+process ontology — surfaced in the 2026-11-08 search but not filed in LSC-REF-001), and
+the BFO/IOF-aligned COPI. Nothing adopted; charter unchanged.

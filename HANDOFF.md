@@ -1,13 +1,12 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-11-08 UTC (PR #62 merged — charter §14.7 N36/N37; PR #64 merged — Brick Schema
-recorded in LSC-REF-001 as a domain reference, not adopted; PR #63 merged — handoff post-merge fix;
-PR request — ontology candidate list (QUDT, PCA RDL, IDO, ISO 15926-14/HQDM, IES↔HQDM crosswalk,
-pyDEXPI, B2MML; ISA-95-as-OWL not found) recorded in LSC-REF-001's
-["External reference vocabularies assessed (not adopted)"](docs/LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md#external-reference-vocabularies-assessed-not-adopted)
-section as proposals, not adopted, on branch `docs/ontology-candidate-search`. Mapping-table spine remains the next build slice; run
-`scripts/facts.py main` for the tip)
+**Last updated:** 2026-11-08 UTC (merged: PR #62 charter §14.7 N36/N37 · PR #63 + #65 handoff
+fixes · PR #64 Brick Schema in LSC-REF-001 · PR #66 ontology candidate list in LSC-REF-001.
+**PR #67 in review** — new [LSC-REF-002](docs/LSC-REF-002_Downstream_OilGas_Process_Ontologies.md),
+downstream O&G operational-process ontology search, proposals not adopted, branch
+`docs/downstream-oilgas-ontologies`. Mapping-table spine
+remains the next build slice; run `scripts/facts.py main` for the tip)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
