@@ -46,7 +46,8 @@ reviewer's MERGE on that head; independent review ran on Kimi/K3.1 Pro (two roun
 Also merged 2026-11-08: PR #63 (this file's post-merge fix, merged at `b62d0ea` 06:12 UTC via
 the owner's session) and PR #64 (Brick Schema assessed in LSC-REF-001 as a reference, not
 adopted — owner-approved in-session; two Kimi review rounds, then Cursor bot inline comments
-(seven claims across three: subsystem list, point-class pattern claim, SHACL citation) fixed
+(three claims across two comments: subsystem list, point-class pattern claim, SHACL citation)
+fixed
 in `54500d7`; the bot cleared the fixed head ("Clean on `54500d72`", COMMENTED 07:09:15Z) and
 `cursor[bot]` merged at 07:09:23Z).
 
