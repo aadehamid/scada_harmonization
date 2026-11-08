@@ -889,3 +889,24 @@ attribution — three claims across the two comments), all verified against the 
 sources and fixed in 54500d7; the bot's review of the fixed head was COMMENTED
 ("Clean on 54500d72", 07:09:15Z) — its earlier APPROVED was on 79ddc93, the comment-held
 head, not the merged one.
+
+### 2026-11-08 UTC (later): ISO/DEXPI/ISA-95 ontology candidate list recorded (docs only)
+
+The owner asked for a reusable search prompt for published ontologies, then pasted that
+prompt and instructed "use tiny to search" with its full text; after the reviewed results
+were presented in-session, the owner approved recording them ("Please go ahead"). The
+search ran via TinyFish (registry and anchor queries; primary sources inspected from
+brickschema.org-style repository pages, PyPI/ISO/GitHub, and GitHub API license reads on
+2026-11-08 UTC). Recorded in LSC-REF-001's "External reference vocabularies assessed
+(not adopted)" section as proposals: QUDT (CC-BY-4.0, release v3.5.3 2026-10-20), PCA RDL
+(formats verified, license terms explicitly unverified), IDO (ISO 23726-3, under publication,
+stage 60.00 — catalogue read 2026-11-08; earlier PCA draft PDF, 2023),
+ISO 15926-14/HQDM (final ISO publication status unverified; gchq/HQDM Apache-2.0 but stale;
+READI-JIP draft), the IES↔HQDM SSSOM
+crosswalk (LICENSE file = CC-BY-4.0; repo's own claims cited as candidate-for-review),
+pyDEXPI (AGPL-3.0, DEXPI 2.0.1, active 2026-11-01), B2MML (MESA license unverified), and
+an explicit negative result for a mature open ISA-95 OWL. Crosswalk lane wording keeps the
+PR #64 distinction: class alignment via plain SKOS mapping relations outside identity_map;
+match_rule (§14 N36) governs identity_map reconciliation rows — exactMatch/closeMatch (same
+referent), broadMatch/narrowMatch (hierarchy mismatch), plus unresolved — never class-level
+alignment. Learning log gains an SSSOM glossary entry. Nothing adopted; no charter change.
