@@ -1,9 +1,9 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-11-08 UTC (PR #62 merged: charter §14.7 N36/N37 — SKOS match vocabulary and
-the competency-question gate; merged at head `af59e2a`, main now `4e19062`. Dagger CI setup landed
-on PR #61; mapping-table spine remains the next build slice)
+**Last updated:** 2026-11-08 UTC (PR #62 merged — charter §14.7 N36/N37; PR #64 merged — Brick Schema
+recorded in LSC-REF-001 as a domain reference, not adopted; PR #63 merged — handoff post-merge fix.
+Mapping-table spine remains the next build slice; run `scripts/facts.py main` for the tip)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
@@ -42,6 +42,14 @@ ontology-authoring role; carried in the §8.1 Phase 5b.1 exit criterion). Owner-
 Adapted from the Intentional Arrangement / Ontology Pipeline resource catalog (Jessica Talisman).
 Merged at head `af59e2a` with all checks green (Dagger, Bugbot, three Cursor agents) and the
 reviewer's MERGE on that head; independent review ran on Kimi/K3.1 Pro (two rounds).
+
+Also merged 2026-11-08: PR #63 (this file's post-merge fix, merged at `b62d0ea` 06:12 UTC via
+the owner's session) and PR #64 (Brick Schema assessed in LSC-REF-001 as a reference, not
+adopted — owner-approved in-session; two Kimi review rounds, then Cursor bot inline comments
+(three claims across two comments: subsystem list, point-class pattern claim, SHACL citation)
+fixed
+in `54500d7`; the bot cleared the fixed head ("Clean on `54500d72`", COMMENTED 07:09:15Z) and
+`cursor[bot]` merged at 07:09:23Z).
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
