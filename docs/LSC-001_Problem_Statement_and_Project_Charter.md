@@ -4,9 +4,10 @@
 source docs now under `reference/` (`reference/docs/` and
 `reference/engineering_drawing_business_case/`); `README.md` and `AGENTS.md` are aligned to it.
 
-**Last updated:** 2026-10-07 (§2 gains the engineering (ET) problem; the lab now **builds** the
-drawing-to-graph path — Phase 5b split into 5b.1 engineering graph / 5b.2 context, reversing the
-document-extraction exclusion; §12 #20. Other decisions unchanged since 2026-07-06)
+**Last updated:** 2026-11-08 (§14.7 adds N36/N37 — SKOS match vocabulary for `identity_map`
+and the competency-question gate for the first ontology TTL; adapted from the Intentional
+Arrangement / Ontology Pipeline resource catalog. Previous change: the §12 #13 amendment,
+owner-confirmed 2026-10-12 UTC.)
 
 ---
 
@@ -689,8 +690,8 @@ Phase 1 may close in parallel with the walkthrough. Its exit is replay-only (det
 | **4b** | All 4 sites conformed, including both real-protocol sites; Beaumont raw counts scale correctly end-to-end (§14 N17) |
 | **4c** | Kill EMQX/WAN for N minutes → the site keeps operating locally; on reconnect the forwarder backfills with `is_historical`, **no gaps and no duplicates** in Timescale, rollups correct (§14 N11/N12); the skewed-clock site is detected and corrected (§14 N9) |
 | **5a** | Python CDC and Debezium emit `ChangeEvent`s passing the **same contract tests**, including a hard-delete case the Python poller provably misses; Apicurio schema-evolution exercise done (§14 N26/N29) |
-| **5b.1** | The extraction pipeline reads the Unit 100 Rev B sheet and publishes an engineering graph whose connectivity matches the P&ID's, with every relationship carrying source evidence and a review status; a scanned variant of the same sheet runs through the confidence and review flow, and the two results reconcile; an unresolved interpretation is visible as such, not silently merged; a rejected revision leaves the previous published state queryable |
-| **5b.2** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15); ERPNext receives curated confirmations; **the order-to-cash thread closes end-to-end** — Sales Order → plan → work order → lot → Delivery Note → Invoice, with genealogy linking every hop (§12 #18) |
+| **5b.1** | The extraction pipeline reads the Unit 100 Rev B sheet and publishes an engineering graph whose connectivity matches the P&ID's, with every relationship carrying source evidence and a review status; a scanned variant of the same sheet runs through the confidence and review flow, and the two results reconcile; an unresolved interpretation is visible as such, not silently merged; a rejected revision leaves the previous published state queryable; the ontology TTL shipped with the graph passes its recorded competency questions (§14 N37, added 2026-11-08) |
+| **5b.2** | The genealogy query answers *"which finished lots contain feedstock lot X?"* (§14 N13/N14); one survivorship-conflict demo resolves per policy (§14 N15; match_rule vocabulary amended §14 N36, 2026-11-08); ERPNext receives curated confirmations; **the order-to-cash thread closes end-to-end** — Sales Order → plan → work order → lot → Delivery Note → Invoice, with genealogy linking every hop (§12 #18) |
 | **6** | A model climbs L0→L1 through defined gates (§14 N30); one recommendation with SHAP + TTL is approved in the console → DCMD → clamped write → DDATA read-back → `command_audit` row (§14 N5/N24/N32); drift dashboard live (§14 N31); T²/SPE catches a TEP fault univariate EWMA misses (§14 N33) |
 | **7** | The copilot answers a cross-domain question (fault → lot → work order → lab result) grounded in graph citations |
 
@@ -872,8 +873,16 @@ beyond ERPNext community.
       project page; the package's `LICENSE.txt` confirms); `rdflib` 7.6.0 license = BSD-3-Clause
       (PyPI project page); OpenMetadata native RDF glossary import is documented in the 2.0
       breaking-changes for data governance (`importRdf` is new in 2.0; 1.x does not have it).
+    - **Amended (2026-11-08, §14 N36/N37):** the identity-reconciliation stitch IT ↔ OT ↔ ET
+      adopts SKOS mapping relations minus `skos:relatedMatch` (it does not assert a shared
+      referent), plus the local `unresolved` state, as `identity_map.match_rule`'s vocabulary
+      (§14 N36);
+      and the ontology-authoring role gains a **competency-question gate** — the first
+      `config/ontology/*.ttl` is written only after its competency questions are recorded
+      (§14 N37). Both adapted from the Intentional Arrangement / Ontology Pipeline resource
+      catalog (Jessica Talisman); owner-approved 2026-11-08 (see `docs/history/SESSION_LOG.md`).
     - See §4.1 (tool rows: `rdflib`, `pyshacl`, `OpenMetadata`), §13.1 L5.1 (anchored split),
-      §13.2 (net-new components), §13.3 (no separate triplestore).
+      §13.2 (net-new components), §13.3 (no separate triplestore), §14.7 (N36/N37).
 14. ~~Plane 4 flagship use case~~ — **DECIDED (2026-06-21):** **yield improvement / production-leakage**
     is the named flagship Track-A use case (generic ML methods retained), delivered as human-in-the-loop,
     edge-executed recommendations. **No** lab→pilot→plant tier added — LIMS covers the lab leg. Folds the
@@ -891,7 +900,7 @@ beyond ERPNext community.
     hand-built:** TimescaleDB + Grafana (Core does not bundle the Classic historian/visualization
     stack). Diagram 2 (§13.4 #2) depicts UMH Core. The UMH-anchored note describes the legacy Classic
     bundle — kept for background only.
-17. **IT/OT best-practice review adoptions** — **DECIDED (2026-07-06):** see **§14** (N1–N35 ledger:
+17. **IT/OT best-practice review adoptions** — **DECIDED (2026-07-06):** see **§14** (N1–N37 ledger:
     Sparkplug namespace encoding, forwarder session contract, primary hosts, DCMD command path,
     replay clock, time/quality/historian semantics, lot-based production model, conduit inventory +
     broker auth/TLS/audit, functional-safety correction, and the Plane-4 MLOps additions).
@@ -1142,7 +1151,7 @@ closes them. Anchoring standards: **Sparkplug 3.0** (ISO/IEC 20237:2023), **IEC 
 |---|----------|-----------|
 | N13 | **Continuous process ⇒ lot-based accounting** (ISA-88 out, ISA-106 in) | LSC/TEP is a **continuous** process — there are no physical batches, and ISA-88's recipe/phase model does not apply (ISA-106 is the continuous-process counterpart). `mes.batch`/`batch_step` are reframed as **`mes.production_lot`** (+ `lot_step` if needed) with explicit `start_ts`/`end_ts` and product grade; a "lot" = a defined production time window / grade campaign. **Genealogy = time-window joins** (lot ↔ telemetry ↔ consumed material lots), not batch-record joins. P9's reference becomes a **golden operating window** per (asset, operating mode/grade) — steady-state statistics + the N33 PCA baseline; batch-style golden profiles can still be demonstrated on IIoT machine run cycles. |
 | N14 | **Material model** (ISA-95 Part 2) | Add **`mes.material_definition`** (product/feedstock catalog) and **`mes.material_lot`** (lot_id, definition, quantity, produced-by / consumed-by production run, timestamps). Genealogy is definitionally consumed-lot → produced-lot; `CONSUMED_MATERIAL` graph edges now have source tables, and the recall-scoping query ("which finished lots contain feedstock lot X?") becomes the Plane 3 flagship demo. |
-| N15 | **`identity_map` upgraded to a real MDM analog** | Add `match_rule`, `match_confidence`, `valid_from`/`valid_to`, `steward` columns; write a one-page **survivorship policy** per attribute domain (nameplate attributes: ET topology wins; maintenance status: CMMS wins; financial: ERP wins), enforced by the Python reconciliation service; seed **one deliberate fuzzy-match case** in the synthetic data (`P-101A` vs `EQ-4471` vs "Feed Pump A") so probabilistic matching is exercised. Keeps the L3.1 no-platform decision; makes the "MDM analog" claim true. |
+| N15 | **`identity_map` upgraded to a real MDM analog** | Add `match_rule`, `match_confidence`, `valid_from`/`valid_to`, `steward` columns; write a one-page **survivorship policy** per attribute domain (nameplate attributes: ET topology wins; maintenance status: CMMS wins; financial: ERP wins), enforced by the Python reconciliation service; seed **one deliberate fuzzy-match case** in the synthetic data (`P-101A` vs `EQ-4471` vs "Feed Pump A") so probabilistic matching is exercised. Keeps the L3.1 no-platform decision; makes the "MDM analog" claim true. **Amended (2026-11-08, §14 N36):** `match_rule`'s value vocabulary is fixed to SKOS mapping relations minus `skos:relatedMatch`, plus the local `unresolved` state. |
 | N16 | **`ods_core` zone placement — split along the zone line** (amends §12 #7) | The consolidated Timescale instance straddled the iDMZ: §13.8 Z4 puts the historian OT-side while Neo4j/Spark/lakehouse (IT-side) read `ods_core` — an undeclared crossing. Resolution: **`ts_historian` stays in the OT-side Timescale instance; `ods_core` + `erp_shadow` move to an IT-side Postgres**, fed via the Kafka/CDC conduits that already cross the iDMZ. This accelerates the "split later" seam §4 already promised; §4 database topology updated. |
 | N17 | **Raw-counts → engineering-units scaling** (a missing divergence dimension) | Real AB integer files hold **raw ADC counts** (e.g. 4–20 mA → 6208–31208), not scaled floats. **Beaumont publishes raw integer counts** for its analog tags; the mapping table gains **`raw_min` / `raw_max` / `eu_min` / `eu_max`** columns and a **`scale_linear`** transform primitive joins §7's set. Must land **before Phase 0 freezes the mapping-table schema** — it deepens exactly the lesson Beaumont exists to teach. |
 | N18 | **Units-of-measure governance** | **UNECE Rec 20** codes are the canonical `unit` values in `metric_registry`, backed by a small units dimension table (code, display symbol, dimension, conversion-to-canonical factor) as Phase 0 YAML — otherwise free-text units (`degF`/`°F`/`DEG F`) recreate the divergence problem *inside* the registry. Clean hook for QUDT-style unit nodes in Neo4j later. |
@@ -1178,3 +1187,13 @@ closes them. Anchoring standards: **Sparkplug 3.0** (ISO/IEC 20237:2023), **IEC 
 | N33 | **Multivariate SPC** (extends §13.7 P5) | Two-level, still SPC-first: (1) univariate EWMA/CUSUM on the named yield metrics; (2) **PCA-based Hotelling T² + SPE/Q charts across the TEP unit's harmonized metric set, with contribution plots** for diagnosis. TEP is *the* multivariate-SPC literature benchmark — several of its 21 faults shift correlation structure without moving any single variable's mean, invisible to univariate charts. Contribution plots are the SPC-native cousin of P4's SHAP (~50 lines of scikit-learn; no new infrastructure). |
 | N34 | **Dataset versioning + model cards** | Training extracts are written **once** to immutable versioned paths (`gold/training/<dataset>/<run-id>/`), never overwritten; path + content hash + row count logged as MLflow run params (upholds §9 determinism at the ML layer; Delta time travel becomes the §13.6 graduate-to version of the same concept). Every registered model gets a **model card** owned by a named gatekeeper — deliberately mirroring `metric_registry` governance: intended use, **max authorized HITL level**, training-data version, safety envelope, eval metrics, SHAP mode, known failure modes. |
 | N35 | **Feature single-sourcing + SHAP caveats** (refines §13.7 P4, L6.2) | Feature definitions live **once** as declarative config (name, source metrics, window, aggregation) consumed by *both* the Spark gold job and the edge/online computation — the online/offline split otherwise *creates* training/serving skew; the edge logs its input feature vector with each prediction (N31/N32 need it anyway). P4 refined: L2/L3 recommendation models constrained to classes with fast exact attribution (tree ensembles → TreeSHAP; SPC-native → contribution plots), slower explainers cloud/batch-only; the SHAP `feature_perturbation` choice (interventional vs tree-path-dependent — materially different under TEP's correlated features) is recorded in the model card; console phrasing is **model attribution, not process causation** ("model weighted feed-temp most"), paired with the N33 contribution plot for the process-side view. |
+
+### 14.7 Plane 3 ontology & identity vocabulary (added 2026-11-08)
+
+Adopted from the Intentional Arrangement / Ontology Pipeline resource catalog (Jessica Talisman, 2026).
+Owner-approved 2026-11-08; the recorded exchange is in [the session log](history/SESSION_LOG.md).
+
+| # | Decision | Resolution |
+|---|----------|-----------|
+| N36 | **`identity_map.match_rule` uses SKOS mapping relations** (refines §14 N15) | The identity stitch IT business keys ↔ OT/ISA-95 identities ↔ ET topology is a mapping between vocabularies, so its match relations are typed with SKOS's mapping relations instead of new free text: **`skos:exactMatch`** (same referent, evidence agrees — e.g. `(source_system, source_key)` resolved by a hard join key), **`skos:closeMatch`** (same referent, evidence partial or probabilistic — the class N15's seeded fuzzy-match case exercises), **`skos:broadMatch` / `skos:narrowMatch`** (hierarchy mismatch across source systems), plus **`unresolved`** (the human-review queue before any reconcile). **`skos:relatedMatch` is excluded on purpose:** it does not assert a shared referent, so it cannot justify reconciling two identities into one boundary-rule-2 row — anything not established as at least a closeMatch stays `unresolved`. `match_confidence` (N15) carries the score; the reconciliation service sets the predicate as an enum — never free text and never bare booleans. No new column: N15 already defines `match_rule`/`match_confidence`; this fixes their value domain. Typed relations keep the cross-domain links legible to graph and catalog consumers (§12 #13) instead of an ad-hoc match vocabulary. |
+| N37 | **Competency questions gate the first ontology TTL** (anchors §12 #13's ontology-authoring role) | Before the first `config/ontology/*.ttl` is authored, 3–5 **competency questions** are written — concrete queries the ontology must answer (e.g. "which production lot ran on which reactor during which fault, against which work order?") — and recorded beside the TTL in `config/ontology/` (e.g. `competency_questions.md`). Classes, properties, and axioms are cut to what answers those questions; SHACL shapes validate conformance (§12 #13), the questions validate scope. This applies the repo's contract-first discipline (§7) to Plane 3. The Phase 5b.1 exit criterion (§8.1) carries the gate. |
