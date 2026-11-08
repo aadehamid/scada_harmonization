@@ -1,12 +1,15 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-11-08 UTC (merged: PR #62 charter §14.7 N36/N37 · PR #63 + #65 handoff
-fixes · PR #64 Brick Schema in LSC-REF-001 · PR #66 ontology candidate list in LSC-REF-001.
-**PR #67 in review** — new [LSC-REF-002](docs/LSC-REF-002_Downstream_OilGas_Process_Ontologies.md),
-downstream O&G operational-process ontology search, proposals not adopted, branch
-`docs/downstream-oilgas-ontologies`. Mapping-table spine
-remains the next build slice; run `scripts/facts.py main` for the tip)
+**Last updated:** 2026-11-08 UTC (all merged: PR #62 charter §14.7 N36/N37 · PR #63 + #65
+handoff fixes · PR #64 Brick Schema in LSC-REF-001 · PR #66 ontology candidate list in
+LSC-REF-001 · PR #67 [LSC-REF-002](docs/LSC-REF-002_Downstream_OilGas_Process_Ontologies.md)
+downstream O&G operational-process ontology search, proposals not adopted · **PR #68** made
+`scripts/check.sh`'s working-tree guard portable to macOS — the snapshot now runs in embedded
+Python (Python 3 is guaranteed on both platforms) instead of GNU-only `sed -z`/`stat -c`/
+`sha256sum`; native macOS `check.sh` was failing before any check (CI's Linux container had
+masked it). All 172 tests pass; `check.sh` verified under a plain macOS PATH (no coreutils/gnu-sed).
+Mapping-table spine remains the next build slice; run `scripts/facts.py main` for the tip)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
