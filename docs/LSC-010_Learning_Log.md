@@ -218,6 +218,15 @@ so it's not in the ontology pipeline."*
 
 ### Plane 3 tooling references (§12 #13, 2026-10-12 UTC)
 
+- **`brickschema`** — BSD-3-Clause Python package for working with the Brick Schema ontology
+  (PyPI 0.8.0). Default dependencies: `owlrl`, `pyshacl`, `pyshifty`, `rdflib`, `reasonable`
+  (default SHACL engine `shifty` — `pyshacl` is the explicit `engine="pyshacl"` alternative).
+  Assessed 2026-11-08 UTC as a **reference, not adopted** (LSC-REF-001): Brick is a
+  buildings-centric ontology (HVAC, pumps, valves, meters); it overlaps on generic equipment
+  (`Pump`, `Compressor`, `Valve` exist in Brick v1.5.0) but cannot carry a process plant's
+  canonical vocabulary. Borrow its patterns (point taxonomy, QUDT units, SHACL rule sets,
+  `ref:` external references); a future adoption would add three default dependencies the lab
+  does not use — see the LSC-REF-001 assessment and crosswalk proposal.
 - **`neontology`** — MIT, Pydantic/pandas Python-class → Neo4j mapper. Its public API + the
   optional `[grand]` extra (`networkx` + `grand-cypher`) do **not** include an RDF/OWL parser
   (verified at pypi.org/project/neontology/ 2026-10-12 UTC). The lab uses `rdflib` + `pyshacl`
