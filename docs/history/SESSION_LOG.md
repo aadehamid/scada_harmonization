@@ -899,8 +899,10 @@ search ran via TinyFish (registry and anchor queries; primary sources inspected 
 brickschema.org-style repository pages, PyPI/ISO/GitHub, and GitHub API license reads on
 2026-11-08 UTC). Recorded in LSC-REF-001's "External reference vocabularies assessed
 (not adopted)" section as proposals: QUDT (CC-BY-4.0, release v3.5.3 2026-10-20), PCA RDL
-(formats verified, license terms explicitly unverified), IDO (ISO 23726-3 DIS, draft PDF),
-ISO 15926-14/HQDM (gchq/HQDM Apache-2.0 but stale; READI-JIP draft), the IES↔HQDM SSSOM
+(formats verified, license terms explicitly unverified), IDO (ISO 23726-3, under publication,
+stage 60.00 — catalogue read 2026-11-08; earlier PCA draft PDF, 2023),
+ISO 15926-14/HQDM (final ISO publication status unverified; gchq/HQDM Apache-2.0 but stale;
+READI-JIP draft), the IES↔HQDM SSSOM
 crosswalk (LICENSE file = CC-BY-4.0; repo's own claims cited as candidate-for-review),
 pyDEXPI (AGPL-3.0, DEXPI 2.0.1, active 2026-11-01), B2MML (MESA license unverified), and
 an explicit negative result for a mature open ISA-95 OWL. Crosswalk lane wording keeps the
