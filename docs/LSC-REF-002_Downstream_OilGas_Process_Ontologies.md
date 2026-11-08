@@ -13,7 +13,7 @@ process; record the findings and recommendations so the search is not repeated.
 Downstream oil & gas = refining (crude distillation, cracking, treating, blending), storage
 and terminals, petrochemical plants, and product distribution — as opposed to upstream
 (exploration, production wells, offshore platforms) and midstream (pipelines, gathering).
-The lab's own domain is a specialty-chemicals process plant (§2), so it shares the refining
+The lab's own domain is a multi-site process / specialty-chemicals manufacturer (charter §6), so it shares the refining
 world's unit-operation vocabulary (distillation columns, heat exchangers, reactors, pumps,
 valves) but is not a refinery. Candidates below are scored for how they describe
 **operational process** — unit operation, procedures, phases, states, control, alarms,
@@ -54,7 +54,9 @@ Verified 2026-11-08 UTC from the cited primary sources.
 
 1. **COPI** is the strongest downstream-relevant crosswalk target found: CC-BY-4.0 license
    file, active maintenance, BFO 2020 + IOF-Core foundation, and it *states* interoperability
-   with ISO 15926-4, ISO 14224, **CFIHOS, and DEXPI** — the exact Plane 3 anchors. Entry
+   with ISO 15926-4, ISO 14224, **CFIHOS, and DEXPI** — of which ISO 15926 / DEXPI are the lab's
+   decided Plane 3 anchors (§12 #13); ISO 14224 and CFIHOS are candidates from this search, not
+   adopted anchors. Entry
    path: class crosswalk (`ConfigurationItem`, `Equipment`, `Process`, unit-operation terms)
    into `config/ontology/*.ttl` via plain SKOS mapping relations outside `identity_map`.
    Competency question it helps answer: *"Which equipment items and function locations belong
@@ -78,7 +80,9 @@ Verified 2026-11-08 UTC from the cited primary sources.
 - **CFIHOS ontology:** locate or request the license (nothing in the repo as of 2026-11-08);
   decide standalone vs CFIHOS-IDO variant; confirm OWL 2 DL conformance and SHACL rules.
 - **CFIHOS RDL v2.0:** obtain the POSC Caesar license terms; confirm download format.
-- **O3PO:** confirm ongoing maintenance (BSD/ESWA paper is 2024); check language scope.
+- **O3PO:** confirm ongoing maintenance (the repo's cited paper is Santos et al., *Expert
+  Systems with Applications* 238 (Part F), 122104, 2024, doi 10.1016/j.eswa.2023.122104);
+  check language scope.
 - **PCA RDL / ISO 15926-14:** license terms (RDL) and final ISO publication status (15926-14)
   as flagged in LSC-REF-001.
 - **BioPortal ISO-15926-2 oil:** re-fetch the live page (was bot-blocked); inspect
@@ -99,7 +103,7 @@ Verified 2026-11-08 UTC from the cited primary sources.
 ## Cross-references
 
 - General (non-downstream) ontology candidates: [LSC-REF-001 section](LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md#ontology-candidates-from-the-2026-11-08-search-proposals-not-adopted) —
-  QUDT, PCA RDL, IDO, HQDM, IES↔HQDM crosswalk, pyDEXPI, B2MML; plus the
+  QUDT, PCA RDL, IDO, ISO 15926-14, IES↔HQDM crosswalk, pyDEXPI, B2MML; plus the
   [external reference vocabularies section](LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md#external-reference-vocabularies-assessed-not-adopted) (Brick et al.).
 - OT operational-process ontology candidates (PKO, IOF, P-PLAN, PSL, ISA-88/106/18.2 status)
   were surfaced in the same 2026-11-08 search session but **are not filed** — only the
