@@ -854,3 +854,8 @@ ontology-authoring role). Dated pointers added to the N15 row, the §12 #13 amen
 block, and the §8.1 Phase 5b.1 exit criterion. Charter header "Last updated" refreshed.
 No code, no services, no uv changes. PR branch: docs/ontology-vocabulary-adaptations.
 Phase status unchanged: the Phase 0 mapping-table spine is still the next code change.
+
+Merge record: PR #62 merged 2026-11-08 06:00 UTC by the owner's direct instruction
+("please merge if everything is clean. and clean up") at head af59e2a with all required
+checks green and the reviewer's MERGE on that head; main at 4e19062; local and remote
+branch deleted.
