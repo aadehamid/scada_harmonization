@@ -826,3 +826,29 @@ the durable anchors are (a) the canonical section in the charter / register,
 -1 origin/main --format=%h`), not local pre-force-push SHAs. A doc that pins a
 local pre-push SHA invites a future reader to type a SHA that resolves to
 nothing.
+
+### 2026-11-07 UTC: charter §14.7 N36/N37 — SKOS match vocabulary + competency-question gate (docs only)
+
+Owner-confirmed additions adapted from the Intentional Arrangement / Ontology Pipeline
+resource catalog (Jessica Talisman, 2026: the SKOS mapping-relation vocabulary and the
+"The Question Is the Contract" competency-question essay). Recorded exchange, with
+Markdown stripped and quotes verbatim otherwise. Agent recommendation quoted to the
+owner: *The smallest concrete move: put a match_type column on identity_map (adaptation
+#1) and write the competency questions before the first ontology TTL (adaptation #4).
+Both fit the next mapping-table slice or the 5b kickoff without touching any decided
+contract. Want me to draft either as a charter/decision amendment for your approval?*
+Owner's recorded words: *go ahead and add them* (2026-11-07).
+
+One agent refinement, stated here so the record is honest: the recommendation said
+"match_type column", but §14 N15 already defines match_rule / match_confidence columns
+on identity_map, so N36 fixes the SKOS mapping-relation set (skos:exactMatch /
+skos:closeMatch / skos:broadMatch / skos:narrowMatch, plus unresolved) as match_rule's
+value domain instead of adding a column. Same intent, no duplicate column; flagged to
+the owner in the PR body.
+
+Applied as charter §14.7 (N36: SKOS match_rule vocabulary, refines N15; N37:
+competency questions gate the first config/ontology/*.ttl, anchors §12 #13's
+ontology-authoring role). Dated pointers added to the N15 row, the §12 #13 amendment
+block, and the §8.1 Phase 5b.1 exit criterion. Charter header "Last updated" refreshed.
+No code, no services, no uv changes. PR branch: docs/ontology-vocabulary-adaptations.
+Phase status unchanged: the Phase 0 mapping-table spine is still the next code change.
