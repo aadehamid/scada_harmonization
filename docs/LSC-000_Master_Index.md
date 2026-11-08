@@ -32,6 +32,7 @@ navigation and document identifiers, not scope or implementation status.
 | LSC-REG-001 | [Decision index](LSC-REG-001_Decision_Index.md) | Navigation to existing decision identifiers and evidence | Index only; preserve original qualifications |
 | LSC-REG-002 | [Source and integration register](LSC-REG-002_Source_and_Integration_Register.md) | Source/interface inventory, capture boundaries, and acceptance questions | Draft guide; charter owns contracts and phase exits |
 | LSC-REF-001 | [Technology reuse assessment](LSC-REF-001_Technology_Roles_and_Reuse_Assessment.md) | PPC component comparison and reuse proposals | Assessment only; new components remain phase-gated |
+| LSC-REF-002 | [Downstream oil & gas process ontologies](LSC-REF-002_Downstream_OilGas_Process_Ontologies.md) | Filed search of published downstream O&G operational-process ontologies | Proposals only; adoption remains phase-gated |
 
 Files keep their existing records and qualifications. Their document IDs come
 from the filename and this register. Existing charter, phase, decision, and

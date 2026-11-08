@@ -218,6 +218,16 @@ so it's not in the ontology pipeline."*
 
 ### Plane 3 tooling references (§12 #13, 2026-10-12 UTC)
 
+- **Downstream oil & gas operational-process ontologies** — filed search results in
+  [LSC-REF-002](LSC-REF-002_Downstream_OilGas_Process_Ontologies.md), proposals not adopted
+  (2026-11-08). Headline terms: **COPI** (Core Ontology of Petroleum Installations,
+  CC-BY-4.0, BFO 2020 + IOF-Core, states ISO 15926-4 / ISO 14224 / CFIHOS / DEXPI
+  interoperability — the strongest crosswalk target), **CFIHOS** (the industry asset-
+  information handover standard; an OWL ontology exists but its license is unverified —
+  treat as all-rights-reserved until cleared), and **O3PO** (MIT, BFO-aligned offshore
+  production plant — a pattern, not a dependency). No mature ontology specific to refining
+  operations themselves was found; nearest are general process-plant options (PCA RDL,
+  OntoCAPE) in LSC-REF-001.
 - **SSSOM (Simple Standard for Sharing Ontological Mappings)** — a tabular TSV standard for
   exchanging ontology-to-ontology mappings. Its fundamental slots are `subject_id`,
   `predicate_id`, `object_id`, and `mapping_justification` (machine-readable evidence of why
