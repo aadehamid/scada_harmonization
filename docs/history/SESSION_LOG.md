@@ -877,3 +877,10 @@ package (PyPI 0.8.0) defaults to five dependencies (`owlrl`, `pyshacl`, `pyshift
 `rdflib`, `reasonable`; default SHACL engine `shifty`, pyshacl selectable) — the lab
 installs none of them; Brick v1.5.0's equipment definitions include Pump, Compressor, and
 Valve, confirming the overlap noted in LSC-REF-001.
+
+Merge record: PR #63 merged 2026-11-08 (owner-authorized "merge if everything is
+clean", post-merge handoff fix; one transient Dagger Cloud 'project' check failure —
+local run passed and a rerun passed in 27s; re-asked via empty commit). PR #64
+merged 2026-11-08 07:09 UTC by the Cursor bot after it APPROVED the head; the bot's
+three source-fidelity comments (subsystem list, point-class pattern claim, SHACL
+release-note citation) were verified against the cited sources and fixed in 54500d7.
