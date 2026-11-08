@@ -1,9 +1,9 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-11-08 UTC (PR #62, docs-only, pending review: charter §14.7 N36/N37 — SKOS
-match vocabulary and the competency-question gate. Dagger CI setup landed on PR #61; mapping-table
-spine remains the next build slice)
+**Last updated:** 2026-11-08 UTC (PR #62 merged: charter §14.7 N36/N37 — SKOS match vocabulary and
+the competency-question gate; merged at head `af59e2a`, main now `4e19062`. Dagger CI setup landed
+on PR #61; mapping-table spine remains the next build slice)
 
 Read section 2 for current status and section 3 for the next build slice.
 The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
@@ -33,14 +33,15 @@ Entire recording remains enabled; automatic checkpoint uploads are off.
 This setting is local and does not configure other clones.
 The ignore rule landed in PR #60; the mapping slice below is unchanged.
 
-**Pending (2026-11-08): PR #62**, docs-only: charter §14.7 adds N36 (`identity_map.match_rule`
+**Decided 2026-11-08, merged via PR #62** (docs-only): charter §14.7 adds N36 (`identity_map.match_rule`
 vocabulary = SKOS mapping relations minus `skos:relatedMatch`, plus the local `unresolved` state;
 refines N15, no new column) and
 N37 (competency questions gate the first `config/ontology/*.ttl`; anchors §12 #13's
 ontology-authoring role; carried in the §8.1 Phase 5b.1 exit criterion). Owner-approved
 2026-11-08; the owner's recorded words and the agent refinement are in the session log.
 Adapted from the Intentional Arrangement / Ontology Pipeline resource catalog (Jessica Talisman).
-Pending until the PR reviewer merges it.
+Merged at head `af59e2a` with all checks green (Dagger, Bugbot, three Cursor agents) and the
+reviewer's MERGE on that head; independent review ran on Kimi/K3.1 Pro (two rounds).
 
 > **This section is the only place the current status lives.** `README.md` and
 > `AGENTS.md` point here rather than restating it, because three copies drifted:
