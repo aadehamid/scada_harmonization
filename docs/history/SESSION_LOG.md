@@ -907,5 +907,6 @@ crosswalk (LICENSE file = CC-BY-4.0; repo's own claims cited as candidate-for-re
 pyDEXPI (AGPL-3.0, DEXPI 2.0.1, active 2026-11-01), B2MML (MESA license unverified), and
 an explicit negative result for a mature open ISA-95 OWL. Crosswalk lane wording keeps the
 PR #64 distinction: class alignment via plain SKOS mapping relations outside identity_map;
-match_rule stays a same-referent vocabulary. Learning log gains an SSSOM glossary entry.
-Nothing adopted; no charter change.
+match_rule (§14 N36) governs identity_map reconciliation rows — exactMatch/closeMatch (same
+referent), broadMatch/narrowMatch (hierarchy mismatch), plus unresolved — never class-level
+alignment. Learning log gains an SSSOM glossary entry. Nothing adopted; no charter change.
