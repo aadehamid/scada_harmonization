@@ -218,6 +218,12 @@ so it's not in the ontology pipeline."*
 
 ### Plane 3 tooling references (§12 #13, 2026-10-12 UTC)
 
+- **`brickschema`** — BSD-3-Clause Python package for working with the Brick Schema ontology
+  (PyPI 0.8.0). It builds on `pyshacl` and `rdflib` — the same libraries the lab pins — so it
+  validates RDF models without a new stack. Assessed 2026-11-08 UTC as a **reference, not
+  adopted** (LSC-REF-001): Brick is a building-automation ontology (HVAC, pumps, valves,
+  meters), not a process-plant one; borrow its patterns (point taxonomy, QUDT units, SHACL
+  rule sets, `ref:` external references), and see the LSC-REF-001 crosswalk proposal.
 - **`neontology`** — MIT, Pydantic/pandas Python-class → Neo4j mapper. Its public API + the
   optional `[grand]` extra (`networkx` + `grand-cypher`) do **not** include an RDF/OWL parser
   (verified at pypi.org/project/neontology/ 2026-10-12 UTC). The lab uses `rdflib` + `pyshacl`

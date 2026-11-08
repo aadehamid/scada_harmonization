@@ -859,3 +859,16 @@ Merge record: PR #62 merged 2026-11-08 06:00 UTC by the owner's direct instructi
 ("please merge if everything is clean. and clean up") at head af59e2a with all required
 checks green and the reviewer's MERGE on that head; main at 4e19062; local and remote
 branch deleted.
+
+### 2026-11-08 UTC: Brick Schema assessed as a domain-reference vocabulary, not adopted (docs only)
+
+The owner asked to evaluate https://brickschema.org/ ("can you check if we can use
+https://brickschema.org/ here. it looks great") and then approved the proposed recording
+("go ahead"). The assessment, from primary sources inspected 2026-11-08 UTC, is recorded
+in LSC-REF-001 as a proposal (Brick Schema, BSD-3-Clause, building-automation ontology,
+v1.4.4 stable 2025-05-01 / v1.5.0 published 2026-10-29): NOT adopted as a canonical
+vocabulary — the lab is specialty chemicals and ISO 15926/DEXPI-aligned (§12 #13) — but
+kept as a pattern reference (point-type taxonomy, QUDT units, SHACL rule sets, external
+references) and a bounded Phase 5b/7 crosswalk proposal via the SKOS match vocabulary of
+§14 N36. The `brickschema` Python package (PyPI 0.8.0) depends on pyshacl and rdflib —
+the libraries the lab already pins; nothing new is installed.
