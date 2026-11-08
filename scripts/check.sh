@@ -175,80 +175,136 @@ fi
 #
 # Scope: tracked and non-ignored files. Ignored build paths (.venv/,
 # __pycache__/, .pytest_cache/, .ruff_cache/) are outside it.
-tracked_paths() {
-  git ls-files -z --cached --others --exclude-standard
-}
-
-# `--cached` lists a tracked file that has been deleted from the working tree
-# without staging, and reading that path fails; a broken symlink fails a content
-# read too. Neither is a check doing something, and a checkout is in both states
-# while someone works, so each read below takes the paths it can handle. The
-# status and index lines keep those paths in the snapshot, so a deletion or a
-# retargeted link still moves it. A regular file that cannot be read is a
-# different matter, and it stops the snapshot.
 #
-# Each filter reads the path list from its standard input, so it sits inside the
-# pipeline whose status is checked. `<(tracked_paths)` in its place discards the
-# status of what it runs: a `git ls-files` that failed left an empty list, both
-# reads answered happily on nothing, and the state stopped moving — measured, a
-# tracked file changed from mode 644 to mode 600 under a failing enumeration and
-# the snapshot stood still. `pipefail` carries the failed enumeration out.
-hashable_paths() {
-  local path
-  while IFS= read -r -d '' path; do
-    if [ -f "$path" ]; then printf '%s\0' "$path"; fi
-  done
-}
-
-# stat reports on the link itself, so it answers for a broken one; `-e` alone
-# would drop that path, and `%N` below is what records the link's target.
-present_paths() {
-  local path
-  while IFS= read -r -d '' path; do
-    if [ -e "$path" ] || [ -L "$path" ]; then printf '%s\0' "$path"; fi
-  done
-}
-
+# The snapshot is computed by a small Python program rather than by a shell
+# pipeline of GNU tools: `sed -z`, `stat -c` and `sha256sum` are GNU-only and
+# do not exist on stock macOS, where the guard has to run too. Python 3 is the
+# one tool guaranteed on both (the CI image is python:3.13-slim; macOS carries
+# /usr/bin/python3), and it is already the language the checks run under.
+#
+# The program preserves the guard's failure semantics. Each read is asked for
+# its own status, and no read is allowed to fail silently: a path missing from
+# both snapshots compares equal, so a check that rewrote a file the guard could
+# not read would still reach "All checks passed." It did — a file at mode 000
+# whose contents were replaced twice produced the same state every time. And `git
+# ls-files --cached` lists a tracked file that has been deleted from the working
+# tree, so a deletion must leave the snapshot (via the status line), not stop it;
+# a broken symlink likewise stays in the mode line, not the content line. A
+# regular file that cannot be read is a different matter, and it stops the
+# snapshot. Only the paths `git` reports are considered, which keeps the scope
+# exactly what `--exclude-standard` decides: git's own config (fixed to /dev/null
+# above) is what the guard reads, never the caller's ignores.
 tree_state() {
-  local contents entries status index
-  # A read that fails has to stop the snapshot, not drop out of it: a path
-  # missing from both snapshots compares equal, so a check that rewrote a file
-  # the guard could not read would still reach "All checks passed." It did — a
-  # file at mode 000 whose contents were replaced twice produced the same state
-  # every time.
-  #
-  # So every read is asked for its own status, and none of them is left to an
-  # enclosing group: a group's status is its last command's, and a pipeline's is
-  # its last stage's unless `pipefail` is set.
-  #
-  # Every path goes through './' or a trailing '--', so a file named '--help' is
-  # read as a path rather than as an option to the tool. The './' prefix is
-  # load-bearing: sha256sum reads a bare '-' operand as standard input even after
-  # '--', so a file named '-' would never be read.
-  if ! contents="$(tracked_paths | hashable_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r sha256sum --)"; then
-    echo >&2 "FAIL: the paths could not be listed, or one could not be hashed."
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo >&2 "FAIL: the snapshot needs python3 on PATH, and none was found."
     return 1
   fi
-  # Mode, filesystem type, and — for a symlink — its target, quoted and escaped
-  # by %N, so a target ending in a newline cannot collide with a different name.
-  if ! entries="$(tracked_paths | present_paths | sort -z | sed -z 's|^|./|' | xargs -0 -r stat -c '%A %F %N' --)"; then
-    echo >&2 "FAIL: the paths could not be listed, or one could not be stat-ed."
-    return 1
-  fi
-  # Content hashes miss mode changes and index state (an executable bit dropped
-  # from the hook, for one), so keep git's own view alongside them.
-  if ! status="$(git status --porcelain --untracked-files=all)"; then
-    echo >&2 "FAIL: git could not report the working tree's status."
-    return 1
-  fi
-  # Status records change *categories*, not index blob ids: a staged blob can
-  # change while the status string stays 'MM' and the working file is untouched.
-  # --stage carries the blob id, mode and stage for each path.
-  if ! index="$(git ls-files --stage -z | sha256sum | cut -d' ' -f1)"; then
-    echo >&2 "FAIL: git could not report the index."
-    return 1
-  fi
-  printf '%s\n' "$contents" "$entries" "$status" "$index" | sha256sum | cut -d' ' -f1
+  python3 - <<'PYEOF'
+import hashlib
+import json
+import os
+import stat
+import subprocess
+import sys
+
+
+def fail(message: str) -> None:
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def git(args: list[str], message: str) -> bytes:
+    result = subprocess.run(["git", *args], capture_output=True)
+    if result.returncode != 0:
+        fail(message)
+    return result.stdout
+
+
+# Paths, as git reports them, sorted deterministically. Sorting in Python (on
+# the raw bytes) replaces `sort -z`, whose collation would otherwise vary with
+# the locale that happens to be set. `--cached` lists tracked files; a deleted
+# one appears here but not on disk, and is handled below.
+paths = sorted(
+    git(
+        ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+        "FAIL: the paths could not be listed, or one could not be hashed.",
+    ).split(b"\0")[:-1]
+)
+
+# Everything the snapshot is assembled from is kept as bytes, the way git and
+# the filesystem report it: an invalid-UTF-8 pathname must move the snapshot,
+# not crash the guard with a decode error, and the original pipeline hashed
+# raw bytes too.
+
+# Content hashes: one line per readable regular file, in the same shape
+# `sha256sum -- ./path` produces. A directory, a broken symlink or a deleted
+# tracked file is skipped here (each is a state someone works in); a regular
+# file that cannot be read stops the guard.
+content_lines = []
+for path in paths:
+    if not os.path.isfile(path):
+        continue
+    try:
+        with open(path, "rb") as handle:
+            digest = hashlib.sha256(handle.read()).hexdigest()
+    except OSError:
+        fail("FAIL: the paths could not be listed, or one could not be hashed.")
+    content_lines.append(f"{digest}  ./".encode() + path)
+contents = b"\n".join(content_lines)
+
+# Mode, filesystem type, and — for a symlink — its target. `lstat` reports on
+# the link itself, so it answers for a broken one; the target is quoted with
+# JSON so a target ending in a newline cannot collide with a different name
+# (the job GNU stat's %N did). A deleted tracked file has no lstat answer and is
+# carried by the status line instead.
+entry_lines = []
+for path in paths:
+    try:
+        st = os.lstat(path)
+    except OSError:
+        continue
+    mode = stat.filemode(st.st_mode).encode()
+    if stat.S_ISREG(st.st_mode):
+        kind = b"regular file"
+    elif stat.S_ISLNK(st.st_mode):
+        kind = b"symbolic link"
+    elif stat.S_ISDIR(st.st_mode):
+        kind = b"directory"
+    elif stat.S_ISFIFO(st.st_mode):
+        kind = b"fifo"
+    elif stat.S_ISSOCK(st.st_mode):
+        kind = b"socket"
+    elif stat.S_ISCHR(st.st_mode):
+        kind = b"character device"
+    elif stat.S_ISBLK(st.st_mode):
+        kind = b"block device"
+    else:
+        kind = b"other"
+    name = json.dumps(path.decode("utf-8", "surrogateescape")).encode()
+    if stat.S_ISLNK(st.st_mode):
+        target = json.dumps(
+            os.readlink(path).decode("utf-8", "surrogateescape")
+        ).encode()
+        entry_lines.append(mode + b" " + kind + b" " + name + b" -> " + target)
+    else:
+        entry_lines.append(mode + b" " + kind + b" " + name)
+entries = b"\n".join(entry_lines)
+
+# Content hashes miss mode changes and index state (an executable bit dropped
+# from the hook, for one), so git's own view sits alongside them: the working
+# tree's status, then the index --stage listing, which carries the blob id, mode
+# and stage path-by-path so a staged blob that changed while the status string
+# stayed 'MM' still moves the snapshot.
+status = git(
+    ["status", "--porcelain", "--untracked-files=all"],
+    "FAIL: git could not report the working tree's status.",
+).rstrip(b"\n")
+index = git(["ls-files", "--stage", "-z"], "FAIL: git could not report the index.")
+index_digest = hashlib.sha256(index).hexdigest().encode()
+
+snapshot = b"\n".join([contents, entries, status, index_digest]) + b"\n"
+print(hashlib.sha256(snapshot).hexdigest())
+PYEOF
 }
 
 # For the guard's own tests: print what a run would compare, and stop. The tests
