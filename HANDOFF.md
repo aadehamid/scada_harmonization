@@ -1,7 +1,7 @@
 # Project Handoff
 
 **Purpose:** let any agent (or human) pick up this project without re-deriving context.
-**Last updated:** 2026-11-07 UTC (PR #62, docs-only, pending review: charter §14.7 N36/N37 — SKOS
+**Last updated:** 2026-11-08 UTC (PR #62, docs-only, pending review: charter §14.7 N36/N37 — SKOS
 match vocabulary and the competency-question gate. Dagger CI setup landed on PR #61; mapping-table
 spine remains the next build slice)
 
@@ -15,7 +15,7 @@ The [master index](docs/LSC-000_Master_Index.md) maps each subject to its owner.
 [The project charter](docs/LSC-001_Problem_Statement_and_Project_Charter.md)
 defines the project. This file owns continuity and current status.
 
-## 2. Current status (2026-11-07)
+## 2. Current status (2026-11-08)
 
 Dagger v1.0.0-beta.25 wraps the unchanged
 `scripts/check.sh`. Run `./scripts/dagger.sh check --progress plain`.
@@ -33,11 +33,12 @@ Entire recording remains enabled; automatic checkpoint uploads are off.
 This setting is local and does not configure other clones.
 The ignore rule landed in PR #60; the mapping slice below is unchanged.
 
-**Pending (2026-11-07): PR #62**, docs-only: charter §14.7 adds N36 (`identity_map.match_rule`
-vocabulary = SKOS mapping relations minus `skos:relatedMatch`; refines N15, no new column) and
+**Pending (2026-11-08): PR #62**, docs-only: charter §14.7 adds N36 (`identity_map.match_rule`
+vocabulary = SKOS mapping relations minus `skos:relatedMatch`, plus the local `unresolved` state;
+refines N15, no new column) and
 N37 (competency questions gate the first `config/ontology/*.ttl`; anchors §12 #13's
 ontology-authoring role; carried in the §8.1 Phase 5b.1 exit criterion). Owner-approved
-2026-11-07; the owner's recorded words and the agent refinement are in the session log.
+2026-11-08; the owner's recorded words and the agent refinement are in the session log.
 Adapted from the Intentional Arrangement / Ontology Pipeline resource catalog (Jessica Talisman).
 Pending until the PR reviewer merges it.
 

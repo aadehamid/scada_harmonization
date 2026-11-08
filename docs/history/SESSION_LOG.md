@@ -827,7 +827,7 @@ the durable anchors are (a) the canonical section in the charter / register,
 local pre-push SHA invites a future reader to type a SHA that resolves to
 nothing.
 
-### 2026-11-07 UTC: charter §14.7 N36/N37 — SKOS match vocabulary + competency-question gate (docs only)
+### 2026-11-08 UTC: charter §14.7 N36/N37 — SKOS match vocabulary + competency-question gate (docs only)
 
 Owner-confirmed additions adapted from the Intentional Arrangement / Ontology Pipeline
 resource catalog (Jessica Talisman, 2026: the SKOS mapping-relation vocabulary and the
@@ -837,7 +837,7 @@ owner: *The smallest concrete move: put a match_type column on identity_map (ada
 #1) and write the competency questions before the first ontology TTL (adaptation #4).
 Both fit the next mapping-table slice or the 5b kickoff without touching any decided
 contract. Want me to draft either as a charter/decision amendment for your approval?*
-Owner's recorded words: *go ahead and add them* (2026-11-07).
+Owner's recorded words: *go ahead and add them* (2026-11-08, session started 2026-11-07 local).
 
 One agent refinement, stated here so the record is honest: the recommendation said
 "match_type column", but §14 N15 already defines match_rule / match_confidence columns
