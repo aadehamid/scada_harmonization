@@ -865,10 +865,15 @@ branch deleted.
 The owner asked to evaluate https://brickschema.org/ ("can you check if we can use
 https://brickschema.org/ here. it looks great") and then approved the proposed recording
 ("go ahead"). The assessment, from primary sources inspected 2026-11-08 UTC, is recorded
-in LSC-REF-001 as a proposal (Brick Schema, BSD-3-Clause, building-automation ontology,
+in LSC-REF-001 as a proposal (Brick Schema, BSD-3-Clause, buildings-centric ontology,
 v1.4.4 stable 2025-05-01 / v1.5.0 published 2026-10-29): NOT adopted as a canonical
 vocabulary — the lab is specialty chemicals and ISO 15926/DEXPI-aligned (§12 #13) — but
 kept as a pattern reference (point-type taxonomy, QUDT units, SHACL rule sets, external
-references) and a bounded Phase 5b/7 crosswalk proposal via the SKOS match vocabulary of
-§14 N36. The `brickschema` Python package (PyPI 0.8.0) depends on pyshacl and rdflib —
-the libraries the lab already pins; nothing new is installed.
+references) and two bounded Phase 5b/7 proposals: a class-level vocabulary crosswalk using
+plain SKOS mapping relations outside identity_map (class similarity is not same-referent
+evidence, so §14 N36's identity match rules do not apply to it), while the N36 exercise
+itself stays on concrete identity_map rows (the N15 seeded case). The `brickschema` Python
+package (PyPI 0.8.0) defaults to five dependencies (`owlrl`, `pyshacl`, `pyshifty`,
+`rdflib`, `reasonable`; default SHACL engine `shifty`, pyshacl selectable) — the lab
+installs none of them; Brick v1.5.0's equipment definitions include Pump, Compressor, and
+Valve, confirming the overlap noted in LSC-REF-001.

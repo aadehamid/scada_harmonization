@@ -89,7 +89,7 @@ demonstrate the stated use before any adoption.
 
 | Vocabulary | Verdict | Basis and reconsideration point |
 | --- | --- | --- |
-| **Brick Schema** (brickschema.org) — building-automation ontology, BSD-3-Clause, RDF + SHACL rule sets + QUDT units | **Reference only; not adopted.** The lab is specialty chemicals; Brick's equipment hierarchy (air handling units, chillers, lighting) does not describe TEP Unit 100, and Plane 3's ontology vocabulary is ISO 15926/DEXPI-aligned (§12 #13). Borrowed as **patterns**: (1) the six-class point taxonomy (Sensor / Setpoint / Command / Status / Alarm / Parameter) mirrors `metric_registry` semantics, Sparkplug metric types, and §14 N20 alarm states; (2) QUDT quantity kinds are the real-world precedent for N18's "QUDT-style unit nodes later" hook; (3) SHACL rule sets shipped alongside the ontology match the §12 #13 `pyshacl` gate; (4) the `ref:` external-reference pattern (BACnet / time-series / IFC pointers from semantics to data) parallels the mapping table's join keys. **Bounded Phase 5b/7 proposal:** a demonstration crosswalk typing pump/instrument classes with `skos:closeMatch` into Brick's vocabulary, exercising §14 N36's identity match vocabulary across domains. Reconsider at Phase 5b.1 (crosswalk) or Phase 7 (GraphRAG interoperability); a reconsideration re-inspects the release in force. |
+| **Brick Schema** (brickschema.org) — building-automation ontology, BSD-3-Clause, RDF + SHACL rule sets + QUDT units | **Reference only; not adopted.** Brick is **buildings-centric** — its subsystems are HVAC, lighting, plumbing, and electrical — so it cannot carry the lab's canonical process vocabulary (reactors, columns, process topology): Plane 3's ontology stays ISO 15926/DEXPI-aligned (§12 #13). It **does overlap** on generic equipment the lab's machines use — `Pump`, `Compressor`, `Valve` and their subclasses exist in Brick v1.5.0's equipment definitions — which is exactly why a crosswalk is plausible but also never sufficient on its own. Borrowed as **patterns**: (1) the six-class point taxonomy (Sensor / Setpoint / Command / Status / Alarm / Parameter) mirrors `metric_registry` semantics, Sparkplug metric types, and §14 N20 alarm states; (2) QUDT quantity kinds are the real-world precedent for N18's "QUDT-style unit nodes later" hook; (3) SHACL rule sets shipped alongside the ontology match the §12 #13 `pyshacl` gate; (4) the `ref:` external-reference pattern (BACnet / time-series / IFC pointers from semantics to data) parallels the mapping table's join keys. **Bounded Phase 5b/7 proposal, two parts:** (a) an optional **vocabulary-mapping crosswalk** using plain SKOS mapping relations between class terms (lab ontology ↔ Brick) — the standard SKOS mapping use, kept outside `identity_map` because class-level similarity establishes no same-referent evidence and cannot use §14 N36's identity match rules; (b) the §14 N36 exercise stays as designed — typing **identity_map rows for concrete identities** (the N15 seeded case, `P-101A` vs `EQ-4471`) with `skos:closeMatch` only where same-referent evidence exists. Reconsider at Phase 5b.1 (crosswalk) or Phase 7 (GraphRAG interoperability); a reconsideration re-inspects the release in force. |
 
 Evidence, inspected 2026-11-08 UTC: release and license from the Brick repository
 ([github.com/BrickSchema/Brick](https://github.com/BrickSchema/Brick), BSD-3-Clause; v1.5.0
@@ -98,10 +98,14 @@ distributions, and SHACL tooling notes from
 [brickschema.org/resources](https://brickschema.org/resources/) (1.4.4, 2025-05-01; SHACL moved
 into the ontology with 1.3.0, 2022-10-12) and the Brick introduction page; the point-type
 taxonomy and external-reference pattern from the Brick 1.3+ release notes and documentation;
-the Python package from PyPI (brickschema 0.8.0, which declares `pyshacl` and `rdflib`
-dependencies — the libraries already pinned in §4.1, so no new validation stack). The
-two-domain comparison (buildings vs. process) is read against the charter's §2 domain table; no
-TEP equipment class was found in the Brick release notes for v1.4.0–v1.5.0.
+the Python package from PyPI (brickschema 0.8.0: its default dependencies are `owlrl`,
+`pyshacl`, `pyshifty`, `rdflib`, and `reasonable`; the default SHACL engine is `shifty`
+with `engine="pyshacl"` as the explicit alternative, and the default OWL 2 RL reasoner is
+`reasonable`). `pyshacl` and `rdflib` are the libraries already pinned in §4.1, but a future
+adoption would also bring the three default dependencies the lab does not use — assessed
+before any install. The domain comparison (buildings vs. process) is read against the
+charter's §2 domain table and against Brick v1.5.0's equipment definitions
+(`bricksrc/equipment.py`, which defines `Pump`, `Compressor`, and `Valve`).
 
 ## Documentation coverage
 
