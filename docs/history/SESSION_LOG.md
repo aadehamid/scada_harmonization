@@ -936,5 +936,7 @@ including oil and gas"), BioPortal ISO-15926-2 oil entry (existence + OWL status
 search snippet; live page bot-blocked — flagged not independently verified), and IBM ITOPS
 (IT operations, archived 2024 — excluded as not oil & gas). Negatives: no mature openly
 licensed ontology specific to downstream refining operations themselves was found; the
-nearest are the general process-plant options already in LSC-REF-001 (PCA RDL, OntoCAPE) and
+nearest are the general process-plant options already in LSC-REF-001 (PCA RDL) and, with
+separate checks for its GPL license and version, OntoCAPE (RWTH Aachen, chemical-engineering
+process ontology — surfaced in the 2026-11-08 search but not filed in LSC-REF-001), and
 the BFO/IOF-aligned COPI. Nothing adopted; charter unchanged.

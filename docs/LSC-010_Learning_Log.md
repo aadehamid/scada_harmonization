@@ -226,8 +226,10 @@ so it's not in the ontology pipeline."*
   information handover standard; an OWL ontology exists but its license is unverified —
   treat as all-rights-reserved until cleared), and **O3PO** (MIT, BFO-aligned offshore
   production plant — a pattern, not a dependency). No mature ontology specific to refining
-  operations themselves was found; nearest are general process-plant options (PCA RDL,
-  OntoCAPE) in LSC-REF-001.
+  operations themselves was found; nearest are the general process-plant options already
+  recorded in LSC-REF-001 (PCA RDL) and, with separate checks for its GPL license and
+  version, OntoCAPE (RWTH Aachen, chemical-engineering process ontology — surfaced in the
+  2026-11-08 search but not filed in LSC-REF-001).
 - **SSSOM (Simple Standard for Sharing Ontological Mappings)** — a tabular TSV standard for
   exchanging ontology-to-ontology mappings. Its fundamental slots are `subject_id`,
   `predicate_id`, `object_id`, and `mapping_justification` (machine-readable evidence of why
