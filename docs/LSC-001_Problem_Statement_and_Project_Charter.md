@@ -874,7 +874,8 @@ beyond ERPNext community.
       (PyPI project page); OpenMetadata native RDF glossary import is documented in the 2.0
       breaking-changes for data governance (`importRdf` is new in 2.0; 1.x does not have it).
     - **Amended (2026-11-07, §14 N36/N37):** the identity-reconciliation stitch IT ↔ OT ↔ ET
-      adopts the SKOS mapping relations as `identity_map.match_rule`'s vocabulary (§14 N36;
+      adopts the SKOS mapping relations minus `skos:relatedMatch` (it does not assert a shared
+      referent) as `identity_map.match_rule`'s vocabulary (§14 N36);
       and the ontology-authoring role gains a **competency-question gate** — the first
       `config/ontology/*.ttl` is written only after its competency questions are recorded
       (§14 N37). Both adapted from the Intentional Arrangement / Ontology Pipeline resource
